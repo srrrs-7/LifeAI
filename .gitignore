@@ -1,0 +1,21 @@
+# Env
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Devcontainer local overrides
+.devcontainer/compose.override.yaml
+.devcontainer/setup.personal.sh
+
+# Serena
+.serena/cache/

@@ -1,0 +1,14 @@
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - ..:/workspace/main/lifeai:cached
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW

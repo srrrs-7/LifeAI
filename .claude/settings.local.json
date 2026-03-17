@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__list_dir",
+      "Bash(git *)",
+      "Bash(cargo *)",
+      "Bash(make *)",
+      "Bash(python3 *)",
+      "Bash(ls *)",
+      "Bash(chmod *)",
+      "Bash(mkdir *)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "serena"
+  ]
+}

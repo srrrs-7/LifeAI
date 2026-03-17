@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[pre-commit] running formatting and lint checks"
+cargo fmt
+cargo clippy --all-targets --all-features -- -D warnings
