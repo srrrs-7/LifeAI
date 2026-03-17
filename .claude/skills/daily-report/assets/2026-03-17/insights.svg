@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="980"
+     viewBox="0 0 800 980" font-family="system-ui, -apple-system, sans-serif">
+
+  <defs>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00000010" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="980" fill="#FAFBFC" />
+
+  <!-- Header -->
+  <rect x="0" y="0" width="800" height="100" fill="#2B4C7E" rx="0" />
+  <text x="40" y="38" font-size="14" fill="#FFFFFF" opacity="0.8">📅 2026年03月17日（火）</text>
+  <text x="40" y="68" font-size="20" font-weight="700" fill="#FFFFFF">AI協働開発ワークフローに</text>
+  <text x="40" y="92" font-size="20" font-weight="700" fill="#FFFFFF">手応えを得た一日</text>
+
+  <!-- Activities Section (left) -->
+  <rect x="20" y="120" width="370" height="200" rx="12" fill="#F0F2F5" filter="url(#shadow)" />
+  <text x="40" y="152" font-size="20">📋</text>
+  <text x="68" y="152" font-size="18" font-weight="600" fill="#2B4C7E">実施事項</text>
+
+  <rect x="40" y="168" width="4" height="20" rx="2" fill="#2B4C7E" />
+  <text x="52" y="183" font-size="14" fill="#333333">UI変更の実施</text>
+
+  <rect x="40" y="198" width="4" height="20" rx="2" fill="#2B4C7E" />
+  <text x="52" y="213" font-size="14" fill="#333333">DBカラム削除</text>
+  <text x="52" y="231" font-size="12" fill="#828282">影響範囲大 → AIと協働で効率化</text>
+
+  <rect x="40" y="248" width="4" height="20" rx="2" fill="#2B4C7E" />
+  <text x="52" y="263" font-size="14" fill="#333333">外部連携の実装</text>
+
+  <!-- Insights Section (right) -->
+  <rect x="410" y="120" width="370" height="310" rx="12" fill="#F0F2F5" filter="url(#shadow)" />
+  <text x="430" y="152" font-size="20">💡</text>
+  <text x="458" y="152" font-size="18" font-weight="600" fill="#2B4C7E">気づき・学び</text>
+
+  <rect x="430" y="168" width="330" height="44" rx="8" fill="#FFF8E1" />
+  <rect x="430" y="168" width="4" height="44" rx="2" fill="#F2C94C" />
+  <text x="444" y="186" font-size="13" font-weight="600" fill="#333333">信頼基盤への移譲</text>
+  <text x="444" y="204" font-size="11" fill="#828282">ベクトルを整え生産性を向上</text>
+
+  <rect x="430" y="222" width="330" height="44" rx="8" fill="#FFF8E1" />
+  <rect x="430" y="222" width="4" height="44" rx="2" fill="#F2C94C" />
+  <text x="444" y="240" font-size="13" font-weight="600" fill="#333333">ベクトル定義の精度が鍵</text>
+  <text x="444" y="258" font-size="11" fill="#828282">AIへの方向性指示を正確に</text>
+
+  <rect x="430" y="276" width="330" height="44" rx="8" fill="#FFF8E1" />
+  <rect x="430" y="276" width="4" height="44" rx="2" fill="#F2C94C" />
+  <text x="444" y="294" font-size="13" font-weight="600" fill="#333333">レビューはHub集約型</text>
+  <text x="444" y="312" font-size="11" fill="#828282">複数agentで多角的レビュー</text>
+
+  <rect x="430" y="330" width="330" height="44" rx="8" fill="#FFF8E1" />
+  <rect x="430" y="330" width="4" height="44" rx="2" fill="#F2C94C" />
+  <text x="444" y="348" font-size="13" font-weight="600" fill="#333333">ゴール設定は人間の仕事</text>
+  <text x="444" y="366" font-size="11" fill="#828282">万人に経営者視点が必要な時代</text>
+
+  <rect x="430" y="384" width="330" height="30" rx="8" fill="#FFF8E1" />
+  <rect x="430" y="384" width="4" height="30" rx="2" fill="#F2C94C" />
+  <text x="444" y="404" font-size="13" font-weight="600" fill="#333333">価値の届け方を問い続ける</text>
+
+  <!-- Challenges Section (left) -->
+  <rect x="20" y="450" width="370" height="180" rx="12" fill="#F0F2F5" filter="url(#shadow)" />
+  <text x="40" y="482" font-size="20">🚧</text>
+  <text x="68" y="482" font-size="18" font-weight="600" fill="#2B4C7E">課題</text>
+
+  <rect x="40" y="500" width="330" height="50" rx="8" fill="#FFFFFF" />
+  <rect x="40" y="500" width="4" height="50" rx="2" fill="#EB5757" />
+  <text x="54" y="520" font-size="13" font-weight="600" fill="#333333">言語化力の不足</text>
+  <rect x="54" y="528" width="56" height="18" rx="9" fill="#E8F5E9" />
+  <text x="82" y="541" text-anchor="middle" font-size="10" fill="#27AE60">対応中</text>
+  <text x="118" y="541" font-size="11" fill="#828282">UI用語の習得で改善</text>
+
+  <rect x="40" y="560" width="330" height="50" rx="8" fill="#FFFFFF" />
+  <rect x="40" y="560" width="4" height="50" rx="2" fill="#EB5757" />
+  <text x="54" y="580" font-size="13" font-weight="600" fill="#333333">ボキャブラリ力の不足</text>
+  <rect x="54" y="588" width="56" height="18" rx="9" fill="#FFF3E0" />
+  <text x="82" y="601" text-anchor="middle" font-size="10" fill="#E8834A">調査中</text>
+  <text x="118" y="601" font-size="11" fill="#828282">語彙を意識的に拡充</text>
+
+  <!-- Next Steps Section (right) -->
+  <rect x="410" y="450" width="370" height="180" rx="12" fill="#F0F2F5" filter="url(#shadow)" />
+  <text x="430" y="482" font-size="20">🎯</text>
+  <text x="458" y="482" font-size="18" font-weight="600" fill="#2B4C7E">次の一手</text>
+
+  <circle cx="442" cy="510" r="6" fill="#EB5757" />
+  <text x="454" y="514" font-size="11" fill="#EB5757" font-weight="600">高</text>
+  <text x="476" y="514" font-size="13" fill="#333333">AI開発ベストプラクティス</text>
+  <text x="476" y="530" font-size="11" fill="#828282">横展開パターンの整理</text>
+
+  <circle cx="442" cy="550" r="6" fill="#EB5757" />
+  <text x="454" y="554" font-size="11" fill="#EB5757" font-weight="600">高</text>
+  <text x="476" y="554" font-size="13" fill="#333333">AWS全冠 追い込み</text>
+  <text x="476" y="570" font-size="11" fill="#828282">3月中の達成を目指す</text>
+
+  <circle cx="442" cy="590" r="6" fill="#E8834A" />
+  <text x="454" y="594" font-size="11" fill="#E8834A" font-weight="600">中</text>
+  <text x="476" y="594" font-size="13" fill="#333333">体系的な学習計画策定</text>
+  <text x="476" y="610" font-size="11" fill="#828282">FE / AWS / Claude</text>
+
+  <!-- Workflow Highlight Section (full width) -->
+  <rect x="20" y="650" width="760" height="160" rx="12" fill="#F0F2F5" filter="url(#shadow)" />
+  <text x="40" y="682" font-size="20">🌟</text>
+  <text x="68" y="682" font-size="18" font-weight="600" fill="#2B4C7E">本日のワークフロー</text>
+  <text x="40" y="704" font-size="13" fill="#828282">AI協働開発の実践パターン</text>
+
+  <!-- Flow: PBI → Draft → PR → Multi-Review → Implement -->
+  <rect x="40" y="720" width="120" height="36" rx="8" fill="#2B4C7E" />
+  <text x="100" y="743" text-anchor="middle" font-size="12" font-weight="600" fill="#FFFFFF">PBI要件定義</text>
+
+  <text x="172" y="742" font-size="16" fill="#828282">→</text>
+
+  <rect x="192" y="720" width="120" height="36" rx="8" fill="#E8834A" />
+  <text x="252" y="743" text-anchor="middle" font-size="12" font-weight="600" fill="#FFFFFF">AIドラフト実装</text>
+
+  <text x="324" y="742" font-size="16" fill="#828282">→</text>
+
+  <rect x="344" y="720" width="100" height="36" rx="8" fill="#F2C94C" />
+  <text x="394" y="743" text-anchor="middle" font-size="12" font-weight="600" fill="#333333">PR作成</text>
+
+  <text x="456" y="742" font-size="16" fill="#828282">→</text>
+
+  <rect x="476" y="720" width="130" height="36" rx="8" fill="#27AE60" />
+  <text x="541" y="743" text-anchor="middle" font-size="12" font-weight="600" fill="#FFFFFF">複数LLMレビュー</text>
+
+  <text x="618" y="742" font-size="16" fill="#828282">→</text>
+
+  <rect x="638" y="720" width="120" height="36" rx="8" fill="#2B4C7E" />
+  <text x="698" y="743" text-anchor="middle" font-size="12" font-weight="600" fill="#FFFFFF">改善・実装</text>
+
+  <text x="40" y="786" font-size="12" fill="#828282">効率性と品質保証を両立するワークフローとして有効性を確認</text>
+
+  <!-- Past Connection -->
+  <rect x="20" y="830" width="760" height="70" rx="12" fill="#F0F2F5" filter="url(#shadow)" />
+  <text x="40" y="862" font-size="20">🔗</text>
+  <text x="68" y="862" font-size="18" font-weight="600" fill="#2B4C7E">過去の日報との関連</text>
+  <text x="40" y="886" font-size="13" fill="#828282">初回日報 — 今後の継続テーマ: AI協働開発の最適化 / 体系的学習の推進</text>
+
+  <!-- Footer -->
+  <line x1="40" y1="930" x2="760" y2="930" stroke="#DADCE0" stroke-width="1" stroke-dasharray="4,4" />
+  <text x="400" y="960" text-anchor="middle" font-size="12" fill="#828282">LifeAI Daily Report — 2026-03-17</text>
+
+</svg>
