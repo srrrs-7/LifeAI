@@ -79,50 +79,29 @@ After Q5, respond with:
 
 > ありがとうございます！いただいた内容をもとに、日報とインフォグラフィックを作成いたします。少々お待ちください。
 
-## Step 2: Generate daily.md
+## Step 2: Delegate to Sub-Agent for Generation
 
-Create `${CLAUDE_SKILL_DIR}/assets/<yyyy-mm-dd>/daily.md` following the template in [daily-template.md](templates/daily-template.md).
+After all 5 questions are answered, delegate the generation work to the **daily-report-writer** sub-agent (`.claude/agents/daily-report-writer.md`, model: opus).
 
-### Writing guidelines
+Use the Agent tool to launch the `daily-report-writer` agent with a prompt that includes:
 
-- **対象読者は不特定多数** — 専門用語には簡潔な補足を添える
-- **ですます調** で統一。堅すぎず、砕けすぎない丁寧な文体
-- **一文一義** — 1つの文に1つの情報
-- **具体的に** — 数値、固有名詞、事実を優先。曖昧な表現を避ける
-- **ハイライトは冒頭に** — 最も重要な情報を最初に置く（逆ピラミッド構造）
-- **箇条書きを活用** — 長文パラグラフより構造化されたリストを優先
-- **過去日報との接続** — 前回の「次の一手」の進捗、繰り返し出現するテーマ、関連する過去の気づきを自然に織り込む
+1. **Date**: The target date (from `$ARGUMENTS` or today)
+2. **Output directory**: `${CLAUDE_SKILL_DIR}/assets/<yyyy-mm-dd>/`
+3. **Hearing results**: All 5 answers from the user, structured as:
+   - Highlight: (Q1 answer)
+   - Activities: (Q2 answer)
+   - Insights: (Q3 answer)
+   - Challenges: (Q4 answer)
+   - Next Steps: (Q5 answer)
+4. **Past report context**: Summary of relevant past reports (from Step 0)
+5. **File references**: Tell the agent to read these for templates and design guidelines:
+   - `${CLAUDE_SKILL_DIR}/templates/daily-template.md`
+   - `${CLAUDE_SKILL_DIR}/templates/svg-design-guide.md`
+6. **Instructions**: Generate both `daily.md` and `insights.svg` in the output directory
 
-## Step 3: Generate insights.svg
+## Step 3: Finalize
 
-Create `${CLAUDE_SKILL_DIR}/assets/<yyyy-mm-dd>/insights.svg` as an infographic. Follow the design guidelines in [svg-design-guide.md](templates/svg-design-guide.md).
-
-### SVG Infographic Requirements
-
-The SVG must provide **a single-glance overview of the entire day**. It should contain:
-
-1. **Header**: Date and highlight of the day
-2. **Activities Section**: Icon-based list or flow of what was done
-3. **Insights Section**: Key learnings with visual emphasis (lightbulb icons, highlight colors)
-4. **Challenges Section**: Current blockers with status indicators
-5. **Next Steps Section**: Action items with priority indicators
-6. **Connection to Past**: Visual thread showing continuity from previous reports (if applicable)
-
-### SVG Technical Constraints
-
-- Standalone SVG file (no external dependencies)
-- Width: 800px, Height: auto (scale to content, typically 600-1200px)
-- UTF-8 encoding, embedded fonts (system-ui fallback)
-- All text must be readable at 100% zoom
-- Use `<text>`, `<rect>`, `<circle>`, `<line>`, `<path>` — no `<foreignObject>`
-- Embed emoji/icons as text characters (🌟💡🚧🎯📋) or draw simple SVG icons
-
-## Step 4: Finalize
-
-1. Create directory: `${CLAUDE_SKILL_DIR}/assets/<yyyy-mm-dd>/`
-2. Write `daily.md`
-3. Write `insights.svg`
-4. Show the user:
-   - File paths created
-   - A brief summary of the report
-   - Suggest: "内容に修正があればお知らせください"
+After the sub-agent completes, show the user:
+- File paths created
+- A brief summary of the report content
+- Suggest: "内容に修正があればお知らせください"

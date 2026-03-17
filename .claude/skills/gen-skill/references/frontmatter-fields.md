@@ -1,18 +1,23 @@
 # Frontmatter Fields Reference
 
-## Required / Recommended
+## Skill Frontmatter (`.claude/skills/<name>/SKILL.md`)
+
+### Supported fields
 
 | Field | Required | Default | Description |
 |---|---|---|---|
 | `name` | No | Directory name | Lowercase, digits, hyphens only. Max 64 chars. Becomes the `/slash-command`. |
 | `description` | Recommended | First paragraph of content | What the skill does + when to use it. Claude uses this to decide auto-loading. |
+| `argument-hint` | No | (none) | Shown in autocomplete. E.g., `[issue-number]`, `[filename] [format]`. |
+| `disable-model-invocation` | No | `false` | `true` = only user can invoke via `/name`. Claude cannot auto-trigger. |
+| `user-invocable` | No | `true` | `false` = hidden from `/` menu. Only Claude can invoke. |
 
-## Invocation Control
+### NOT supported in skill frontmatter (causes warnings)
 
-| Field | Default | Description |
-|---|---|---|
-| `disable-model-invocation` | `false` | `true` = only user can invoke via `/name`. Claude cannot auto-trigger. Use for side-effect actions. |
-| `user-invocable` | `true` | `false` = hidden from `/` menu. Only Claude can invoke. Use for background knowledge. |
+- ~~`model`~~ — Use a sub-agent with `model` instead
+- ~~`context`~~ — Use the Agent tool in skill instructions instead
+- ~~`agent`~~ — Use the Agent tool in skill instructions instead
+- ~~`allowed-tools`~~ — Define in the sub-agent instead
 
 ### Invocation matrix
 
@@ -22,23 +27,43 @@
 | `disable-model-invocation: true` | Yes | No | NOT in context |
 | `user-invocable: false` | No | Yes | Always in context |
 
-## Execution
+---
 
-| Field | Default | Description |
-|---|---|---|
-| `context` | (inline) | `fork` = run in isolated sub-agent. Use for independent tasks. |
-| `agent` | `general-purpose` | Sub-agent type when `context: fork`. Options: `Explore`, `Plan`, `general-purpose`, or custom agent name from `.claude/agents/`. |
-| `model` | (inherited) | Override model: `sonnet`, `opus`, `haiku`. |
-| `allowed-tools` | (all) | Comma-separated tool list. Grants these tools without per-use approval when skill is active. |
+## Agent Frontmatter (`.claude/agents/<name>.md`)
 
-## UI / Help
+### Supported fields
 
-| Field | Default | Description |
-|---|---|---|
-| `argument-hint` | (none) | Shown in autocomplete. E.g., `[issue-number]`, `[filename] [format]`. |
+| Field | Required | Default | Description |
+|---|---|---|---|
+| `name` | Yes | — | Unique identifier, lowercase + hyphens |
+| `description` | Yes | — | When Claude should delegate to this agent |
+| `tools` | No | All (inherited) | Tools the agent can use. E.g., `Read, Grep, Glob, Write, Edit, Bash` |
+| `disallowedTools` | No | (none) | Tools to deny from inherited set |
+| `model` | No | `inherit` | Model to use: `sonnet`, `opus`, `haiku`, or `inherit` |
+| `permissionMode` | No | `default` | `default`, `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan` |
+| `maxTurns` | No | (unlimited) | Max agentic turns before stopping |
+| `skills` | No | (none) | Skills to preload into agent context |
+| `mcpServers` | No | (none) | MCP servers available to this agent |
+| `hooks` | No | (none) | Lifecycle hooks scoped to this agent |
+| `memory` | No | (none) | Persistent memory scope: `user`, `project`, `local` |
+| `background` | No | `false` | `true` = always run as background task |
+| `isolation` | No | (none) | `worktree` = run in isolated git worktree |
 
-## Hooks
+### Model options
 
-| Field | Default | Description |
-|---|---|---|
-| `hooks` | (none) | Lifecycle hooks scoped to this skill. See hooks documentation. |
+| Value | Model |
+|---|---|
+| `opus` | Claude Opus 4.6 |
+| `sonnet` | Claude Sonnet 4.6 |
+| `haiku` | Claude Haiku 4.5 |
+| `inherit` | Same as parent conversation (default) |
+
+---
+
+## Skill + Agent Pattern
+
+For skills that need a specific model or heavy generation:
+
+1. **Skill** (`.claude/skills/`) handles interactive conversation inline
+2. **Agent** (`.claude/agents/`) handles generation with `model: opus`
+3. Skill instructs Claude to use the Agent tool to delegate after gathering requirements

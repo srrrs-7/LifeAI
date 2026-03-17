@@ -92,37 +92,44 @@ When generating skills, consult these supporting files as needed:
 
 ## Generation Rules
 
-When the user confirms, generate the skill following these rules:
+When the user confirms, delegate the file generation to the **skill-writer** sub-agent (`.claude/agents/skill-writer.md`, model: opus).
 
-### SKILL.md format
+Use the Agent tool to launch the `skill-writer` agent with a prompt that includes:
 
-```yaml
----
-name: <skill-name>
-description: <What it does + WHEN to use it. Include natural trigger keywords.>
-# Include only the fields that are needed:
-# argument-hint: [arg1] [arg2]
-# disable-model-invocation: true
-# user-invocable: false
-# context: fork
-# agent: Explore | Plan | general-purpose
-# allowed-tools: Read, Grep, Glob
-# model: sonnet | opus | haiku
----
+1. **All gathered requirements** from the interactive flow (name, description, scope, invocation style, arguments, execution context, tool restrictions, supporting files, etc.)
+2. **Skill path**: The target directory for the skill files
+3. **Template reference**: Tell the agent to read the appropriate template from `${CLAUDE_SKILL_DIR}/templates/` based on the skill type:
+   - Inline reference → `inline-reference.md`
+   - Sub-agent task → `task-with-fork.md`
+   - Interactive task → `interactive-task.md`
+   - Dynamic context → `dynamic-context.md`
+   - **Skill + Sub-agent** → `skill-with-agent.md`
+4. **Reference files**: Tell the agent to consult:
+   - `${CLAUDE_SKILL_DIR}/references/frontmatter-fields.md`
+   - `${CLAUDE_SKILL_DIR}/references/allowed-tools-list.md`
+   - `${CLAUDE_SKILL_DIR}/references/agent-types.md`
 
-<Markdown instructions>
-```
-
-### Key principles
+### Key principles (include in the agent prompt)
 
 1. **Description quality is critical** — determines when Claude auto-loads. Include what, when, and trigger keywords.
 2. **Keep SKILL.md under 500 lines** — move reference material to separate files.
-3. **Use `$ARGUMENTS`** for user inputs, `$ARGUMENTS[0]` / `$0` for positional args.
-4. **Use `!` + backtick-wrapped shell command** (e.g. `!\`git status\``) for pre-fetching dynamic data before Claude sees the prompt.
+3. **Supported frontmatter fields**: `name`, `description`, `argument-hint`, `disable-model-invocation`, `user-invocable` only. Do NOT use `model`, `context`, `agent`, `allowed-tools` in frontmatter (unsupported, causes warnings).
+4. **Use `$ARGUMENTS`** for user inputs, `$ARGUMENTS[0]` / `$0` for positional args.
 5. **Use `${CLAUDE_SKILL_DIR}`** to reference bundled files in bash commands.
 6. **Reference supporting files** with relative links: `[See reference](reference.md)`
 7. **Number the steps** — be specific about what Claude should do and in what order.
-8. **If the skill creates other skills or tasks, it MUST use an interactive/conversational approach** — ask questions first, confirm with the user, then generate. Never auto-generate without user input.
+8. **If the skill creates other skills or tasks, it MUST use an interactive/conversational approach** — ask questions first, confirm with the user, then generate.
+9. **For skills that need heavy generation, create a corresponding sub-agent** in `.claude/agents/` with `model: opus`. The skill handles the interactive phase inline, and delegates generation to the sub-agent via the Agent tool.
+
+### Sub-agent integration pattern
+
+When the skill requires Opus-level generation or complex output:
+
+1. **Skill (`.claude/skills/<name>/SKILL.md`)** — Handles interactive conversation with the user (inline)
+2. **Agent (`.claude/agents/<name>-agent.md`)** — Handles generation (model: opus, specific tools)
+3. The skill instructs Claude to use the Agent tool to delegate to the agent after gathering requirements
+
+Agent frontmatter supports: `name`, `description`, `tools`, `disallowedTools`, `model`, `permissionMode`, `maxTurns`, `skills`, `mcpServers`, `hooks`, `memory`, `background`, `isolation`.
 
 ### Invocation style mapping
 
@@ -132,28 +139,11 @@ description: <What it does + WHEN to use it. Include natural trigger keywords.>
 | Background knowledge only | `user-invocable: false` |
 | General enhancement | defaults |
 
-### Execution context mapping
-
-| Task type | Setting |
-|---|---|
-| Guidelines / conventions | inline (default) |
-| Read-only research | `context: fork`, `agent: Explore` |
-| Architecture planning | `context: fork`, `agent: Plan` |
-| Full autonomous task | `context: fork` |
-
-### allowed-tools patterns
-
-| Mode | Tools |
-|---|---|
-| Read-only | `Read, Grep, Glob` |
-| With shell | `Read, Grep, Glob, Bash(git *), Bash(npm *)` |
-| With web | `Read, Grep, Glob, WebFetch, WebSearch` |
-
 ## After Generation
 
-1. Create the directory with `mkdir -p`
-2. Write `SKILL.md` and any supporting files
-3. Show the user:
-   - Created file paths
+After the sub-agent completes:
+1. Show the user:
+   - Created file paths (skill + agent if applicable)
    - How to invoke: `/skill-name` or `/skill-name args`
    - Whether Claude will auto-detect it
+   - If a sub-agent was created, note its model and purpose
