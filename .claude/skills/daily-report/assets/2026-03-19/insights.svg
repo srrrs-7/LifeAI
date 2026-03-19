@@ -1,0 +1,296 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="1376" viewBox="0 0 1200 1376" font-family="'SF Pro Display', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif">
+<defs>
+  <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#0a0a1a"/>
+    <stop offset="100%" stop-color="#1a237e"/>
+  </linearGradient>
+  <linearGradient id="peakGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#1a237e"/>
+    <stop offset="100%" stop-color="#4A148C"/>
+  </linearGradient>
+  <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#536DFE"/>
+    <stop offset="100%" stop-color="#7C4DFF"/>
+  </linearGradient>
+  <linearGradient id="warmGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#FF6D00"/>
+    <stop offset="100%" stop-color="#FF1744"/>
+  </linearGradient>
+  <linearGradient id="sunGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#FF6D00"/>
+    <stop offset="100%" stop-color="#FFAB00"/>
+  </linearGradient>
+  <linearGradient id="tealGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#00B0FF"/>
+    <stop offset="100%" stop-color="#00E5FF"/>
+  </linearGradient>
+  <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#00C853"/>
+    <stop offset="100%" stop-color="#69F0AE"/>
+  </linearGradient>
+  <linearGradient id="dangerGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#FF1744"/>
+    <stop offset="100%" stop-color="#FF5252"/>
+  </linearGradient>
+  <linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#536DFE"/>
+    <stop offset="50%" stop-color="#00E5FF"/>
+    <stop offset="100%" stop-color="#69F0AE"/>
+  </linearGradient>
+  <linearGradient id="keyInsightBg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#FFF3E0"/>
+    <stop offset="100%" stop-color="#FFE0B2"/>
+  </linearGradient>
+  <clipPath id="iconClip">
+    <circle cx="28" cy="28" r="28"/>
+  </clipPath>
+  <filter id="elevation1" x="-4%" y="-4%" width="108%" height="112%">
+    <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="rgba(0,0,0,0.07)"/>
+    <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.05)"/>
+  </filter>
+  <filter id="elevation2" x="-4%" y="-4%" width="108%" height="116%">
+    <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="rgba(0,0,0,0.10)"/>
+    <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="rgba(0,0,0,0.08)"/>
+  </filter>
+</defs>
+
+<!-- Background -->
+<rect width="1200" height="1376" fill="#f5f5f7"/>
+
+<!-- ==================== HERO HEADER (y=0, h=100) ==================== -->
+<rect width="1200" height="100" fill="url(#heroGrad)"/>
+
+<!-- Decorative circles -->
+<circle cx="1100" cy="20" r="120" fill="#536DFE" opacity="0.07"/>
+<circle cx="1000" cy="80" r="80" fill="#7C4DFF" opacity="0.05"/>
+
+<!-- Icon placeholder (circular) -->
+<g transform="translate(1116, 10)">
+  <circle cx="28" cy="28" r="30" fill="rgba(255,255,255,0.15)"/>
+  <circle cx="28" cy="28" r="22" fill="url(#accentGrad)" opacity="0.6"/>
+  <text x="28" y="34" text-anchor="middle" font-size="18" fill="#FFFFFF">&#x1F393;</text>
+</g>
+
+<!-- Date chip -->
+<rect x="40" y="12" width="180" height="24" rx="12" fill="rgba(255,255,255,0.1)"/>
+<text x="52" y="29" font-size="12" font-weight="600" fill="rgba(255,255,255,0.8)">2026-03-19 (Thu)</text>
+
+<!-- Title + Subtitle -->
+<text x="40" y="58" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">Daily Report</text>
+<text x="40" y="78" font-size="13" font-weight="400" fill="rgba(255,255,255,0.6)">AWS SCS受験 &amp; Anthropic Claude資格取得</text>
+
+<!-- Stats badges -->
+<g transform="translate(860, 68)">
+  <rect width="80" height="24" rx="12" fill="url(#accentGrad)"/>
+  <text x="16" y="16" font-size="13" font-weight="800" fill="#FFFFFF">4</text>
+  <text x="30" y="16" font-size="10" font-weight="500" fill="rgba(255,255,255,0.85)">TASKS</text>
+  <rect x="88" width="96" height="24" rx="12" fill="url(#sunGrad)"/>
+  <text x="104" y="16" font-size="13" font-weight="800" fill="#FFFFFF">5</text>
+  <text x="118" y="16" font-size="10" font-weight="500" fill="rgba(255,255,255,0.85)">INSIGHTS</text>
+</g>
+
+<!-- ==================== ROW 1 (y=124, h=584) ==================== -->
+
+<!-- ACTIVITIES card (left) -->
+<rect x="24" y="124" width="564" height="584" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+<rect x="24" y="124" width="564" height="4" rx="2" fill="url(#accentGrad)"/>
+<text x="48" y="160" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">ACTIVITIES</text>
+<text x="48" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">実施事項</text>
+<text x="574" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#536DFE">x4</text>
+
+<!-- Activities items (start y=124+76=200) -->
+<g transform="translate(46, 200)">
+  <!-- Item 0 -->
+  <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6"/>
+  <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+  <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">AWS SCS 受験</text>
+
+  <!-- Item 1 -->
+  <rect x="0" y="48" width="520" height="40" rx="10" fill="#EDE7F6"/>
+  <rect x="12" y="60" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+  <text x="38" y="74" font-size="14" font-weight="600" fill="#0a0a1a">Anthropic Claude 資格取得</text>
+
+  <!-- Item 2 -->
+  <rect x="0" y="96" width="520" height="40" rx="10" fill="#EDE7F6"/>
+  <rect x="12" y="108" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+  <text x="38" y="122" font-size="14" font-weight="600" fill="#0a0a1a">Kindle Unlimited x AI 学習法</text>
+
+  <!-- Item 3 -->
+  <rect x="0" y="144" width="520" height="40" rx="10" fill="#EDE7F6"/>
+  <rect x="12" y="156" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+  <text x="38" y="170" font-size="14" font-weight="600" fill="#0a0a1a">認定資格による信頼獲得を検討</text>
+</g>
+
+<!-- INSIGHTS card (right) -->
+<rect x="612" y="124" width="564" height="584" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+<rect x="612" y="124" width="564" height="4" rx="2" fill="url(#sunGrad)"/>
+<text x="636" y="160" font-size="11" font-weight="800" fill="#E65100" letter-spacing="1.5">INSIGHTS</text>
+<text x="636" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">気づき・学び</text>
+<text x="1162" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#E65100">x5</text>
+
+<!-- Insights items (start y=124+76=200) -->
+<g transform="translate(636, 200)">
+  <!-- Insight 0: Kindle Unlimited x AI (KEY INSIGHT) -->
+  <g transform="translate(0, 0)">
+    <rect x="0" y="0" width="516" height="88" rx="12" fill="url(#keyInsightBg)" filter="url(#elevation1)"/>
+    <rect x="0" y="0" width="6" height="88" rx="3" fill="url(#warmGrad)"/>
+    <text x="16" y="24" font-size="14" font-weight="800" fill="#BF360C">Kindle Unlimited x AI が最強</text>
+    <text x="16" y="44" font-size="12" font-weight="500" fill="#4E342E">定額読み放題 + AI補完で</text>
+    <text x="16" y="62" font-size="12" font-weight="500" fill="#4E342E">学習効率が飛躍的に向上</text>
+    <rect x="16" y="72" width="80" height="12" rx="6" fill="url(#warmGrad)"/>
+    <text x="56" y="82" text-anchor="middle" font-size="8" font-weight="800" fill="#FFFFFF">KEY INSIGHT</text>
+  </g>
+
+  <!-- Insight 1: 対話型ナレッジベース -->
+  <g transform="translate(0, 100)">
+    <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0"/>
+    <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)"/>
+    <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">対話型ナレッジベースの価値</text>
+    <text x="16" y="44" font-size="12" fill="#5D4037">いつでもAIに壁打ちできる環境が</text>
+    <text x="16" y="62" font-size="12" fill="#5D4037">アイデア創出の質とスピードを高める</text>
+    <rect x="16" y="72" width="64" height="12" rx="6" fill="#FF6D00"/>
+    <text x="48" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">AI活用</text>
+  </g>
+
+  <!-- Insight 2: 責任を負う人間に価値がある -->
+  <g transform="translate(0, 200)">
+    <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0"/>
+    <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)"/>
+    <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">責任を負う人間に価値がある</text>
+    <text x="16" y="44" font-size="12" fill="#5D4037">AI出力の信頼確立まで、特定分野で</text>
+    <text x="16" y="62" font-size="12" fill="#5D4037">責任を引き受ける個人・企業に需要あり</text>
+    <rect x="16" y="72" width="72" height="12" rx="6" fill="#FF6D00"/>
+    <text x="52" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">マクロ視点</text>
+  </g>
+
+  <!-- Insight 3: ログとデータの蓄積 -->
+  <g transform="translate(0, 300)">
+    <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0"/>
+    <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)"/>
+    <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">ログとデータの蓄積が資産に</text>
+    <text x="16" y="44" font-size="12" fill="#5D4037">日々の活動記録が将来の</text>
+    <text x="16" y="62" font-size="12" fill="#5D4037">意思決定とナレッジ再利用の基盤になる</text>
+    <rect x="16" y="72" width="72" height="12" rx="6" fill="#FF6D00"/>
+    <text x="52" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">データ戦略</text>
+  </g>
+
+  <!-- Insight 4: 人間性・フィジカルへ価値移行 -->
+  <g transform="translate(0, 400)">
+    <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0"/>
+    <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)"/>
+    <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">人間性・フィジカルへ価値移行</text>
+    <text x="16" y="44" font-size="12" fill="#5D4037">知識労働がAIに移行する中、</text>
+    <text x="16" y="62" font-size="12" fill="#5D4037">人間性・コネ・身体スキルの重要性が増す</text>
+    <rect x="16" y="72" width="64" height="12" rx="6" fill="#FF6D00"/>
+    <text x="48" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">長期展望</text>
+  </g>
+</g>
+
+<!-- ==================== ROW 2 (y=732, h=220) ==================== -->
+
+<!-- CHALLENGES card (left) -->
+<rect x="24" y="732" width="564" height="220" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+<rect x="24" y="732" width="564" height="4" rx="2" fill="url(#dangerGrad)"/>
+<text x="48" y="768" font-size="11" font-weight="800" fill="#FF1744" letter-spacing="1.5">CHALLENGES</text>
+<text x="48" y="790" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">課題・ブロッカー</text>
+<text x="574" y="790" text-anchor="end" font-size="12" font-weight="600" fill="#FF1744">x1</text>
+
+<!-- Challenge items (start y=732+76=808) -->
+<g transform="translate(46, 808)">
+  <!-- Challenge 0 -->
+  <g transform="translate(0, 0)">
+    <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE"/>
+    <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744"/>
+    <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">特になし — AWS全冠へ突進</text>
+    <rect x="340" y="12" width="80" height="22" rx="11" fill="#00C853"/>
+    <text x="380" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">順調</text>
+  </g>
+</g>
+
+<!-- NEXT STEPS card (right) -->
+<rect x="612" y="732" width="564" height="220" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+<rect x="612" y="732" width="564" height="4" rx="2" fill="url(#greenGrad)"/>
+<text x="636" y="768" font-size="11" font-weight="800" fill="#00C853" letter-spacing="1.5">NEXT STEPS</text>
+<text x="636" y="790" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">次の一手</text>
+<text x="1162" y="790" text-anchor="end" font-size="12" font-weight="600" fill="#00C853">x3</text>
+
+<!-- Next Steps items (start y=732+76=808) -->
+<g transform="translate(636, 808)">
+  <!-- Step 0: P1 -->
+  <g transform="translate(0, 0)">
+    <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFEBEE"/>
+    <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF1744"/>
+    <text x="26" y="14" font-size="11" font-weight="800" fill="#FF1744">P1</text>
+    <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">AWS資格の取得を継続</text>
+  </g>
+
+  <!-- Step 1: P1 -->
+  <g transform="translate(0, 44)">
+    <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFEBEE"/>
+    <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF1744"/>
+    <text x="26" y="14" font-size="11" font-weight="800" fill="#FF1744">P1</text>
+    <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">AI知識を体系的に補完</text>
+  </g>
+
+  <!-- Step 2: P2 -->
+  <g transform="translate(0, 88)">
+    <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFF3E0"/>
+    <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF6D00"/>
+    <text x="26" y="14" font-size="11" font-weight="800" fill="#FF6D00">P2</text>
+    <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">学習法を他分野へ横展開</text>
+  </g>
+</g>
+
+<!-- ==================== KEY THEME (y=976, h=120) ==================== -->
+<rect x="24" y="976" width="1152" height="120" rx="20" fill="url(#peakGrad)" filter="url(#elevation2)"/>
+<circle cx="200" cy="1016" r="80" fill="#7C4DFF" opacity="0.12"/>
+<circle cx="1000" cy="1056" r="100" fill="#536DFE" opacity="0.08"/>
+<text x="48" y="1008" font-size="11" font-weight="800" fill="rgba(255,255,255,0.5)" letter-spacing="1.5">TODAY'S KEY THEME</text>
+<text x="48" y="1040" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">資格 x AI学習で信頼と責任を獲得する</text>
+<text x="48" y="1068" font-size="13" font-weight="400" fill="rgba(255,255,255,0.7)">Kindle Unlimited x AI の学習コンビで経験不足を補完し、認定資格で信頼基盤を構築</text>
+
+<!-- ==================== GROWTH PATH (y=1120, h=192) ==================== -->
+<rect x="24" y="1120" width="1152" height="192" rx="20" fill="#FFFFFF" filter="url(#elevation2)"/>
+<rect x="24" y="1120" width="1152" height="4" rx="2" fill="url(#progressGrad)"/>
+<text x="48" y="1156" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">GROWTH PATH</text>
+<text x="48" y="1178" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">AWS全冠への道</text>
+
+<!-- Progress bar background -->
+<rect x="48" y="1204" width="1104" height="16" rx="8" fill="#E8EAF6"/>
+
+<!-- Progress bar fill (gradient, ~70% progress) -->
+<rect x="48" y="1204" width="773" height="16" rx="8" fill="url(#progressGrad)"/>
+
+<!-- SCS achieved marker (solid circle at ~60% = 48 + 1104*0.6 = 710) -->
+<circle cx="710" cy="1212" r="12" fill="url(#accentGrad)"/>
+<text x="710" y="1216" text-anchor="middle" font-size="8" font-weight="800" fill="#FFFFFF">SCS</text>
+
+<!-- 全冠 target marker (dashed circle at ~95% = 48 + 1104*0.95 = 1097) -->
+<circle cx="1097" cy="1212" r="12" fill="#FFFFFF" stroke="url(#progressGrad)" stroke-width="2" stroke-dasharray="5,3"/>
+<text x="1097" y="1216" text-anchor="middle" font-size="8" font-weight="800" fill="#536DFE">全冠</text>
+
+<!-- Claude cert marker (solid circle at ~35% = 48 + 1104*0.35 = 434) -->
+<circle cx="434" cy="1212" r="12" fill="url(#greenGrad)"/>
+<text x="434" y="1216" text-anchor="middle" font-size="7" font-weight="800" fill="#FFFFFF">Claude</text>
+
+<!-- Labels -->
+<text x="434" y="1248" text-anchor="middle" font-size="11" font-weight="600" fill="#00C853">取得済み</text>
+<text x="710" y="1248" text-anchor="middle" font-size="11" font-weight="600" fill="#536DFE">受験済み</text>
+<text x="1097" y="1248" text-anchor="middle" font-size="11" font-weight="600" fill="#78909C">目標</text>
+
+<!-- Lever tags -->
+<g transform="translate(48, 1268)">
+  <rect x="0" y="0" width="120" height="28" rx="14" fill="#EDE7F6"/>
+  <text x="60" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#536DFE">Kindle Unlimited</text>
+
+  <rect x="136" y="0" width="80" height="28" rx="14" fill="#EDE7F6"/>
+  <text x="176" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#536DFE">AI補完</text>
+
+  <rect x="232" y="0" width="80" height="28" rx="14" fill="#EDE7F6"/>
+  <text x="272" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#536DFE">認定資格</text>
+</g>
+
+<!-- ==================== FOOTER ==================== -->
+<text x="600" y="1352" text-anchor="middle" font-size="11" font-weight="400" fill="#B0BEC5" letter-spacing="0.5">LifeAI Daily Report — 2026-03-19（木）</text>
+
+</svg>
