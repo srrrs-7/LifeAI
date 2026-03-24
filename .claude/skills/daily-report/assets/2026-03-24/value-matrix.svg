@@ -1,0 +1,319 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1000" viewBox="0 0 1200 1000" font-family="'SF Pro Display', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif">
+<defs>
+  <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#0a0a1a"/>
+    <stop offset="100%" stop-color="#1a237e"/>
+  </linearGradient>
+  <linearGradient id="peakGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#1a237e"/>
+    <stop offset="100%" stop-color="#4A148C"/>
+  </linearGradient>
+  <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#536DFE"/>
+    <stop offset="100%" stop-color="#7C4DFF"/>
+  </linearGradient>
+  <linearGradient id="warmGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#FF6D00"/>
+    <stop offset="100%" stop-color="#FF1744"/>
+  </linearGradient>
+  <linearGradient id="sunGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#FF6D00"/>
+    <stop offset="100%" stop-color="#FFAB00"/>
+  </linearGradient>
+  <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#00C853"/>
+    <stop offset="100%" stop-color="#69F0AE"/>
+  </linearGradient>
+  <linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#536DFE"/>
+    <stop offset="50%" stop-color="#00E5FF"/>
+    <stop offset="100%" stop-color="#69F0AE"/>
+  </linearGradient>
+  <linearGradient id="keyInsightBg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#FFF3E0"/>
+    <stop offset="100%" stop-color="#FFE0B2"/>
+  </linearGradient>
+  <linearGradient id="fadedGrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#ECEFF1"/>
+    <stop offset="100%" stop-color="#CFD8DC"/>
+  </linearGradient>
+  <linearGradient id="transitionGrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#E8EAF6"/>
+    <stop offset="100%" stop-color="#C5CAE9"/>
+  </linearGradient>
+  <linearGradient id="collaborateGrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#FFF3E0"/>
+    <stop offset="100%" stop-color="#FFE0B2"/>
+  </linearGradient>
+  <linearGradient id="humanGrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#FBE9E7"/>
+    <stop offset="100%" stop-color="#FFCCBC"/>
+  </linearGradient>
+  <linearGradient id="arrowGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#BF360C"/>
+    <stop offset="33%" stop-color="#E65100"/>
+    <stop offset="66%" stop-color="#536DFE"/>
+    <stop offset="100%" stop-color="#90A4AE"/>
+  </linearGradient>
+  <clipPath id="heroClip">
+    <rect width="1200" height="100"/>
+  </clipPath>
+  <filter id="elevation1" x="-4%" y="-4%" width="108%" height="112%">
+    <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="rgba(0,0,0,0.07)"/>
+    <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.05)"/>
+  </filter>
+  <filter id="elevation2" x="-4%" y="-4%" width="108%" height="116%">
+    <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="rgba(0,0,0,0.10)"/>
+    <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="rgba(0,0,0,0.08)"/>
+  </filter>
+  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+</defs>
+
+<!-- Background -->
+<rect width="1200" height="1000" fill="#f5f5f7"/>
+
+<!-- ==================== HERO HEADER (y=0, h=100) ==================== -->
+<rect width="1200" height="100" fill="url(#heroGrad)" clip-path="url(#heroClip)"/>
+<circle cx="1100" cy="20" r="120" fill="#536DFE" opacity="0.07"/>
+<circle cx="1140" cy="80" r="70" fill="#7C4DFF" opacity="0.05"/>
+<circle cx="50" cy="80" r="40" fill="#00E5FF" opacity="0.04"/>
+
+<!-- Date chip -->
+<rect x="40" y="12" width="180" height="24" rx="12" fill="rgba(255,255,255,0.1)"/>
+<text x="52" y="29" font-size="12" font-weight="600" fill="rgba(255,255,255,0.8)">2026-03-24 (Tue)</text>
+
+<!-- Title + Subtitle -->
+<text x="40" y="58" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">知識の価値マトリクス</text>
+<text x="40" y="78" font-size="13" font-weight="400" fill="rgba(255,255,255,0.6)">AI時代における知識の4象限と価値創出の構造</text>
+
+<!-- Stats badges -->
+<g transform="translate(860, 68)">
+  <rect width="104" height="24" rx="12" fill="url(#warmGrad)"/>
+  <text x="16" y="16" font-size="13" font-weight="800" fill="#FFFFFF">4</text>
+  <text x="30" y="16" font-size="10" font-weight="500" fill="rgba(255,255,255,0.85)">QUADRANTS</text>
+  <rect x="112" width="80" height="24" rx="12" fill="url(#accentGrad)"/>
+  <text x="128" y="16" font-size="13" font-weight="800" fill="#FFFFFF">1</text>
+  <text x="142" y="16" font-size="10" font-weight="500" fill="rgba(255,255,255,0.85)">MATRIX</text>
+</g>
+
+<!-- ==================== MATRIX SECTION (y=124) ==================== -->
+
+<!-- Axis Labels -->
+<!-- X-axis: top -->
+<text x="340" y="148" text-anchor="middle" font-size="14" font-weight="800" fill="#536DFE" letter-spacing="1">知 ― Known</text>
+<text x="880" y="148" text-anchor="middle" font-size="14" font-weight="800" fill="#E65100" letter-spacing="1">無知 ― Unknown</text>
+
+<!-- X-axis divider line -->
+<line x1="580" y1="132" x2="580" y2="148" stroke="#B0BEC5" stroke-width="1" stroke-dasharray="4,3"/>
+
+<!-- Y-axis: left (rotated) -->
+<text x="56" y="300" text-anchor="middle" font-size="14" font-weight="800" fill="#536DFE" letter-spacing="1" transform="rotate(-90, 56, 300)">既知 ― Known</text>
+<text x="56" y="532" text-anchor="middle" font-size="14" font-weight="800" fill="#E65100" letter-spacing="1" transform="rotate(-90, 56, 532)">無知 ― Unknown</text>
+
+<!-- Y-axis divider line -->
+<line x1="40" y1="416" x2="68" y2="416" stroke="#B0BEC5" stroke-width="1" stroke-dasharray="4,3"/>
+
+<!-- ===== QUADRANT 1: 既知の知 (Top-Left) — LOW VALUE ===== -->
+<g transform="translate(88, 160)">
+  <rect x="0" y="0" width="488" height="232" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+  <rect x="0" y="0" width="488" height="4" rx="2" fill="url(#fadedGrad)"/>
+
+  <!-- Number badge -->
+  <g transform="translate(16, 16)">
+    <rect width="40" height="40" rx="12" fill="#ECEFF1"/>
+    <text x="20" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#90A4AE">1</text>
+  </g>
+
+  <!-- Title -->
+  <text x="68" y="32" font-size="18" font-weight="800" fill="#78909C" letter-spacing="-0.3">既知の知</text>
+  <text x="68" y="50" font-size="12" font-weight="500" fill="#B0BEC5">Known Knowns</text>
+
+  <!-- Value indicator -->
+  <rect x="360" y="16" width="112" height="28" rx="14" fill="#ECEFF1"/>
+  <text x="416" y="34" text-anchor="middle" font-size="11" font-weight="800" fill="#90A4AE">価値：低い</text>
+
+  <!-- Content -->
+  <line x1="16" y1="72" x2="472" y2="72" stroke="#ECEFF1" stroke-width="1"/>
+  <text x="16" y="96" font-size="14" font-weight="600" fill="#78909C">すでに価値が小さい領域</text>
+  <text x="16" y="120" font-size="12" font-weight="400" fill="#B0BEC5">一般的な知識、統計的な平均値・中央値</text>
+  <text x="16" y="140" font-size="12" font-weight="400" fill="#B0BEC5">誰もがアクセスできる情報</text>
+
+  <!-- AI badge -->
+  <rect x="16" y="168" width="168" height="32" rx="16" fill="#ECEFF1"/>
+  <rect x="16" y="168" width="168" height="32" rx="16" fill="#ECEFF1"/>
+  <text x="36" y="189" font-size="12" font-weight="700" fill="#90A4AE">AI 代替済み</text>
+
+  <!-- Faded overlay effect -->
+  <rect x="0" y="0" width="488" height="232" rx="16" fill="#FFFFFF" opacity="0.3"/>
+</g>
+
+<!-- ===== QUADRANT 2: 既知の無知 (Top-Right) — DECREASING ===== -->
+<g transform="translate(600, 160)">
+  <rect x="0" y="0" width="488" height="232" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+  <rect x="0" y="0" width="488" height="4" rx="2" fill="url(#accentGrad)"/>
+
+  <!-- Number badge -->
+  <g transform="translate(16, 16)">
+    <rect width="40" height="40" rx="12" fill="#E8EAF6"/>
+    <text x="20" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#536DFE">2</text>
+  </g>
+
+  <!-- Title -->
+  <text x="68" y="32" font-size="18" font-weight="800" fill="#303F9F" letter-spacing="-0.3">既知の無知</text>
+  <text x="68" y="50" font-size="12" font-weight="500" fill="#7986CB">Known Unknowns</text>
+
+  <!-- Value indicator -->
+  <rect x="336" y="16" width="136" height="28" rx="14" fill="#E8EAF6"/>
+  <text x="404" y="34" text-anchor="middle" font-size="11" font-weight="800" fill="#536DFE">価値：低下中 ↓</text>
+
+  <!-- Content -->
+  <line x1="16" y1="72" x2="472" y2="72" stroke="#E8EAF6" stroke-width="1"/>
+  <text x="16" y="96" font-size="14" font-weight="600" fill="#303F9F">AIが代替していく領域</text>
+  <text x="16" y="120" font-size="12" font-weight="400" fill="#5C6BC0">「調べれば分かる」知識</text>
+  <text x="16" y="140" font-size="12" font-weight="400" fill="#5C6BC0">以前はここでも価値を高められたが</text>
+  <text x="16" y="160" font-size="12" font-weight="400" fill="#5C6BC0">AIナレッジベースが急速に代替中</text>
+
+  <!-- AI badge -->
+  <rect x="16" y="180" width="168" height="32" rx="16" fill="url(#accentGrad)"/>
+  <text x="36" y="201" font-size="12" font-weight="700" fill="#FFFFFF">AI 代替中 →</text>
+</g>
+
+<!-- ===== QUADRANT 3: 無知の知 (Bottom-Left) — HIGH ===== -->
+<g transform="translate(88, 416)">
+  <rect x="0" y="0" width="488" height="232" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+  <rect x="0" y="0" width="488" height="6" rx="3" fill="url(#sunGrad)"/>
+
+  <!-- Number badge -->
+  <g transform="translate(16, 16)">
+    <rect width="40" height="40" rx="12" fill="#FFF3E0"/>
+    <text x="20" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#E65100">3</text>
+  </g>
+
+  <!-- Title -->
+  <text x="68" y="32" font-size="18" font-weight="800" fill="#E65100" letter-spacing="-0.3">無知の知</text>
+  <text x="68" y="50" font-size="12" font-weight="500" fill="#FF8F00">Unknown Knowns</text>
+
+  <!-- Value indicator -->
+  <rect x="360" y="16" width="112" height="28" rx="14" fill="#FFF3E0"/>
+  <text x="416" y="34" text-anchor="middle" font-size="11" font-weight="800" fill="#E65100">価値：高い ↑</text>
+
+  <!-- Content -->
+  <line x1="16" y1="72" x2="472" y2="72" stroke="#FFE0B2" stroke-width="1"/>
+  <text x="16" y="96" font-size="14" font-weight="600" fill="#E65100">人が問いを立てることで価値に変わる</text>
+  <text x="16" y="120" font-size="12" font-weight="500" fill="#5D4037">顧客の課題を深く理解し</text>
+  <text x="16" y="140" font-size="12" font-weight="500" fill="#5D4037">AIで解決策をカスタマイズできる人材が鍵</text>
+  <text x="16" y="160" font-size="12" font-weight="500" fill="#5D4037">問題提起のベクトルで価値が決まる</text>
+
+  <!-- Badges -->
+  <rect x="16" y="180" width="120" height="32" rx="16" fill="url(#sunGrad)"/>
+  <text x="76" y="201" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">人間 × AI</text>
+  <rect x="148" y="180" width="168" height="32" rx="16" fill="#FFF3E0" stroke="#E65100" stroke-width="1.5"/>
+  <text x="232" y="201" text-anchor="middle" font-size="12" font-weight="700" fill="#E65100">課題理解 × カスタマイズ</text>
+</g>
+
+<!-- ===== QUADRANT 4: 無知の無知 (Bottom-Right) — HIGHEST (Von Restorff) ===== -->
+<g transform="translate(600, 416)">
+  <rect x="0" y="0" width="488" height="232" rx="16" fill="url(#humanGrad)" filter="url(#elevation2)"/>
+  <rect x="0" y="0" width="488" height="6" rx="3" fill="url(#warmGrad)"/>
+
+  <!-- Number badge -->
+  <g transform="translate(16, 16)">
+    <rect width="40" height="40" rx="12" fill="url(#warmGrad)"/>
+    <text x="20" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#FFFFFF">4</text>
+  </g>
+
+  <!-- Title -->
+  <text x="68" y="32" font-size="18" font-weight="800" fill="#BF360C" letter-spacing="-0.3">無知の無知</text>
+  <text x="68" y="50" font-size="12" font-weight="500" fill="#E65100">Unknown Unknowns</text>
+
+  <!-- Value indicator -->
+  <rect x="340" y="16" width="132" height="28" rx="14" fill="url(#warmGrad)"/>
+  <text x="406" y="34" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">価値：最大 ★</text>
+
+  <!-- Content -->
+  <line x1="16" y1="72" x2="472" y2="72" stroke="#FFCCBC" stroke-width="1"/>
+  <text x="16" y="96" font-size="14" font-weight="700" fill="#BF360C">人が問題提起と解決策を検討する領域</text>
+  <text x="16" y="120" font-size="12" font-weight="500" fill="#4E342E">人が価値を創出できる唯一の領域</text>
+  <text x="16" y="140" font-size="12" font-weight="500" fill="#4E342E">副産物的な側面があり</text>
+  <text x="16" y="160" font-size="12" font-weight="500" fill="#4E342E">リソース配分には戦略的な注意が必要</text>
+
+  <!-- Badges -->
+  <rect x="16" y="180" width="136" height="32" rx="16" fill="url(#warmGrad)" filter="url(#glow)"/>
+  <text x="84" y="201" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">人間が主導</text>
+  <rect x="164" y="180" width="120" height="32" rx="16" fill="#FFCCBC"/>
+  <text x="224" y="201" text-anchor="middle" font-size="12" font-weight="700" fill="#BF360C">副産物 → 戦略</text>
+</g>
+
+<!-- ===== CENTER DIVIDERS ===== -->
+<!-- Vertical divider -->
+<line x1="588" y1="168" x2="588" y2="640" stroke="#E0E0E0" stroke-width="1.5" stroke-dasharray="8,6"/>
+<!-- Horizontal divider -->
+<line x1="96" y1="408" x2="1080" y2="408" stroke="#E0E0E0" stroke-width="1.5" stroke-dasharray="8,6"/>
+
+<!-- Center label -->
+<circle cx="588" cy="408" r="24" fill="#FFFFFF" filter="url(#elevation1)"/>
+<text x="588" y="413" text-anchor="middle" font-size="11" font-weight="800" fill="#536DFE">VALUE</text>
+
+<!-- ===== VALUE GRADIENT ARROW (diagonal: top-left low → bottom-right high) ===== -->
+<g opacity="0.12">
+  <line x1="180" y1="200" x2="1000" y2="600" stroke="url(#warmGrad)" stroke-width="80" stroke-linecap="round"/>
+</g>
+
+<!-- ==================== TIME FLOW SECTION (y=672, h=128) ==================== -->
+<rect x="24" y="672" width="1152" height="128" rx="20" fill="#FFFFFF" filter="url(#elevation2)"/>
+<rect x="24" y="672" width="1152" height="4" rx="2" fill="url(#progressGrad)"/>
+<text x="56" y="708" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">TIME PROGRESSION</text>
+<text x="56" y="730" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">時間経過による知識の遷移</text>
+
+<!-- Flow: 4 → 3 → 2 → 1 -->
+<g transform="translate(56, 748)">
+  <!-- Arrow base -->
+  <rect x="0" y="16" width="1100" height="8" rx="4" fill="#E8EAF6"/>
+  <rect x="0" y="16" width="1100" height="8" rx="4" fill="url(#arrowGrad)" opacity="0.3"/>
+
+  <!-- Step 4 -->
+  <rect x="0" y="0" width="216" height="40" rx="12" fill="url(#warmGrad)" filter="url(#glow)"/>
+  <text x="108" y="25" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">4. 無知の無知</text>
+
+  <!-- Arrow -->
+  <text x="240" y="28" font-size="20" font-weight="400" fill="#FF6D00">→</text>
+
+  <!-- Step 3 -->
+  <rect x="270" y="0" width="216" height="40" rx="12" fill="url(#sunGrad)"/>
+  <text x="378" y="25" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">3. 無知の知</text>
+
+  <!-- Arrow -->
+  <text x="510" y="28" font-size="20" font-weight="400" fill="#7986CB">→</text>
+
+  <!-- Step 2 -->
+  <rect x="540" y="0" width="216" height="40" rx="12" fill="url(#accentGrad)"/>
+  <text x="648" y="25" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">2. 既知の無知</text>
+
+  <!-- Arrow -->
+  <text x="780" y="28" font-size="20" font-weight="400" fill="#B0BEC5">→</text>
+
+  <!-- Step 1 -->
+  <rect x="810" y="0" width="216" height="40" rx="12" fill="#CFD8DC"/>
+  <text x="918" y="25" text-anchor="middle" font-size="13" font-weight="700" fill="#78909C">1. 既知の知</text>
+</g>
+
+<!-- ==================== KEY INSIGHT BANNER (y=824, h=120) ==================== -->
+<rect x="24" y="824" width="1152" height="120" rx="20" fill="url(#peakGrad)" filter="url(#elevation2)"/>
+<circle cx="1100" cy="860" r="60" fill="#7C4DFF" opacity="0.12"/>
+<circle cx="1060" cy="900" r="40" fill="#536DFE" opacity="0.08"/>
+<circle cx="200" cy="880" r="80" fill="#7C4DFF" opacity="0.06"/>
+
+<text x="56" y="858" font-size="11" font-weight="800" fill="rgba(255,255,255,0.5)" letter-spacing="2.5">KEY TAKEAWAY</text>
+<text x="56" y="888" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">3の領域で勝負する — 顧客課題 × AI × 専門性</text>
+<text x="56" y="916" font-size="13" font-weight="400" fill="rgba(255,255,255,0.6)">「無知の無知」は副産物。戦略的には「無知の知」で問いを立て、AIと協働し、専門性でカスタマイズする人材が価値を最大化する</text>
+
+<!-- ==================== FOOTER ==================== -->
+<text x="600" y="976" text-anchor="middle" font-size="11" font-weight="400" fill="#B0BEC5" letter-spacing="0.5">LifeAI — Knowledge Value Matrix — 2026-03-24</text>
+
+</svg>
