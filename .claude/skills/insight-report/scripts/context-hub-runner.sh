@@ -3,8 +3,18 @@ set -euo pipefail
 
 # AI Context Hub — Batch Knowledge Extraction Runner
 #
-# 対話ログからセマンティック知識を非対話的に抽出し、提案ファイルに出力する。
-# 自動反映はせず、提案のみを生成する（安全策）。
+# 対話ログからセマンティック知識を非対話的に抽出し、CLAUDE.md への追記提案を生成する。
+# 自動反映はせず、提案（proposed-changes.md）のみを出力する安全設計。
+#
+# 処理フロー:
+#   1. 実行間隔チェック — 前回から24h未満ならスキップ（--force で無視可能）
+#   2. extract-conversations.py で直近N日分の対話ログを JSON に変換
+#   3. 抽出ガイド + 現在の CLAUDE.md + 対話ログからプロンプトを構築
+#   4. Claude CLI（非対話モード）で知識抽出を実行し、提案ファイルに出力
+#   5. タイムスタンプを記録して次回のスキップ判定に使用
+#
+# 呼び出し元: post-commit Git Hook（バックグラウンド実行）
+# 出力先:     assets/context-hub/<yyyy-mm-dd>/proposed-changes.md
 #
 # Usage:
 #   ./context-hub-runner.sh [--since DAYS] [--force]
