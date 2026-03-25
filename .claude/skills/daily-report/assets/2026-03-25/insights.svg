@@ -1,0 +1,324 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="1204" viewBox="0 0 1200 1204" font-family="'SF Pro Display', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif">
+<defs>
+  <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#0a0a1a"/>
+    <stop offset="100%" stop-color="#1a237e"/>
+  </linearGradient>
+  <linearGradient id="peakGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#1a237e"/>
+    <stop offset="100%" stop-color="#4A148C"/>
+  </linearGradient>
+  <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#536DFE"/>
+    <stop offset="100%" stop-color="#7C4DFF"/>
+  </linearGradient>
+  <linearGradient id="warmGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#FF6D00"/>
+    <stop offset="100%" stop-color="#FF1744"/>
+  </linearGradient>
+  <linearGradient id="sunGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#FF6D00"/>
+    <stop offset="100%" stop-color="#FFAB00"/>
+  </linearGradient>
+  <linearGradient id="tealGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#00B0FF"/>
+    <stop offset="100%" stop-color="#00E5FF"/>
+  </linearGradient>
+  <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#00C853"/>
+    <stop offset="100%" stop-color="#69F0AE"/>
+  </linearGradient>
+  <linearGradient id="dangerGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#FF1744"/>
+    <stop offset="100%" stop-color="#FF5252"/>
+  </linearGradient>
+  <linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#536DFE"/>
+    <stop offset="50%" stop-color="#00E5FF"/>
+    <stop offset="100%" stop-color="#69F0AE"/>
+  </linearGradient>
+  <linearGradient id="keyInsightBg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#FFF3E0"/>
+    <stop offset="100%" stop-color="#FFE0B2"/>
+  </linearGradient>
+  <clipPath id="iconClip">
+    <circle cx="28" cy="28" r="28"/>
+  </clipPath>
+  <clipPath id="heroClip">
+    <rect width="1200" height="100"/>
+  </clipPath>
+  <filter id="elevation1" x="-4%" y="-4%" width="108%" height="112%">
+    <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="rgba(0,0,0,0.07)"/>
+    <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.05)"/>
+  </filter>
+  <filter id="elevation2" x="-4%" y="-4%" width="108%" height="116%">
+    <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="rgba(0,0,0,0.10)"/>
+    <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="rgba(0,0,0,0.08)"/>
+  </filter>
+</defs>
+
+<!-- Background -->
+<rect width="1200" height="1204" fill="#f5f5f7"/>
+
+<!-- ==================== HERO HEADER (y=0, h=100) ==================== -->
+<rect width="1200" height="100" fill="url(#heroGrad)" clip-path="url(#heroClip)"/>
+
+<!-- Decorative circles -->
+<circle cx="1100" cy="20" r="120" fill="#536DFE" opacity="0.07"/>
+<circle cx="1140" cy="80" r="70" fill="#7C4DFF" opacity="0.05"/>
+<circle cx="50" cy="80" r="40" fill="#00E5FF" opacity="0.04"/>
+
+<!-- Icon placeholder (circular) -->
+<g transform="translate(1116, 10)">
+  <circle cx="28" cy="28" r="30" fill="rgba(255,255,255,0.15)"/>
+  <circle cx="28" cy="28" r="22" fill="url(#accentGrad)" opacity="0.6"/>
+  <text x="28" y="34" text-anchor="middle" font-size="18" fill="#FFFFFF">&#x1F512;</text>
+</g>
+
+<!-- Date chip -->
+<rect x="40" y="12" width="180" height="24" rx="12" fill="rgba(255,255,255,0.1)"/>
+<text x="52" y="29" font-size="12" font-weight="600" fill="rgba(255,255,255,0.8)">2026-03-25 (Wed)</text>
+
+<!-- Title + Subtitle -->
+<text x="40" y="58" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">Daily Report</text>
+<text x="40" y="78" font-size="13" font-weight="400" fill="rgba(255,255,255,0.6)">不可逆性と不確実性の収束 — AI時代の新たな価値</text>
+
+<!-- Stats badges -->
+<g transform="translate(860, 68)">
+  <rect width="80" height="24" rx="12" fill="url(#accentGrad)"/>
+  <text x="16" y="16" font-size="13" font-weight="800" fill="#FFFFFF">4</text>
+  <text x="30" y="16" font-size="10" font-weight="500" fill="rgba(255,255,255,0.85)">TASKS</text>
+  <rect x="88" width="96" height="24" rx="12" fill="url(#sunGrad)"/>
+  <text x="104" y="16" font-size="13" font-weight="800" fill="#FFFFFF">3</text>
+  <text x="118" y="16" font-size="10" font-weight="500" fill="rgba(255,255,255,0.85)">INSIGHTS</text>
+</g>
+
+<!-- ==================== ROW 1 (y=124, h=384) ==================== -->
+
+<!-- ACTIVITIES card (left) -->
+<rect x="24" y="124" width="564" height="384" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+<rect x="24" y="124" width="564" height="4" rx="2" fill="url(#accentGrad)"/>
+<text x="48" y="160" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">ACTIVITIES</text>
+<text x="48" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">実施事項</text>
+<text x="574" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#536DFE">x4</text>
+
+<!-- Activities items (start y=124+76=200) -->
+<g transform="translate(48, 200)">
+  <!-- Item 0 -->
+  <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6"/>
+  <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+  <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">保守運用体制の議論</text>
+
+  <!-- Item 1 -->
+  <rect x="0" y="48" width="520" height="40" rx="10" fill="#EDE7F6"/>
+  <rect x="12" y="60" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+  <text x="38" y="74" font-size="14" font-weight="600" fill="#0a0a1a">巨大PRの対応（DB変更含む）</text>
+
+  <!-- Item 2 -->
+  <rect x="0" y="96" width="520" height="40" rx="10" fill="#EDE7F6"/>
+  <rect x="12" y="108" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+  <text x="38" y="122" font-size="14" font-weight="600" fill="#0a0a1a">AWS学習: VLAN・DNS等ネットワーク</text>
+
+  <!-- Item 3 -->
+  <rect x="0" y="144" width="520" height="40" rx="10" fill="#EDE7F6"/>
+  <rect x="12" y="156" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+  <text x="38" y="170" font-size="14" font-weight="600" fill="#0a0a1a">AI時代の不可逆性の価値を探索</text>
+</g>
+
+<!-- INSIGHTS card (right) -->
+<rect x="612" y="124" width="564" height="384" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+<rect x="612" y="124" width="564" height="4" rx="2" fill="url(#sunGrad)"/>
+<text x="636" y="160" font-size="11" font-weight="800" fill="#E65100" letter-spacing="1.5">INSIGHTS</text>
+<text x="636" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">気づき・学び</text>
+<text x="1162" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#E65100">x3</text>
+
+<!-- Insights items (start y=124+76=200) -->
+<g transform="translate(636, 200)">
+  <!-- Insight 0: KEY INSIGHT — 不可逆性と不確実性の収束 -->
+  <g transform="translate(0, 0)">
+    <rect x="0" y="0" width="516" height="88" rx="12" fill="url(#keyInsightBg)" filter="url(#elevation1)"/>
+    <rect x="0" y="0" width="6" height="88" rx="3" fill="url(#warmGrad)"/>
+    <text x="16" y="24" font-size="14" font-weight="800" fill="#BF360C">不可逆性と不確実性の収束</text>
+    <text x="16" y="44" font-size="12" font-weight="500" fill="#4E342E">セキュリティ・リアルタイム性・</text>
+    <text x="16" y="62" font-size="12" font-weight="500" fill="#4E342E">アナログの3軸が新たな価値の源泉</text>
+    <rect x="16" y="72" width="80" height="12" rx="6" fill="url(#warmGrad)"/>
+    <text x="56" y="82" text-anchor="middle" font-size="8" font-weight="800" fill="#FFFFFF">KEY INSIGHT</text>
+  </g>
+
+  <!-- Insight 1: 不確実性の収束と「働く」の再定義 -->
+  <g transform="translate(0, 100)">
+    <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0"/>
+    <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)"/>
+    <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">「働く」概念の変容</text>
+    <text x="16" y="44" font-size="12" fill="#5D4037">AIによって不確実性の収束プロセスに</text>
+    <text x="16" y="62" font-size="12" fill="#5D4037">人が価値を見出しやすくなっている</text>
+    <rect x="16" y="72" width="64" height="12" rx="6" fill="#FF6D00"/>
+    <text x="48" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">価値変容</text>
+  </g>
+
+  <!-- Insight 2: テストと型 = AIが修正できる条件 -->
+  <g transform="translate(0, 200)">
+    <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0"/>
+    <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)"/>
+    <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">テストと型 = AI修正の境界条件</text>
+    <text x="16" y="44" font-size="12" fill="#5D4037">型定義とテストが揃っていれば</text>
+    <text x="16" y="62" font-size="12" fill="#5D4037">AIがDB変更の影響範囲を修正できる</text>
+    <rect x="16" y="72" width="56" height="12" rx="6" fill="#FF6D00"/>
+    <text x="44" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">実践知</text>
+  </g>
+</g>
+
+<!-- ==================== ROW 2 (y=532, h=248) ==================== -->
+
+<!-- CHALLENGES card (left) -->
+<rect x="24" y="532" width="564" height="248" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+<rect x="24" y="532" width="564" height="4" rx="2" fill="url(#dangerGrad)"/>
+<text x="48" y="568" font-size="11" font-weight="800" fill="#FF1744" letter-spacing="1.5">CHALLENGES</text>
+<text x="48" y="590" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">課題・ブロッカー</text>
+<text x="574" y="590" text-anchor="end" font-size="12" font-weight="600" fill="#FF1744">x3</text>
+
+<!-- Challenge items (start y=532+76=608) -->
+<g transform="translate(48, 608)">
+  <!-- Challenge 0 -->
+  <g transform="translate(0, 0)">
+    <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE"/>
+    <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744"/>
+    <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">AIで開発の勘所をカバーするには時間を要する</text>
+    <rect x="420" y="12" width="80" height="22" rx="11" fill="#FF6D00"/>
+    <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">調査中</text>
+  </g>
+
+  <!-- Challenge 1 -->
+  <g transform="translate(0, 54)">
+    <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE"/>
+    <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744"/>
+    <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">会話ログ集約と専用エージェント構築</text>
+    <rect x="420" y="12" width="80" height="22" rx="11" fill="#FF6D00"/>
+    <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">調査中</text>
+  </g>
+
+  <!-- Challenge 2 -->
+  <g transform="translate(0, 108)">
+    <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE"/>
+    <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744"/>
+    <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">AIコンテスト準備と3月末期限の両立</text>
+    <rect x="420" y="12" width="80" height="22" rx="11" fill="#536DFE"/>
+    <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">対応中</text>
+  </g>
+</g>
+
+<!-- NEXT STEPS card (right) -->
+<rect x="612" y="532" width="564" height="248" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+<rect x="612" y="532" width="564" height="4" rx="2" fill="url(#greenGrad)"/>
+<text x="636" y="568" font-size="11" font-weight="800" fill="#00C853" letter-spacing="1.5">NEXT STEPS</text>
+<text x="636" y="590" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">次の一手</text>
+<text x="1162" y="590" text-anchor="end" font-size="12" font-weight="600" fill="#00C853">x3</text>
+
+<!-- Next Steps items (start y=532+76=608) -->
+<g transform="translate(636, 608)">
+  <!-- Step 0: P1 -->
+  <g transform="translate(0, 0)">
+    <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFEBEE"/>
+    <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF1744"/>
+    <text x="26" y="14" font-size="11" font-weight="800" fill="#FF1744">P1</text>
+    <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">AIコンテスト準備 &amp; AWS全冠 (3/31)</text>
+  </g>
+
+  <!-- Step 1: P2 -->
+  <g transform="translate(0, 44)">
+    <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFF3E0"/>
+    <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF6D00"/>
+    <text x="26" y="14" font-size="11" font-weight="800" fill="#FF6D00">P2</text>
+    <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">AIの新しい価値（不可逆性）を模索</text>
+  </g>
+
+  <!-- Step 2: P3 -->
+  <g transform="translate(0, 88)">
+    <rect x="0" y="0" width="516" height="36" rx="8" fill="#E8F5E9"/>
+    <rect x="8" y="8" width="10" height="20" rx="5" fill="#00C853"/>
+    <text x="26" y="14" font-size="11" font-weight="800" fill="#00C853">P3</text>
+    <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">会話ログ集約エージェントの設計</text>
+  </g>
+</g>
+
+<!-- ==================== KEY THEME (y=804, h=120) ==================== -->
+<rect x="24" y="804" width="1152" height="120" rx="20" fill="url(#peakGrad)" filter="url(#elevation2)"/>
+<circle cx="1100" cy="840" r="60" fill="#7C4DFF" opacity="0.12"/>
+<circle cx="1060" cy="880" r="40" fill="#536DFE" opacity="0.08"/>
+<circle cx="200" cy="860" r="80" fill="#7C4DFF" opacity="0.06"/>
+<text x="56" y="838" font-size="11" font-weight="800" fill="rgba(255,255,255,0.5)" letter-spacing="2.5">TODAY'S KEY THEME</text>
+<text x="56" y="868" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">不可逆性と不確実性の収束 — AI時代の価値の源泉</text>
+<text x="56" y="896" font-size="13" font-weight="400" fill="rgba(255,255,255,0.6)">セキュリティ・リアルタイム性・アナログの不可逆性が、AIでは代替できない価値を生む</text>
+
+<!-- ==================== GROWTH PATH (y=948, h=192) ==================== -->
+<rect x="24" y="948" width="1152" height="192" rx="20" fill="#FFFFFF" filter="url(#elevation2)"/>
+<rect x="24" y="948" width="1152" height="4" rx="2" fill="url(#progressGrad)"/>
+<text x="56" y="984" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">GROWTH PATH</text>
+<text x="56" y="1006" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">「人間の役割」テーマの進化 — Day 9</text>
+
+<!-- Progress bar background -->
+<rect x="56" y="1032" width="1100" height="16" rx="8" fill="#E8EAF6"/>
+
+<!-- Progress bar fill -->
+<rect x="56" y="1032" width="1100" height="16" rx="8" fill="url(#progressGrad)"/>
+
+<!-- Milestone markers -->
+<circle cx="146" cy="1040" r="14" fill="url(#accentGrad)"/>
+<text x="146" y="1044" text-anchor="middle" font-size="7" font-weight="800" fill="#FFFFFF">3/17</text>
+
+<circle cx="330" cy="1040" r="14" fill="url(#accentGrad)"/>
+<text x="330" y="1044" text-anchor="middle" font-size="7" font-weight="800" fill="#FFFFFF">3/18</text>
+
+<circle cx="514" cy="1040" r="14" fill="url(#accentGrad)"/>
+<text x="514" y="1044" text-anchor="middle" font-size="7" font-weight="800" fill="#FFFFFF">3/19</text>
+
+<circle cx="698" cy="1040" r="14" fill="url(#accentGrad)"/>
+<text x="698" y="1044" text-anchor="middle" font-size="7" font-weight="800" fill="#FFFFFF">3/23</text>
+
+<circle cx="882" cy="1040" r="14" fill="url(#accentGrad)"/>
+<text x="882" y="1044" text-anchor="middle" font-size="7" font-weight="800" fill="#FFFFFF">3/24</text>
+
+<circle cx="1100" cy="1040" r="14" fill="url(#warmGrad)"/>
+<text x="1100" y="1044" text-anchor="middle" font-size="7" font-weight="800" fill="#FFFFFF">3/25</text>
+
+<!-- Labels under milestones -->
+<text x="146" y="1072" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">ロードマップ</text>
+<text x="146" y="1086" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">設定</text>
+
+<text x="330" y="1072" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">ゴール設定</text>
+<text x="330" y="1086" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">アイデア力</text>
+
+<text x="514" y="1072" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">責任を負う</text>
+<text x="514" y="1086" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">人間の価値</text>
+
+<text x="698" y="1072" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">マインド</text>
+<text x="698" y="1086" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">エンジニアリング</text>
+
+<text x="882" y="1072" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">価値マトリクス</text>
+<text x="882" y="1086" text-anchor="middle" font-size="10" font-weight="600" fill="#536DFE">問いの力</text>
+
+<text x="1100" y="1072" text-anchor="middle" font-size="10" font-weight="800" fill="#FF6D00">不可逆性</text>
+<text x="1100" y="1086" text-anchor="middle" font-size="10" font-weight="800" fill="#FF6D00">不確実性の収束</text>
+
+<!-- Lever tags -->
+<g transform="translate(56, 1108)">
+  <rect x="0" y="0" width="120" height="28" rx="14" fill="#EDE7F6"/>
+  <text x="60" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#536DFE">セキュリティ</text>
+
+  <rect x="136" y="0" width="136" height="28" rx="14" fill="#EDE7F6"/>
+  <text x="204" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#536DFE">リアルタイム性</text>
+
+  <rect x="288" y="0" width="128" height="28" rx="14" fill="#FFF3E0"/>
+  <text x="352" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#E65100">アナログの価値</text>
+
+  <rect x="432" y="0" width="160" height="28" rx="14" fill="url(#keyInsightBg)"/>
+  <text x="512" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#BF360C">不確実性の収束</text>
+
+  <rect x="608" y="0" width="128" height="28" rx="14" fill="url(#keyInsightBg)"/>
+  <text x="672" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#BF360C">テスト &amp; 型</text>
+</g>
+
+<!-- ==================== FOOTER ==================== -->
+<text x="600" y="1180" text-anchor="middle" font-size="11" font-weight="400" fill="#B0BEC5" letter-spacing="0.5">LifeAI Daily Insights — 2026-03-25</text>
+
+</svg>
