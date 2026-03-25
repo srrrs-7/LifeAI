@@ -62,3 +62,32 @@
 - **Symptom**: No memory files in project memory directory
 - **Cause**: Not using persistent memory feature
 - **Fix**: Create relevant memory files for user preferences, project context
+
+## Semantic Knowledge Patterns
+
+Agent D が対話ログから検出する、CLAUDE.md に反映すべき知識パターン。
+
+### Undocumented conventions
+- **Symptom**: 同じコーディングパターンや規約が複数セッションで繰り返し説明されている
+- **Cause**: 規約は暗黙的に存在するが CLAUDE.md に文書化されていない
+- **Fix**: Coding Conventions セクションに該当規約を追加
+
+### Repeated architecture explanations
+- **Symptom**: アーキテクチャ上の意思決定やその理由が複数セッションで再説明されている
+- **Cause**: 設計判断の根拠が CLAUDE.md に記録されていない
+- **Fix**: Architecture セクションに意思決定とその理由を追記
+
+### Recurring workarounds
+- **Symptom**: 同じ回避策やワークアラウンドが複数回記述されている
+- **Cause**: 既知の問題とその対処法が文書化されていない
+- **Fix**: Known Issues セクション（新規作成）に問題と回避策を記載
+
+### Repeated workflow instructions
+- **Symptom**: 同じ作業手順やコマンドシーケンスをユーザーが繰り返し指示している
+- **Cause**: 定型ワークフローが CLAUDE.md や Commands セクションに記載されていない
+- **Fix**: Commands または Workflows セクションに手順を追加
+
+### Undocumented technical constraints
+- **Symptom**: 環境やライブラリの制約事項が対話で繰り返し言及されている
+- **Cause**: プロジェクト固有の技術的制約が文書化されていない
+- **Fix**: Architecture または Technical Notes セクションに制約事項を追記

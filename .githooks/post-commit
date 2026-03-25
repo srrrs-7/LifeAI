@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Context Hub — Post-commit knowledge extraction (optional, background)
+#
+# コミット後にバックグラウンドで知識抽出を実行する。
+# 24h以内の再実行は自動スキップ。
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RUNNER="${SCRIPT_DIR}/../.claude/skills/insight-report/scripts/context-hub-runner.sh"
+
+if [[ -x "${RUNNER}" ]]; then
+    # Run in background, suppress output
+    "${RUNNER}" --since 7 > /dev/null 2>&1 &
+fi
