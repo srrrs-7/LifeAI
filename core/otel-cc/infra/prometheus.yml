@@ -5,5 +5,5 @@ global:
 scrape_configs:
   - job_name: 'otel-cc'
     static_configs:
-      - targets: ['otel-cc:9091']
+      - targets: ['localhost:9091']
     metrics_path: '/metrics'
