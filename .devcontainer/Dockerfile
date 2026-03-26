@@ -39,4 +39,9 @@ ENV PATH="${UV_HOME}/bin:${PATH}"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN /home/vscode/.local/bin/uv python install 3.12
 
+# Install Bun
+ENV BUN_INSTALL="/home/vscode/.bun"
+ENV PATH="${BUN_INSTALL}/bin:${PATH}"
+RUN curl -fsSL https://bun.sh/install | bash
+
 WORKDIR /workspace/main/lifeai
