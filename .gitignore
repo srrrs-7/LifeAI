@@ -19,3 +19,6 @@
 
 # Serena
 .serena/cache/
+
+# Rust
+target/
