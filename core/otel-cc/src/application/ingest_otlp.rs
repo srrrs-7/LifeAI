@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use anyhow::Result;
+use std::sync::Arc;
 use tracing::info;
 
 use crate::domain::{
@@ -8,7 +8,7 @@ use crate::domain::{
     port::{EventPort, OtlpPort, SessionPort},
 };
 use crate::infrastructure::otlp_reader::parser::{
-    MetricsPayload, TracesPayload, extract_metrics, extract_token_events,
+    extract_metrics, extract_token_events, MetricsPayload, TracesPayload,
 };
 
 pub struct IngestOtlpUseCase {
@@ -23,7 +23,11 @@ impl IngestOtlpUseCase {
         event_port: Arc<dyn EventPort>,
         otlp_port: Arc<dyn OtlpPort>,
     ) -> Self {
-        Self { session_port, event_port, otlp_port }
+        Self {
+            session_port,
+            event_port,
+            otlp_port,
+        }
     }
 
     pub fn ingest_traces(&self, payload: &TracesPayload, raw: &str) -> Result<()> {

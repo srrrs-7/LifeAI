@@ -4,21 +4,16 @@ mod domain;
 mod infrastructure;
 mod interface;
 
-use std::sync::Arc;
 use anyhow::Result;
-use axum::{Router, routing::get};
+use axum::{routing::get, Router};
+use std::sync::Arc;
 use tracing::info;
 
 use application::{
-    ingest_otlp::IngestOtlpUseCase,
-    metrics_cache::MetricsCache,
-    scan_logs::ScanLogsUseCase,
+    ingest_otlp::IngestOtlpUseCase, metrics_cache::MetricsCache, scan_logs::ScanLogsUseCase,
 };
 use config::Config;
-use infrastructure::{
-    sqlite::SqliteRepository,
-    watcher::watch_log_dir,
-};
+use infrastructure::{sqlite::SqliteRepository, watcher::watch_log_dir};
 use interface::{metrics_handler, otlp_handler::OtlpState};
 
 #[tokio::main]
@@ -63,13 +58,15 @@ async fn main() -> Result<()> {
     tokio::spawn(async move {
         let app = Router::new()
             .route("/metrics", get(metrics_handler::handle))
-            .route("/health",  get(|| async { "ok" }))
+            .route("/health", get(|| async { "ok" }))
             .with_state(metrics_cache);
         info!("Metrics server: http://{metrics_addr}/metrics");
         let listener = tokio::net::TcpListener::bind(&metrics_addr)
             .await
             .expect("bind metrics port");
-        axum::serve(listener, app).await.expect("metrics server error");
+        axum::serve(listener, app)
+            .await
+            .expect("metrics server error");
     });
 
     // ── Task 2: OTLP/HTTP レシーバー ─────────────────────────────

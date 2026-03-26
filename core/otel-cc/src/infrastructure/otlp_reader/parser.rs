@@ -124,9 +124,9 @@ pub fn extract_token_events(payload: &TracesPayload) -> Vec<ExtractedTokenEvent>
             for span in &ss.spans {
                 let attrs = span_attrs(span);
 
-                let has_cc = attrs.keys().any(|k| {
-                    k.starts_with("claude_code") || k.starts_with("llm.usage")
-                });
+                let has_cc = attrs
+                    .keys()
+                    .any(|k| k.starts_with("claude_code") || k.starts_with("llm.usage"));
                 if !has_cc {
                     continue;
                 }
@@ -135,13 +135,23 @@ pub fn extract_token_events(payload: &TracesPayload) -> Vec<ExtractedTokenEvent>
                     trace_id: span.trace_id.clone(),
                     span_id: span.span_id.clone(),
                     span_name: span.name.clone(),
-                    input_tokens: attr_i64(&attrs, &["llm.usage.prompt_tokens", "claude_code.token.input"]),
-                    output_tokens: attr_i64(&attrs, &["llm.usage.completion_tokens", "claude_code.token.output"]),
+                    input_tokens: attr_i64(
+                        &attrs,
+                        &["llm.usage.prompt_tokens", "claude_code.token.input"],
+                    ),
+                    output_tokens: attr_i64(
+                        &attrs,
+                        &["llm.usage.completion_tokens", "claude_code.token.output"],
+                    ),
                     cache_creation_tokens: attr_i64(&attrs, &["claude_code.token.cache_creation"]),
                     cache_read_tokens: attr_i64(&attrs, &["claude_code.token.cache_read"]),
-                    model: attrs.get("llm.model").or_else(|| attrs.get("claude_code.model")).cloned(),
+                    model: attrs
+                        .get("llm.model")
+                        .or_else(|| attrs.get("claude_code.model"))
+                        .cloned(),
                     session_id: attrs.get("claude_code.session_id").cloned(),
-                    project: attrs.get("claude_code.project")
+                    project: attrs
+                        .get("claude_code.project")
                         .or_else(|| attrs.get("service.name"))
                         .cloned(),
                 });
@@ -160,7 +170,10 @@ pub fn extract_metrics(payload: &MetricsPayload) -> Vec<ExtractedMetric> {
         for sm in &rm.scope_metrics {
             for metric in &sm.metrics {
                 let Some(name) = &metric.name else { continue };
-                let points = metric.sum.as_ref().map(|s| &s.data_points)
+                let points = metric
+                    .sum
+                    .as_ref()
+                    .map(|s| &s.data_points)
                     .or_else(|| metric.gauge.as_ref().map(|g| &g.data_points));
                 if let Some(pts) = points {
                     for dp in pts {
@@ -183,7 +196,8 @@ fn span_attrs(span: &Span) -> std::collections::HashMap<String, String> {
         .filter_map(|kv| {
             let k = kv.key.clone()?;
             let v = kv.value.as_ref().and_then(|v| {
-                v.string_value.clone()
+                v.string_value
+                    .clone()
                     .or_else(|| v.int_value.map(|i| i.to_string()))
             })?;
             Some((k, v))

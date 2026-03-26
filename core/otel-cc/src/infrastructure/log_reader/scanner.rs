@@ -1,7 +1,7 @@
+use anyhow::Result;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use anyhow::Result;
 use tracing::info;
 
 use crate::domain::{
@@ -35,7 +35,11 @@ pub fn scan_file(
     let skip_lines = state.as_ref().map(|s| s.lines_processed).unwrap_or(0);
 
     info!(
-        file = path.file_name().unwrap_or_default().to_string_lossy().as_ref(),
+        file = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .as_ref(),
         skip = skip_lines,
         "scanning"
     );
@@ -50,11 +54,7 @@ pub fn scan_file(
     let mut pending_tool_calls: HashMap<String, (String, String, String)> = HashMap::new();
     let mut lines_processed = skip_lines;
 
-    for line in reader
-        .lines()
-        .skip(skip_lines)
-        .map_while(Result::ok)
-    {
+    for line in reader.lines().skip(skip_lines).map_while(Result::ok) {
         lines_processed += 1;
         let record = match serde_json::from_str::<LogRecord>(&line) {
             Ok(r) => r,
@@ -103,21 +103,25 @@ fn process_record(
 ) {
     match record {
         LogRecord::Assistant(a) => {
-            let Some(session_id) = a.session_id else { return };
+            let Some(session_id) = a.session_id else {
+                return;
+            };
             let ts = a.timestamp.clone().unwrap_or_default();
 
-            let entry = sessions.entry(session_id.clone()).or_insert_with(|| Session {
-                session_id: session_id.clone(),
-                project: project.to_string(),
-                cwd: a.cwd.clone(),
-                git_branch: a.git_branch.clone(),
-                model: a.message.model.clone(),
-                entrypoint: a.entrypoint.clone(),
-                version: a.version.clone(),
-                started_at: ts.clone(),
-                last_seen_at: ts.clone(),
-                is_active: false,
-            });
+            let entry = sessions
+                .entry(session_id.clone())
+                .or_insert_with(|| Session {
+                    session_id: session_id.clone(),
+                    project: project.to_string(),
+                    cwd: a.cwd.clone(),
+                    git_branch: a.git_branch.clone(),
+                    model: a.message.model.clone(),
+                    entrypoint: a.entrypoint.clone(),
+                    version: a.version.clone(),
+                    started_at: ts.clone(),
+                    last_seen_at: ts.clone(),
+                    is_active: false,
+                });
             entry.last_seen_at = ts.clone();
             if let Some(m) = &a.message.model {
                 entry.model = Some(m.clone());
@@ -152,10 +156,8 @@ fn process_record(
                 for block in content {
                     if let ContentBlock::ToolUse(t) = block {
                         if let (Some(id), Some(name)) = (&t.id, &t.name) {
-                            pending_tool_calls.insert(
-                                id.clone(),
-                                (session_id.clone(), name.clone(), ts.clone()),
-                            );
+                            pending_tool_calls
+                                .insert(id.clone(), (session_id.clone(), name.clone(), ts.clone()));
                         }
                     }
                 }
@@ -163,22 +165,26 @@ fn process_record(
         }
 
         LogRecord::User(u) => {
-            let Some(session_id) = u.session_id else { return };
+            let Some(session_id) = u.session_id else {
+                return;
+            };
             let ts = u.timestamp.clone().unwrap_or_default();
 
             // セッションが未登録の場合は仮登録
-            let entry = sessions.entry(session_id.clone()).or_insert_with(|| Session {
-                session_id: session_id.clone(),
-                project: project.to_string(),
-                cwd: u.cwd.clone(),
-                git_branch: u.git_branch.clone(),
-                model: None,
-                entrypoint: u.entrypoint.clone(),
-                version: u.version.clone(),
-                started_at: ts.clone(),
-                last_seen_at: ts.clone(),
-                is_active: false,
-            });
+            let entry = sessions
+                .entry(session_id.clone())
+                .or_insert_with(|| Session {
+                    session_id: session_id.clone(),
+                    project: project.to_string(),
+                    cwd: u.cwd.clone(),
+                    git_branch: u.git_branch.clone(),
+                    model: None,
+                    entrypoint: u.entrypoint.clone(),
+                    version: u.version.clone(),
+                    started_at: ts.clone(),
+                    last_seen_at: ts.clone(),
+                    is_active: false,
+                });
             entry.last_seen_at = ts;
             let _ = session_port.upsert_session(entry);
 
@@ -208,9 +214,11 @@ fn process_record(
         LogRecord::System(s) => {
             // コンテキスト圧縮イベントの検出
             // subtype が "context_compression" または "compacted" を含む場合に記録する
-            let is_compression = s.subtype.as_deref().map(|t| {
-                t.contains("compress") || t.contains("compact")
-            }).unwrap_or(false);
+            let is_compression = s
+                .subtype
+                .as_deref()
+                .map(|t| t.contains("compress") || t.contains("compact"))
+                .unwrap_or(false);
 
             if is_compression {
                 if let (Some(session_id), Some(ts)) = (s.session_id, s.timestamp) {

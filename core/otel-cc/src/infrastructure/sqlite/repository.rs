@@ -1,6 +1,6 @@
-use std::sync::Mutex;
 use anyhow::Result;
-use rusqlite::{Connection, params};
+use rusqlite::{params, Connection};
+use std::sync::Mutex;
 
 use crate::domain::{
     model::{MetricsSummary, ProjectSummary, ScanState, Session, TokenEvent, ToolCall},
@@ -15,14 +15,17 @@ impl SqliteRepository {
     pub fn open(path: &std::path::Path) -> Result<Self> {
         let conn = Connection::open(path)?;
         conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;")?;
-        let repo = Self { conn: Mutex::new(conn) };
+        let repo = Self {
+            conn: Mutex::new(conn),
+        };
         repo.init_schema()?;
         Ok(repo)
     }
 
     fn init_schema(&self) -> Result<()> {
         let conn = self.conn.lock().unwrap();
-        conn.execute_batch("
+        conn.execute_batch(
+            "
             CREATE TABLE IF NOT EXISTS sessions (
                 session_id   TEXT PRIMARY KEY,
                 project      TEXT NOT NULL,
@@ -104,7 +107,8 @@ impl SqliteRepository {
             CREATE INDEX IF NOT EXISTS idx_token_events_time    ON token_events(timestamp);
             CREATE INDEX IF NOT EXISTS idx_tool_calls_session   ON tool_calls(session_id);
             CREATE INDEX IF NOT EXISTS idx_tool_calls_name      ON tool_calls(tool_name);
-        ")?;
+        ",
+        )?;
         Ok(())
     }
 }
@@ -161,7 +165,12 @@ impl SessionPort for SqliteRepository {
         Ok(())
     }
 
-    fn insert_compression_event(&self, session_id: &str, timestamp: &str, summary: Option<&str>) -> Result<()> {
+    fn insert_compression_event(
+        &self,
+        session_id: &str,
+        timestamp: &str,
+        summary: Option<&str>,
+    ) -> Result<()> {
         let conn = self.conn.lock().unwrap();
         conn.execute(
             "INSERT INTO compression_events (session_id, timestamp, summary) VALUES (?1,?2,?3)",
@@ -178,7 +187,11 @@ impl SessionPort for SqliteRepository {
             .unwrap_or(0);
 
         let active_sessions = conn
-            .query_row("SELECT COUNT(*) FROM sessions WHERE is_active = 1", [], |r| r.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM sessions WHERE is_active = 1",
+                [],
+                |r| r.get(0),
+            )
             .unwrap_or(0);
 
         let token_row: (i64, i64, i64, i64) = conn
@@ -195,7 +208,11 @@ impl SessionPort for SqliteRepository {
             .unwrap_or((0, 0, 0, 0));
 
         let total_cost_usd = conn
-            .query_row("SELECT COALESCE(SUM(cost_usd), 0.0) FROM token_events", [], |r| r.get(0))
+            .query_row(
+                "SELECT COALESCE(SUM(cost_usd), 0.0) FROM token_events",
+                [],
+                |r| r.get(0),
+            )
             .unwrap_or(0.0);
 
         let total_tool_calls = conn
@@ -203,7 +220,11 @@ impl SessionPort for SqliteRepository {
             .unwrap_or(0);
 
         let total_tool_errors = conn
-            .query_row("SELECT COUNT(*) FROM tool_calls WHERE is_error = 1", [], |r| r.get(0))
+            .query_row(
+                "SELECT COUNT(*) FROM tool_calls WHERE is_error = 1",
+                [],
+                |r| r.get(0),
+            )
             .unwrap_or(0);
 
         let total_compression_events = conn
@@ -215,7 +236,11 @@ impl SessionPort for SqliteRepository {
         )?;
         let tool_counts = stmt
             .query_map([], |r| {
-                Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?, r.get::<_, i64>(2)?))
+                Ok((
+                    r.get::<_, String>(0)?,
+                    r.get::<_, i64>(1)?,
+                    r.get::<_, i64>(2)?,
+                ))
             })?
             .flatten()
             .collect();
@@ -267,10 +292,15 @@ impl EventPort for SqliteRepository {
                  cache_creation_tokens, cache_read_tokens, cost_usd, source)
              VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)",
             params![
-                e.session_id, e.timestamp, e.model,
-                e.input_tokens, e.output_tokens,
-                e.cache_creation_tokens, e.cache_read_tokens,
-                e.cost_usd, e.source.to_string(),
+                e.session_id,
+                e.timestamp,
+                e.model,
+                e.input_tokens,
+                e.output_tokens,
+                e.cache_creation_tokens,
+                e.cache_read_tokens,
+                e.cost_usd,
+                e.source.to_string(),
             ],
         )?;
         Ok(())
@@ -283,8 +313,12 @@ impl EventPort for SqliteRepository {
                 (session_id, tool_id, timestamp, tool_name, is_error, source)
              VALUES (?1,?2,?3,?4,?5,?6)",
             params![
-                t.session_id, t.tool_id, t.timestamp,
-                t.tool_name, t.is_error as i32, t.source.to_string(),
+                t.session_id,
+                t.tool_id,
+                t.timestamp,
+                t.tool_name,
+                t.is_error as i32,
+                t.source.to_string(),
             ],
         )?;
         Ok(())

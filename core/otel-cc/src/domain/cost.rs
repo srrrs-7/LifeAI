@@ -6,14 +6,33 @@ struct Rates {
     cache_read: f64,
 }
 
-const OPUS: Rates = Rates { input: 15.0,   output: 75.0,  cache_write: 18.75, cache_read: 1.5  };
-const SONNET: Rates = Rates { input: 3.0,  output: 15.0,  cache_write: 3.75,  cache_read: 0.3  };
-const HAIKU: Rates = Rates { input: 0.25,  output: 1.25,  cache_write: 0.3,   cache_read: 0.03 };
+const OPUS: Rates = Rates {
+    input: 15.0,
+    output: 75.0,
+    cache_write: 18.75,
+    cache_read: 1.5,
+};
+const SONNET: Rates = Rates {
+    input: 3.0,
+    output: 15.0,
+    cache_write: 3.75,
+    cache_read: 0.3,
+};
+const HAIKU: Rates = Rates {
+    input: 0.25,
+    output: 1.25,
+    cache_write: 0.3,
+    cache_read: 0.03,
+};
 
 fn rates_for(model: &str) -> &'static Rates {
-    if model.contains("opus")  { &OPUS   }
-    else if model.contains("haiku") { &HAIKU  }
-    else { &SONNET }
+    if model.contains("opus") {
+        &OPUS
+    } else if model.contains("haiku") {
+        &HAIKU
+    } else {
+        &SONNET
+    }
 }
 
 pub fn calculate(
@@ -51,7 +70,10 @@ mod tests {
     fn haiku_cache_read_cheaper_than_input() {
         let input_cost = calculate("claude-haiku-4-5", 1_000_000, 0, 0, 0);
         let cache_cost = calculate("claude-haiku-4-5", 0, 0, 0, 1_000_000);
-        assert!(cache_cost < input_cost, "cache_read should be cheaper than input");
+        assert!(
+            cache_cost < input_cost,
+            "cache_read should be cheaper than input"
+        );
     }
 
     #[test]

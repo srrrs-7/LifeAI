@@ -1,6 +1,6 @@
+use anyhow::Result;
 use std::path::PathBuf;
 use std::sync::Arc;
-use anyhow::Result;
 use tracing::warn;
 
 use crate::domain::{
@@ -21,7 +21,11 @@ impl ScanLogsUseCase {
         event_port: Arc<dyn EventPort>,
         log_dir: PathBuf,
     ) -> Self {
-        Self { session_port, event_port, log_dir }
+        Self {
+            session_port,
+            event_port,
+            log_dir,
+        }
     }
 
     /// 全プロジェクトの JSONL を差分スキャンする

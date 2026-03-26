@@ -1,12 +1,12 @@
-use std::path::PathBuf;
-use std::sync::Arc;
 use anyhow::Result;
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+use std::path::PathBuf;
+use std::sync::Arc;
 use tokio::sync::mpsc;
 use tracing::{info, warn};
 
-use crate::application::scan_logs::ScanLogsUseCase;
 use crate::application::metrics_cache::MetricsCache;
+use crate::application::scan_logs::ScanLogsUseCase;
 
 /// `log_dir` を inotify で監視し、JSONL 変更のたびに ScanLogsUseCase を実行する
 pub async fn watch_log_dir(
@@ -17,8 +17,9 @@ pub async fn watch_log_dir(
     let (tx, mut rx) = mpsc::channel::<notify::Result<Event>>(64);
 
     // notify は同期 API なので blocking_send でブリッジ
-    let mut watcher: RecommendedWatcher =
-        notify::recommended_watcher(move |res| { let _ = tx.blocking_send(res); })?;
+    let mut watcher: RecommendedWatcher = notify::recommended_watcher(move |res| {
+        let _ = tx.blocking_send(res);
+    })?;
 
     watcher.watch(&log_dir, RecursiveMode::Recursive)?;
     info!("Watching: {}", log_dir.display());

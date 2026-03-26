@@ -1,5 +1,5 @@
+use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::post, Router};
 use std::sync::Arc;
-use axum::{Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
 use tracing::warn;
 
 use crate::application::{ingest_otlp::IngestOtlpUseCase, metrics_cache::MetricsCache};
@@ -21,10 +21,7 @@ pub fn router(state: OtlpState) -> Router {
         .with_state(state)
 }
 
-async fn handle_traces(
-    State(state): State<OtlpState>,
-    body: String,
-) -> impl IntoResponse {
+async fn handle_traces(State(state): State<OtlpState>, body: String) -> impl IntoResponse {
     let payload: TracesPayload = match serde_json::from_str(&body) {
         Ok(p) => p,
         Err(e) => {
@@ -41,10 +38,7 @@ async fn handle_traces(
     StatusCode::OK
 }
 
-async fn handle_metrics(
-    State(state): State<OtlpState>,
-    body: String,
-) -> impl IntoResponse {
+async fn handle_metrics(State(state): State<OtlpState>, body: String) -> impl IntoResponse {
     let payload: MetricsPayload = match serde_json::from_str(&body) {
         Ok(p) => p,
         Err(e) => {
@@ -59,10 +53,7 @@ async fn handle_metrics(
     StatusCode::OK
 }
 
-async fn handle_logs(
-    State(state): State<OtlpState>,
-    body: String,
-) -> impl IntoResponse {
+async fn handle_logs(State(state): State<OtlpState>, body: String) -> impl IntoResponse {
     if let Err(e) = state.use_case.ingest_logs(&body) {
         warn!("ingest_logs error: {e}");
     }

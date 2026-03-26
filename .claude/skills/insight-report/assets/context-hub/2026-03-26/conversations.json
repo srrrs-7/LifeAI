@@ -1,0 +1,18 @@
+{
+  "total_sessions_scanned": 7,
+  "total_conversations": 2,
+  "conversations": [
+    {
+      "user": "vscode ➜ ~/.claude/projects $ cd \"-workspace-main-lifeai\"\nbash: cd: -w: invalid option\ncd: usage: cd [-L|[-P [-e]] [-@]] [dir]",
+      "assistant": "ディレクトリ名がハイフン始まりなので `cd` がオプションとして解釈されています。`--` で区切るか、`./` を付けてください:\n\n```\ncd -- -workspace-main-lifeai\n```\n\nまたは\n\n```\ncd ./-workspace-main-lifeai\n```",
+      "session_id": "796a1b17-411c-49c0-8b80-64a77b652284",
+      "timestamp": "2026-03-26T15:25:59.019Z"
+    },
+    {
+      "user": "これはclaude codeを使用していると勝手に作成される？",
+      "assistant": "はい、**Claude Code が自動的に作成・書き込みします**。ユーザー側での設定は不要です。\n\nClaude Code は会話のやり取りをリアルタイムで `~/.claude/projects/<project-slug>/*.jsonl` に書き込んでいきます。`project-slug` は作業ディレクトリのパスをもとに自動生成されます。\n\n実際にどんなファイルがあるか確認したい場合は、ターミナルで以下を実行してみてください:\n\n```\n! ls ~/.claude/projects/\n```",
+      "session_id": "796a1b17-411c-49c0-8b80-64a77b652284",
+      "timestamp": "2026-03-26T15:24:07.973Z"
+    }
+  ]
+}

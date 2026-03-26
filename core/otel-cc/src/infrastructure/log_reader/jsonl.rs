@@ -61,9 +61,13 @@ pub struct Usage {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ContentBlock {
     #[allow(dead_code)]
-    Text { text: Option<String> },
+    Text {
+        text: Option<String>,
+    },
     #[allow(dead_code)]
-    Thinking { thinking: Option<String> },
+    Thinking {
+        thinking: Option<String>,
+    },
     ToolUse(ToolUseBlock),
     #[serde(other)]
     Unknown,

@@ -1,19 +1,51 @@
-use std::fmt::Write;
 use crate::domain::model::MetricsSummary;
+use std::fmt::Write;
 
 /// MetricsSummary を Prometheus テキスト形式に変換する
 pub fn render(s: &MetricsSummary) -> String {
     let mut out = String::new();
 
-    metric_gauge(&mut out, "cc_sessions_total", "Total Claude Code sessions", &[], s.total_sessions as f64);
-    metric_gauge(&mut out, "cc_active_sessions", "Active sessions", &[], s.active_sessions as f64);
+    metric_gauge(
+        &mut out,
+        "cc_sessions_total",
+        "Total Claude Code sessions",
+        &[],
+        s.total_sessions as f64,
+    );
+    metric_gauge(
+        &mut out,
+        "cc_active_sessions",
+        "Active sessions",
+        &[],
+        s.active_sessions as f64,
+    );
 
     let _ = writeln!(out, "# HELP cc_tokens_total Total tokens by type");
     let _ = writeln!(out, "# TYPE cc_tokens_total counter");
-    labeled(&mut out, "cc_tokens_total", &[("type", "input")], s.total_input_tokens);
-    labeled(&mut out, "cc_tokens_total", &[("type", "output")], s.total_output_tokens);
-    labeled(&mut out, "cc_tokens_total", &[("type", "cache_create")], s.total_cache_creation_tokens);
-    labeled(&mut out, "cc_tokens_total", &[("type", "cache_read")], s.total_cache_read_tokens);
+    labeled(
+        &mut out,
+        "cc_tokens_total",
+        &[("type", "input")],
+        s.total_input_tokens,
+    );
+    labeled(
+        &mut out,
+        "cc_tokens_total",
+        &[("type", "output")],
+        s.total_output_tokens,
+    );
+    labeled(
+        &mut out,
+        "cc_tokens_total",
+        &[("type", "cache_create")],
+        s.total_cache_creation_tokens,
+    );
+    labeled(
+        &mut out,
+        "cc_tokens_total",
+        &[("type", "cache_read")],
+        s.total_cache_read_tokens,
+    );
 
     let total_with_cache = s.total_input_tokens + s.total_cache_read_tokens;
     let cache_hit_ratio = if total_with_cache > 0 {
@@ -21,8 +53,19 @@ pub fn render(s: &MetricsSummary) -> String {
     } else {
         0.0
     };
-    metric_gauge(&mut out, "cc_cache_hit_ratio", "Cache read ratio (cache_read / total_input)", &[], cache_hit_ratio);
-    metric_float(&mut out, "cc_cost_usd_total", "Total cost in USD (counter)", s.total_cost_usd);
+    metric_gauge(
+        &mut out,
+        "cc_cache_hit_ratio",
+        "Cache read ratio (cache_read / total_input)",
+        &[],
+        cache_hit_ratio,
+    );
+    metric_float(
+        &mut out,
+        "cc_cost_usd_total",
+        "Total cost in USD (counter)",
+        s.total_cost_usd,
+    );
 
     let _ = writeln!(out, "# HELP cc_tool_calls_total Tool call counts by name");
     let _ = writeln!(out, "# TYPE cc_tool_calls_total counter");
@@ -38,7 +81,13 @@ pub fn render(s: &MetricsSummary) -> String {
     } else {
         0.0
     };
-    metric_gauge(&mut out, "cc_tool_error_rate", "Overall tool error rate", &[], error_rate);
+    metric_gauge(
+        &mut out,
+        "cc_tool_error_rate",
+        "Overall tool error rate",
+        &[],
+        error_rate,
+    );
 
     metric_float(
         &mut out,
@@ -49,14 +98,31 @@ pub fn render(s: &MetricsSummary) -> String {
 
     let _ = writeln!(out, "# HELP cc_project_sessions_total Sessions per project");
     let _ = writeln!(out, "# TYPE cc_project_sessions_total gauge");
-    let _ = writeln!(out, "# HELP cc_project_tokens_total Total tokens per project");
+    let _ = writeln!(
+        out,
+        "# HELP cc_project_tokens_total Total tokens per project"
+    );
     let _ = writeln!(out, "# TYPE cc_project_tokens_total gauge");
     let _ = writeln!(out, "# HELP cc_project_cost_usd Cost in USD per project");
     let _ = writeln!(out, "# TYPE cc_project_cost_usd gauge");
     for p in &s.projects {
-        labeled(&mut out, "cc_project_sessions_total", &[("project", &p.project)], p.sessions);
-        labeled(&mut out, "cc_project_tokens_total", &[("project", &p.project)], p.total_tokens);
-        let _ = writeln!(out, "cc_project_cost_usd{{project=\"{}\"}} {:.6}", p.project, p.cost_usd);
+        labeled(
+            &mut out,
+            "cc_project_sessions_total",
+            &[("project", &p.project)],
+            p.sessions,
+        );
+        labeled(
+            &mut out,
+            "cc_project_tokens_total",
+            &[("project", &p.project)],
+            p.total_tokens,
+        );
+        let _ = writeln!(
+            out,
+            "cc_project_cost_usd{{project=\"{}\"}} {:.6}",
+            p.project, p.cost_usd
+        );
     }
 
     out
@@ -85,5 +151,9 @@ fn labeled(out: &mut String, name: &str, labels: &[(&str, &str)], val: i64) {
 }
 
 fn label_str(labels: &[(&str, &str)]) -> String {
-    labels.iter().map(|(k, v)| format!("{k}=\"{v}\"")).collect::<Vec<_>>().join(",")
+    labels
+        .iter()
+        .map(|(k, v)| format!("{k}=\"{v}\""))
+        .collect::<Vec<_>>()
+        .join(",")
 }
