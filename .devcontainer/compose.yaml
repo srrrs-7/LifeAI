@@ -8,7 +8,60 @@ services:
         required: false
     volumes:
       - ..:/workspace/main/lifeai:cached
+      - ${HOME}/.claude:/home/vscode/.claude
     command: sleep infinity
     cap_add:
       - NET_ADMIN
       - NET_RAW
+
+  otel-cc:
+    build:
+      context: ..
+      dockerfile: core/otel-cc/Dockerfile
+    volumes:
+      - ${HOME}/.claude:/home/vscode/.claude:ro
+      - otel-cc-data:/data
+    environment:
+      - OTEL_CC_DB_PATH=/data/otel-cc.db
+      - OTEL_CC_CLAUDE_LOG_DIR=/home/vscode/.claude/projects
+      - OTEL_CC_OTLP_PORT=4318
+      - OTEL_CC_METRICS_PORT=9091
+    ports:
+      - "4318:4318"
+      - "9091:9091"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3
+    volumes:
+      - ../core/otel-cc/infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=90d'
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    depends_on:
+      - otel-cc
+
+  grafana:
+    image: grafana/grafana:11
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/claude-code.json
+    volumes:
+      - ../core/otel-cc/infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+volumes:
+  otel-cc-data:
+  prometheus-data:
+  grafana-data:

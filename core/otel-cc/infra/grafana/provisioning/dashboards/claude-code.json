@@ -1,0 +1,404 @@
+{
+  "title": "Claude Code Monitor",
+  "uid": "claude-code-monitor",
+  "schemaVersion": 38,
+  "version": 2,
+  "refresh": "30s",
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Data Source",
+        "type": "datasource",
+        "query": "prometheus",
+        "refresh": 1,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "id": 1,
+      "title": "現在の状態",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }
+    },
+    {
+      "id": 2,
+      "title": "Total Sessions",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 1, "w": 4, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_sessions_total", "legendFormat": "Sessions" }]
+    },
+    {
+      "id": 3,
+      "title": "Active Sessions",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 4, "y": 1, "w": 4, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 3 },
+              { "color": "red", "value": 6 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_active_sessions", "legendFormat": "Active" }]
+    },
+    {
+      "id": 4,
+      "title": "Total Cost (USD)",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 8, "y": 1, "w": 4, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_cost_usd_total", "legendFormat": "Cost" }]
+    },
+    {
+      "id": 5,
+      "title": "Cache Hit Ratio",
+      "type": "gauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 16, "y": 1, "w": 4, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.3 },
+              { "color": "green", "value": 0.6 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_cache_hit_ratio", "legendFormat": "Cache Hit" }]
+    },
+    {
+      "id": 6,
+      "title": "Tool Error Rate",
+      "type": "gauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 20, "y": 1, "w": 4, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.05 },
+              { "color": "red", "value": 0.15 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tool_error_rate", "legendFormat": "Error Rate" }]
+    },
+
+    {
+      "id": 7,
+      "title": "Context Compressions",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 12, "y": 1, "w": 4, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_compression_events_total", "legendFormat": "Compressions" }]
+    },
+
+    {
+      "id": 10,
+      "title": "トークン分析",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 5, "w": 24, "h": 1 }
+    },
+    {
+      "id": 11,
+      "title": "Tokens by Type (累計)",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 6, "w": 8, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tokens_total{type=\"input\"}", "legendFormat": "Input" },
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tokens_total{type=\"output\"}", "legendFormat": "Output" },
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tokens_total{type=\"cache_read\"}", "legendFormat": "Cache Read" },
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tokens_total{type=\"cache_create\"}", "legendFormat": "Cache Create" }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Token 消費量（時系列）",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 8, "y": 6, "w": 16, "h": 8 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineInterpolation": "stepAfter",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tokens_total{type=\"input\"}", "legendFormat": "Input" },
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tokens_total{type=\"output\"}", "legendFormat": "Output" },
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tokens_total{type=\"cache_read\"}", "legendFormat": "Cache Read" }
+      ]
+    },
+
+    {
+      "id": 20,
+      "title": "ツール分析",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 14, "w": 24, "h": 1 }
+    },
+    {
+      "id": 21,
+      "title": "Tool Calls by Name",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 15, "w": 12, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tool_calls_total", "legendFormat": "{{tool}}" }
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Tool Errors by Name",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 12, "y": 15, "w": 12, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "fixed", "fixedColor": "red" }
+        }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_tool_errors_total > 0", "legendFormat": "{{tool}}" }
+      ]
+    },
+
+    {
+      "id": 30,
+      "title": "コスト管理",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 23, "w": 24, "h": 1 }
+    },
+    {
+      "id": 31,
+      "title": "Cost per Project (USD)",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 24, "w": 8, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_project_cost_usd", "legendFormat": "{{project}}" }
+      ]
+    },
+    {
+      "id": 32,
+      "title": "Sessions per Project",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 8, "y": 24, "w": 8, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_project_sessions_total", "legendFormat": "{{project}}" }
+      ]
+    },
+    {
+      "id": 33,
+      "title": "Tokens per Project",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 16, "y": 24, "w": 8, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_project_tokens_total", "legendFormat": "{{project}}" }
+      ]
+    },
+    {
+      "id": 34,
+      "title": "Cost 推移（時系列）",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 32, "w": 24, "h": 8 },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 6,
+          "custom": {
+            "lineInterpolation": "stepAfter",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_cost_usd_total", "legendFormat": "Total" },
+        { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "expr": "cc_project_cost_usd", "legendFormat": "{{project}}" }
+      ]
+    }
+
+  ]
+}
