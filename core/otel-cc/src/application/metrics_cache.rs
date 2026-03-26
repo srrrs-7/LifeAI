@@ -26,3 +26,38 @@ impl MetricsCache {
         self.inner.read().await.clone()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn initial_snapshot_is_default() {
+        let cache = MetricsCache::new();
+        let s = cache.snapshot().await;
+        assert_eq!(s.total_sessions, 0);
+        assert_eq!(s.total_input_tokens, 0);
+    }
+
+    #[tokio::test]
+    async fn update_reflected_in_snapshot() {
+        let cache = MetricsCache::new();
+        cache.update(MetricsSummary {
+            total_sessions: 42,
+            total_input_tokens: 1_000_000,
+            ..Default::default()
+        }).await;
+
+        let s = cache.snapshot().await;
+        assert_eq!(s.total_sessions, 42);
+        assert_eq!(s.total_input_tokens, 1_000_000);
+    }
+
+    #[tokio::test]
+    async fn multiple_updates_return_latest() {
+        let cache = MetricsCache::new();
+        cache.update(MetricsSummary { total_sessions: 1, ..Default::default() }).await;
+        cache.update(MetricsSummary { total_sessions: 99, ..Default::default() }).await;
+        assert_eq!(cache.snapshot().await.total_sessions, 99);
+    }
+}

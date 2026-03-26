@@ -66,3 +66,100 @@ async fn refresh_cache(state: &OtlpState) {
         state.cache.update(summary).await;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::infrastructure::sqlite::SqliteRepository;
+    use axum::{body::Body, http::Request};
+    use std::path::Path;
+    use tower::ServiceExt;
+
+    fn make_state() -> OtlpState {
+        let repo = std::sync::Arc::new(SqliteRepository::open(Path::new(":memory:")).unwrap());
+        let use_case = Arc::new(IngestOtlpUseCase::new(
+            repo.clone(),
+            repo.clone(),
+            repo.clone(),
+        ));
+        OtlpState {
+            use_case,
+            session_port: repo,
+            cache: Arc::new(MetricsCache::new()),
+        }
+    }
+
+    fn app() -> Router {
+        router(make_state())
+    }
+
+    // ── /v1/traces ────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn traces_valid_json_returns_200() {
+        let body = r#"{"resourceSpans":[]}"#;
+        let resp = app()
+            .oneshot(
+                Request::post("/v1/traces")
+                    .header("content-type", "application/json")
+                    .body(Body::from(body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), 200);
+    }
+
+    #[tokio::test]
+    async fn traces_invalid_json_returns_400() {
+        let resp = app()
+            .oneshot(
+                Request::post("/v1/traces")
+                    .body(Body::from("not-json"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), 400);
+    }
+
+    // ── /v1/metrics ───────────────────────────────────────────
+
+    #[tokio::test]
+    async fn metrics_valid_json_returns_200() {
+        let body = r#"{"resourceMetrics":[]}"#;
+        let resp = app()
+            .oneshot(Request::post("/v1/metrics").body(Body::from(body)).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), 200);
+    }
+
+    #[tokio::test]
+    async fn metrics_invalid_json_returns_400() {
+        let resp = app()
+            .oneshot(
+                Request::post("/v1/metrics")
+                    .body(Body::from("{bad"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), 400);
+    }
+
+    // ── /v1/logs ──────────────────────────────────────────────
+
+    #[tokio::test]
+    async fn logs_any_body_returns_200() {
+        let resp = app()
+            .oneshot(
+                Request::post("/v1/logs")
+                    .body(Body::from(r#"{"resourceLogs":[]}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), 200);
+    }
+}

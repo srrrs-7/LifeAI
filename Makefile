@@ -65,7 +65,8 @@ open-prometheus: ## Prometheus をブラウザで開く
 # ------------------------------------------------------------
 hooks: ## Git hooks インストール
 	git config core.hooksPath "$$(pwd)/.githooks"
-	chmod +x .githooks/pre-commit .githooks/pre-push
+	chmod +x .githooks/pre-commit .githooks/pre-push .githooks/post-commit
+	chmod +x .claude/scripts/update-claude-md.sh
 	@echo "Git hooks installed to $$(pwd)/.githooks"
 
 # ------------------------------------------------------------

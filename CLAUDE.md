@@ -115,7 +115,7 @@ interface/
 `.githooks/` に設定済み（`make hooks` でインストール）:
 - **pre-commit**: `cargo fmt` + `cargo clippy --all-targets --all-features -- -D warnings`
 - **pre-push**: `cargo test`
-- **post-commit**: Context Hub による知識抽出をバックグラウンド実行（24h以内の再実行は自動スキップ）
+- **post-commit**: Context Hub による知識抽出 + CLAUDE.md 自動更新をバックグラウンド実行（24h以内の再実行は自動スキップ）
 
 ## Coding Conventions
 

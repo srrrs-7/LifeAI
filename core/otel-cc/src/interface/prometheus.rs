@@ -157,3 +157,90 @@ fn label_str(labels: &[(&str, &str)]) -> String {
         .collect::<Vec<_>>()
         .join(",")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::model::{MetricsSummary, ProjectSummary};
+
+    fn render_default() -> String {
+        render(&MetricsSummary::default())
+    }
+
+    // ── HELP / TYPE 行の存在確認 ───────────────────────────────
+
+    #[test]
+    fn help_and_gauge_type_for_sessions() {
+        let out = render_default();
+        assert!(out.contains("# HELP cc_sessions_total Total Claude Code sessions"));
+        assert!(out.contains("# TYPE cc_sessions_total gauge"));
+    }
+
+    #[test]
+    fn compression_events_total_uses_counter_type() {
+        // _total サフィックスのメトリクスは TYPE counter でなければならない
+        let out = render_default();
+        let lines: Vec<&str> = out.lines().collect();
+        let type_line = lines
+            .iter()
+            .find(|l| l.contains("TYPE") && l.contains("cc_compression_events_total"))
+            .expect("TYPE line for cc_compression_events_total not found");
+        assert!(
+            type_line.contains("counter"),
+            "TYPE must be 'counter', got: {type_line}"
+        );
+    }
+
+    #[test]
+    fn tokens_total_uses_counter_type() {
+        let out = render_default();
+        let lines: Vec<&str> = out.lines().collect();
+        let type_line = lines
+            .iter()
+            .find(|l| l.contains("TYPE") && l.contains("cc_tokens_total"))
+            .unwrap();
+        assert!(type_line.contains("counter"));
+    }
+
+    // ── 値の正確性 ────────────────────────────────────────────
+
+    #[test]
+    fn tool_counts_rendered_per_tool_with_label() {
+        let s = MetricsSummary {
+            tool_counts: vec![("Bash".to_string(), 5, 2), ("Read".to_string(), 10, 0)],
+            ..Default::default()
+        };
+        let out = render(&s);
+        assert!(out.contains("cc_tool_calls_total{tool=\"Bash\"} 5"));
+        assert!(out.contains("cc_tool_errors_total{tool=\"Bash\"} 2"));
+        assert!(out.contains("cc_tool_calls_total{tool=\"Read\"} 10"));
+        assert!(out.contains("cc_tool_errors_total{tool=\"Read\"} 0"));
+    }
+
+    #[test]
+    fn project_cost_rendered_with_six_decimal_places() {
+        let s = MetricsSummary {
+            projects: vec![ProjectSummary {
+                project: "my-proj".to_string(),
+                sessions: 3,
+                total_tokens: 1000,
+                cost_usd: 0.001234,
+            }],
+            ..Default::default()
+        };
+        let out = render(&s);
+        assert!(out.contains("cc_project_cost_usd{project=\"my-proj\"} 0.001234"));
+    }
+
+    #[test]
+    fn cache_hit_ratio_is_zero_when_no_tokens() {
+        let out = render_default();
+        assert!(out.contains("cc_cache_hit_ratio 0.000000"));
+    }
+
+    #[test]
+    fn tool_error_rate_is_zero_when_no_calls() {
+        let out = render_default();
+        assert!(out.contains("cc_tool_error_rate 0.000000"));
+    }
+}

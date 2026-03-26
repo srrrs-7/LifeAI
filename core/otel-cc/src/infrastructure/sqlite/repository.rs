@@ -363,3 +363,238 @@ impl OtlpPort for SqliteRepository {
         Ok(())
     }
 }
+
+/// テスト用: SAVEPOINT を使ってテスト終了時に変更をロールバックする
+///
+/// `:memory:` DB はテストごとに独立しているが、トランザクション境界を明示することで
+/// テストの意図を示し、将来の共有 DB への移行にも対応しやすくする。
+#[cfg(test)]
+impl SqliteRepository {
+    pub fn with_rollback<F: FnOnce(&Self)>(&self, f: F) {
+        {
+            let conn = self.conn.lock().unwrap();
+            conn.execute_batch("SAVEPOINT test_sp").unwrap();
+        }
+        f(self);
+        {
+            let conn = self.conn.lock().unwrap();
+            conn.execute_batch("ROLLBACK TO SAVEPOINT test_sp; RELEASE test_sp")
+                .unwrap();
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::model::{EventSource, Session, TokenEvent, ToolCall};
+    use crate::domain::port::{EventPort, OtlpPort, SessionPort};
+    use std::path::Path;
+
+    fn repo() -> SqliteRepository {
+        SqliteRepository::open(Path::new(":memory:")).unwrap()
+    }
+
+    fn session(id: &str, project: &str, active: bool) -> Session {
+        Session {
+            session_id: id.to_string(),
+            project: project.to_string(),
+            cwd: None,
+            git_branch: None,
+            model: Some("claude-sonnet-4-6".to_string()),
+            entrypoint: Some("cli".to_string()),
+            version: None,
+            started_at: "2026-01-01T00:00:00Z".to_string(),
+            last_seen_at: "2026-01-01T00:00:00Z".to_string(),
+            is_active: active,
+        }
+    }
+
+    fn token_ev(session_id: &str, input: i64, output: i64, cost: f64) -> TokenEvent {
+        TokenEvent {
+            session_id: session_id.to_string(),
+            timestamp: "2026-01-01T00:00:00Z".to_string(),
+            model: Some("claude-sonnet-4-6".to_string()),
+            input_tokens: input,
+            output_tokens: output,
+            cache_creation_tokens: 0,
+            cache_read_tokens: 0,
+            cost_usd: cost,
+            source: EventSource::Log,
+        }
+    }
+
+    fn tool_call(session_id: &str, name: &str, is_error: bool) -> ToolCall {
+        ToolCall {
+            session_id: session_id.to_string(),
+            tool_id: Some(format!("{session_id}-{name}")),
+            timestamp: "2026-01-01T00:00:00Z".to_string(),
+            tool_name: name.to_string(),
+            is_error,
+            source: EventSource::Log,
+        }
+    }
+
+    // ── セッション ─────────────────────────────────────────────
+
+    #[test]
+    fn upsert_session_does_not_duplicate() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let mut s = session("s1", "proj", true);
+            r.upsert_session(&s).unwrap();
+            s.last_seen_at = "2026-02-01T00:00:00Z".to_string();
+            r.upsert_session(&s).unwrap();
+
+            let summary = r.load_summary().unwrap();
+            assert_eq!(
+                summary.total_sessions, 1,
+                "upsert should not create duplicate rows"
+            );
+        });
+    }
+
+    #[test]
+    fn active_sessions_counted_separately() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "p", true)).unwrap();
+            r.upsert_session(&session("s2", "p", false)).unwrap();
+            r.upsert_session(&session("s3", "p", true)).unwrap();
+
+            let s = r.load_summary().unwrap();
+            assert_eq!(s.total_sessions, 3);
+            assert_eq!(s.active_sessions, 2);
+        });
+    }
+
+    // ── トークン集計 ────────────────────────────────────────────
+
+    #[test]
+    fn token_events_aggregate_correctly() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "p", true)).unwrap();
+            r.insert_token_event(&token_ev("s1", 100, 50, 0.001))
+                .unwrap();
+            r.insert_token_event(&token_ev("s1", 200, 80, 0.002))
+                .unwrap();
+
+            let s = r.load_summary().unwrap();
+            assert_eq!(s.total_input_tokens, 300);
+            assert_eq!(s.total_output_tokens, 130);
+            assert!((s.total_cost_usd - 0.003).abs() < 1e-9);
+        });
+    }
+
+    // ── ツールコール ────────────────────────────────────────────
+
+    #[test]
+    fn tool_calls_counted_with_error_split() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "p", true)).unwrap();
+            r.insert_tool_call(&tool_call("s1", "Bash", false)).unwrap();
+            r.insert_tool_call(&tool_call("s1", "Bash", true)).unwrap();
+            r.insert_tool_call(&tool_call("s1", "Read", false)).unwrap();
+
+            let s = r.load_summary().unwrap();
+            assert_eq!(s.total_tool_calls, 3);
+            assert_eq!(s.total_tool_errors, 1);
+
+            let bash = s.tool_counts.iter().find(|(t, _, _)| t == "Bash").unwrap();
+            assert_eq!((bash.1, bash.2), (2, 1));
+
+            let read = s.tool_counts.iter().find(|(t, _, _)| t == "Read").unwrap();
+            assert_eq!((read.1, read.2), (1, 0));
+        });
+    }
+
+    // ── スキャン状態 ────────────────────────────────────────────
+
+    #[test]
+    fn scan_state_returns_none_before_set() {
+        let r = repo();
+        r.with_rollback(|r| {
+            assert!(r.get_scan_state("/no/such/file.jsonl").unwrap().is_none());
+        });
+    }
+
+    #[test]
+    fn scan_state_roundtrip_and_overwrite() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let st = ScanState {
+                last_modified: "111".to_string(),
+                lines_processed: 10,
+            };
+            r.set_scan_state("/f.jsonl", &st).unwrap();
+
+            let got = r.get_scan_state("/f.jsonl").unwrap().unwrap();
+            assert_eq!(got.last_modified, "111");
+            assert_eq!(got.lines_processed, 10);
+
+            let st2 = ScanState {
+                last_modified: "222".to_string(),
+                lines_processed: 20,
+            };
+            r.set_scan_state("/f.jsonl", &st2).unwrap();
+            let got2 = r.get_scan_state("/f.jsonl").unwrap().unwrap();
+            assert_eq!(got2.lines_processed, 20);
+        });
+    }
+
+    // ── 圧縮イベント ────────────────────────────────────────────
+
+    #[test]
+    fn compression_events_counted_in_summary() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.insert_compression_event("s1", "2026-01-01T00:00:00Z", Some("compressed 5k tokens"))
+                .unwrap();
+            r.insert_compression_event("s1", "2026-01-02T00:00:00Z", None)
+                .unwrap();
+
+            let s = r.load_summary().unwrap();
+            assert_eq!(s.total_compression_events, 2);
+        });
+    }
+
+    // ── プロジェクト集計 ────────────────────────────────────────
+
+    #[test]
+    fn project_summary_groups_by_project() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "alpha", true)).unwrap();
+            r.upsert_session(&session("s2", "beta", true)).unwrap();
+            r.upsert_session(&session("s3", "alpha", true)).unwrap();
+            r.insert_token_event(&token_ev("s1", 100, 50, 0.0)).unwrap();
+            r.insert_token_event(&token_ev("s3", 200, 80, 0.0)).unwrap();
+
+            let s = r.load_summary().unwrap();
+            let alpha = s.projects.iter().find(|p| p.project == "alpha").unwrap();
+            assert_eq!(alpha.sessions, 2);
+            assert_eq!(alpha.total_tokens, 430); // 100+50+200+80
+
+            let beta = s.projects.iter().find(|p| p.project == "beta").unwrap();
+            assert_eq!(beta.sessions, 1);
+            assert_eq!(beta.total_tokens, 0);
+        });
+    }
+
+    // ── OTLP ポート ─────────────────────────────────────────────
+
+    #[test]
+    fn otlp_ports_insert_without_error() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.insert_span(Some("t1"), Some("s1"), Some("my.span"), r#"{"raw":"data"}"#)
+                .unwrap();
+            r.insert_metric(Some("my.metric"), r#"{"v":1}"#).unwrap();
+            r.insert_log(r#"{"body":"hello"}"#).unwrap();
+            // NULL IDs も受け付ける
+            r.insert_span(None, None, None, "{}").unwrap();
+        });
+    }
+}

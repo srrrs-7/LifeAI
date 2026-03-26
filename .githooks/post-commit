@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Context Hub — Post-commit knowledge extraction (optional, background)
+# Post-commit バックグラウンドタスク
 #
-# コミット後にバックグラウンドで知識抽出を実行する。
-# 24h以内の再実行は自動スキップ。
+# 1. Context Hub — 対話ログからの知識抽出（24h スキップあり）
+# 2. CLAUDE.md 自動更新 — Rust/TOML 変更検知時のみ実行（24h スキップあり）
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RUNNER="${SCRIPT_DIR}/../.claude/skills/insight-report/scripts/context-hub-runner.sh"
 
+# ── 1. Context Hub ────────────────────────────────────────────────────
+RUNNER="${SCRIPT_DIR}/../.claude/skills/insight-report/scripts/context-hub-runner.sh"
 if [[ -x "${RUNNER}" ]]; then
-    # Run in background, suppress output
     "${RUNNER}" --since 7 > /dev/null 2>&1 &
+fi
+
+# ── 2. CLAUDE.md 自動更新 ─────────────────────────────────────────────
+UPDATER="${SCRIPT_DIR}/../.claude/scripts/update-claude-md.sh"
+if [[ -x "${UPDATER}" ]]; then
+    "${UPDATER}" > /dev/null 2>&1 &
 fi

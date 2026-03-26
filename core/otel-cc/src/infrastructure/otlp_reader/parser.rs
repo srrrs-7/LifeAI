@@ -213,3 +213,92 @@ fn attr_i64(attrs: &std::collections::HashMap<String, String>, keys: &[&str]) ->
     }
     0
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn traces_json(attrs: &str) -> String {
+        format!(
+            r#"{{"resourceSpans":[{{"scopeSpans":[{{"spans":[{{"traceId":"tid","spanId":"sid","name":"cc.req","attributes":[{attrs}]}}]}}]}}]}}"#
+        )
+    }
+
+    // ── extract_token_events ────────────────────────────────────
+
+    #[test]
+    fn extracts_token_counts_from_llm_usage_attrs() {
+        let json = traces_json(
+            r#"{"key":"llm.usage.prompt_tokens","value":{"intValue":100}},
+               {"key":"llm.usage.completion_tokens","value":{"intValue":50}},
+               {"key":"claude_code.session_id","value":{"stringValue":"sess-1"}},
+               {"key":"claude_code.project","value":{"stringValue":"my-proj"}}"#,
+        );
+        let payload: TracesPayload = serde_json::from_str(&json).unwrap();
+        let events = extract_token_events(&payload);
+
+        assert_eq!(events.len(), 1);
+        let ev = &events[0];
+        assert_eq!(ev.input_tokens, 100);
+        assert_eq!(ev.output_tokens, 50);
+        assert_eq!(ev.session_id.as_deref(), Some("sess-1"));
+        assert_eq!(ev.project.as_deref(), Some("my-proj"));
+        assert_eq!(ev.trace_id.as_deref(), Some("tid"));
+        assert_eq!(ev.span_id.as_deref(), Some("sid"));
+    }
+
+    #[test]
+    fn skips_spans_without_claude_or_llm_attrs() {
+        let json = traces_json(r#"{"key":"http.method","value":{"stringValue":"GET"}}"#);
+        let payload: TracesPayload = serde_json::from_str(&json).unwrap();
+        let events = extract_token_events(&payload);
+        assert!(events.is_empty());
+    }
+
+    #[test]
+    fn project_falls_back_to_service_name() {
+        let json = traces_json(
+            r#"{"key":"claude_code.token.input","value":{"intValue":10}},
+               {"key":"service.name","value":{"stringValue":"fallback-proj"}}"#,
+        );
+        let payload: TracesPayload = serde_json::from_str(&json).unwrap();
+        let events = extract_token_events(&payload);
+        assert_eq!(events[0].project.as_deref(), Some("fallback-proj"));
+    }
+
+    #[test]
+    fn empty_payload_returns_empty_vec() {
+        let payload: TracesPayload = serde_json::from_str(r#"{"resourceSpans":[]}"#).unwrap();
+        assert!(extract_token_events(&payload).is_empty());
+    }
+
+    // ── extract_metrics ─────────────────────────────────────────
+
+    #[test]
+    fn extracts_sum_data_points() {
+        let json = r#"{
+            "resourceMetrics":[{"scopeMetrics":[{"metrics":[{
+                "name":"cc.tokens",
+                "sum":{"dataPoints":[{"asInt":42}]}
+            }]}]}]
+        }"#;
+        let payload: MetricsPayload = serde_json::from_str(json).unwrap();
+        let metrics = extract_metrics(&payload);
+        assert_eq!(metrics.len(), 1);
+        assert_eq!(metrics[0].name, "cc.tokens");
+        assert_eq!(metrics[0].value_int, Some(42));
+    }
+
+    #[test]
+    fn extracts_gauge_data_points() {
+        let json = r#"{
+            "resourceMetrics":[{"scopeMetrics":[{"metrics":[{
+                "name":"cc.sessions",
+                "gauge":{"dataPoints":[{"asInt":3}]}
+            }]}]}]
+        }"#;
+        let payload: MetricsPayload = serde_json::from_str(json).unwrap();
+        let metrics = extract_metrics(&payload);
+        assert_eq!(metrics[0].name, "cc.sessions");
+    }
+}
