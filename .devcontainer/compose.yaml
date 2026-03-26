@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v3
+    image: prom/prometheus:latest
     volumes:
       - ../core/otel-cc/infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
@@ -47,7 +47,7 @@ services:
       - otel-cc
 
   grafana:
-    image: grafana/grafana:11
+    image: grafana/grafana:latest
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
