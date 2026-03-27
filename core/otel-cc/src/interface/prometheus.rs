@@ -100,11 +100,16 @@ pub fn render(s: &MetricsSummary) -> String {
     let _ = writeln!(out, "# TYPE cc_project_sessions_total gauge");
     let _ = writeln!(
         out,
-        "# HELP cc_project_tokens_total Total tokens per project"
+        "# HELP cc_project_tokens_total Tokens per project by type"
     );
     let _ = writeln!(out, "# TYPE cc_project_tokens_total gauge");
     let _ = writeln!(out, "# HELP cc_project_cost_usd Cost in USD per project");
     let _ = writeln!(out, "# TYPE cc_project_cost_usd gauge");
+    let _ = writeln!(
+        out,
+        "# HELP cc_project_tool_calls_total Tool calls per project"
+    );
+    let _ = writeln!(out, "# TYPE cc_project_tool_calls_total gauge");
     for p in &s.projects {
         labeled(
             &mut out,
@@ -115,13 +120,37 @@ pub fn render(s: &MetricsSummary) -> String {
         labeled(
             &mut out,
             "cc_project_tokens_total",
-            &[("project", &p.project)],
-            p.total_tokens,
+            &[("project", &p.project), ("type", "input")],
+            p.input_tokens,
+        );
+        labeled(
+            &mut out,
+            "cc_project_tokens_total",
+            &[("project", &p.project), ("type", "output")],
+            p.output_tokens,
+        );
+        labeled(
+            &mut out,
+            "cc_project_tokens_total",
+            &[("project", &p.project), ("type", "cache_create")],
+            p.cache_creation_tokens,
+        );
+        labeled(
+            &mut out,
+            "cc_project_tokens_total",
+            &[("project", &p.project), ("type", "cache_read")],
+            p.cache_read_tokens,
         );
         let _ = writeln!(
             out,
             "cc_project_cost_usd{{project=\"{}\"}} {:.6}",
             p.project, p.cost_usd
+        );
+        labeled(
+            &mut out,
+            "cc_project_tool_calls_total",
+            &[("project", &p.project)],
+            p.tool_calls,
         );
     }
 
@@ -223,13 +252,19 @@ mod tests {
             projects: vec![ProjectSummary {
                 project: "my-proj".to_string(),
                 sessions: 3,
-                total_tokens: 1000,
+                input_tokens: 800,
+                output_tokens: 200,
+                cache_creation_tokens: 0,
+                cache_read_tokens: 0,
                 cost_usd: 0.001234,
+                tool_calls: 0,
             }],
             ..Default::default()
         };
         let out = render(&s);
         assert!(out.contains("cc_project_cost_usd{project=\"my-proj\"} 0.001234"));
+        assert!(out.contains("cc_project_tokens_total{project=\"my-proj\",type=\"input\"} 800"));
+        assert!(out.contains("cc_project_tokens_total{project=\"my-proj\",type=\"output\"} 200"));
     }
 
     #[test]

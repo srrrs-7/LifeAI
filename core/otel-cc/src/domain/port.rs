@@ -1,4 +1,6 @@
-use crate::domain::model::{MetricsSummary, ScanState, Session, TokenEvent, ToolCall};
+use crate::domain::model::{
+    MetricsSummary, ScanState, Session, StatsResponse, TokenEvent, ToolCall,
+};
 use anyhow::Result;
 
 /// セッション情報とスキャン状態を管理するポート
@@ -19,6 +21,14 @@ pub trait SessionPort: Send + Sync {
 pub trait EventPort: Send + Sync {
     fn insert_token_event(&self, event: &TokenEvent) -> Result<()>;
     fn insert_tool_call(&self, call: &ToolCall) -> Result<()>;
+}
+
+/// 期間・プロジェクト指定で集計統計を返すポート
+pub trait StatsPort: Send + Sync {
+    /// `period_days`: None = 全期間、Some(n) = 直近 n 日
+    /// `project`: None = 全プロジェクト、Some("name") = 指定プロジェクトのみ
+    fn query_stats(&self, period_days: Option<u32>, project: Option<&str>)
+        -> Result<StatsResponse>;
 }
 
 /// OTel 生データを保存するポート

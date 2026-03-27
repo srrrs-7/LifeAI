@@ -3,8 +3,11 @@ use rusqlite::{params, Connection};
 use std::sync::Mutex;
 
 use crate::domain::{
-    model::{MetricsSummary, ProjectSummary, ScanState, Session, TokenEvent, ToolCall},
-    port::{EventPort, OtlpPort, SessionPort},
+    model::{
+        DailyStats, MetricsSummary, OverviewStats, ProjectStats, ProjectSummary, ScanState,
+        Session, StatsResponse, TokenEvent, ToolCall,
+    },
+    port::{EventPort, OtlpPort, SessionPort, StatsPort},
 };
 
 pub struct SqliteRepository {
@@ -245,26 +248,49 @@ impl SessionPort for SqliteRepository {
             .flatten()
             .collect();
 
+        // プロジェクト別トークン集計
         let mut stmt = conn.prepare(
             "SELECT s.project,
                     COUNT(DISTINCT s.session_id),
-                    COALESCE(SUM(t.input_tokens + t.output_tokens), 0),
+                    COALESCE(SUM(t.input_tokens), 0),
+                    COALESCE(SUM(t.output_tokens), 0),
+                    COALESCE(SUM(t.cache_creation_tokens), 0),
+                    COALESCE(SUM(t.cache_read_tokens), 0),
                     COALESCE(SUM(t.cost_usd), 0.0)
              FROM sessions s
              LEFT JOIN token_events t ON s.session_id = t.session_id
              GROUP BY s.project",
         )?;
-        let projects = stmt
+        let mut projects: Vec<ProjectSummary> = stmt
             .query_map([], |r| {
                 Ok(ProjectSummary {
                     project: r.get(0)?,
                     sessions: r.get(1)?,
-                    total_tokens: r.get(2)?,
-                    cost_usd: r.get(3)?,
+                    input_tokens: r.get(2)?,
+                    output_tokens: r.get(3)?,
+                    cache_creation_tokens: r.get(4)?,
+                    cache_read_tokens: r.get(5)?,
+                    cost_usd: r.get(6)?,
+                    tool_calls: 0,
                 })
             })?
             .flatten()
             .collect();
+
+        // プロジェクト別ツール数（Cartesian product 回避のため別クエリ）
+        let mut stmt = conn.prepare(
+            "SELECT s.project, COUNT(tc.id)
+             FROM sessions s
+             LEFT JOIN tool_calls tc ON s.session_id = tc.session_id
+             GROUP BY s.project",
+        )?;
+        let tool_counts_by_project: std::collections::HashMap<String, i64> = stmt
+            .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?)))?
+            .flatten()
+            .collect();
+        for p in &mut projects {
+            p.tool_calls = *tool_counts_by_project.get(&p.project).unwrap_or(&0);
+        }
 
         Ok(MetricsSummary {
             total_sessions,
@@ -322,6 +348,271 @@ impl EventPort for SqliteRepository {
             ],
         )?;
         Ok(())
+    }
+}
+
+impl StatsPort for SqliteRepository {
+    fn query_stats(
+        &self,
+        period_days: Option<u32>,
+        project: Option<&str>,
+    ) -> Result<StatsResponse> {
+        let conn = self.conn.lock().unwrap();
+        let generated_at = chrono::Utc::now().to_rfc3339();
+
+        // 期間フィルタ用カットオフ（None = 全期間）
+        let cutoff = period_days
+            .map(|d| (chrono::Utc::now() - chrono::Duration::days(d as i64)).to_rfc3339())
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string());
+
+        // ── セッション数 ─────────────────────────────────────────
+        let (total_sessions, active_sessions): (i64, i64) = match project {
+            Some(proj) => (
+                conn.query_row(
+                    "SELECT COUNT(*) FROM sessions WHERE project = ?1 AND last_seen_at >= ?2",
+                    params![proj, cutoff],
+                    |r| r.get(0),
+                )
+                .unwrap_or(0),
+                conn.query_row(
+                    "SELECT COUNT(*) FROM sessions WHERE project = ?1 AND is_active = 1 AND last_seen_at >= ?2",
+                    params![proj, cutoff],
+                    |r| r.get(0),
+                )
+                .unwrap_or(0),
+            ),
+            None => (
+                conn.query_row(
+                    "SELECT COUNT(*) FROM sessions WHERE last_seen_at >= ?1",
+                    params![cutoff],
+                    |r| r.get(0),
+                )
+                .unwrap_or(0),
+                conn.query_row(
+                    "SELECT COUNT(*) FROM sessions WHERE is_active = 1 AND last_seen_at >= ?1",
+                    params![cutoff],
+                    |r| r.get(0),
+                )
+                .unwrap_or(0),
+            ),
+        };
+
+        // ── トークン集計 ─────────────────────────────────────────
+        let (input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens, cost_usd): (
+            i64,
+            i64,
+            i64,
+            i64,
+            f64,
+        ) = match project {
+            Some(proj) => conn
+                .query_row(
+                    "SELECT COALESCE(SUM(te.input_tokens),0),
+                            COALESCE(SUM(te.output_tokens),0),
+                            COALESCE(SUM(te.cache_creation_tokens),0),
+                            COALESCE(SUM(te.cache_read_tokens),0),
+                            COALESCE(SUM(te.cost_usd),0.0)
+                     FROM token_events te
+                     JOIN sessions s ON te.session_id = s.session_id
+                     WHERE s.project = ?1 AND te.timestamp >= ?2",
+                    params![proj, cutoff],
+                    |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
+                )
+                .unwrap_or((0, 0, 0, 0, 0.0)),
+            None => conn
+                .query_row(
+                    "SELECT COALESCE(SUM(input_tokens),0),
+                            COALESCE(SUM(output_tokens),0),
+                            COALESCE(SUM(cache_creation_tokens),0),
+                            COALESCE(SUM(cache_read_tokens),0),
+                            COALESCE(SUM(cost_usd),0.0)
+                     FROM token_events WHERE timestamp >= ?1",
+                    params![cutoff],
+                    |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
+                )
+                .unwrap_or((0, 0, 0, 0, 0.0)),
+        };
+
+        // ── ツールコール ─────────────────────────────────────────
+        let (tool_calls, tool_errors): (i64, i64) = match project {
+            Some(proj) => conn
+                .query_row(
+                    "SELECT COUNT(*), COALESCE(SUM(tc.is_error),0)
+                     FROM tool_calls tc
+                     JOIN sessions s ON tc.session_id = s.session_id
+                     WHERE s.project = ?1 AND tc.timestamp >= ?2",
+                    params![proj, cutoff],
+                    |r| Ok((r.get(0)?, r.get(1)?)),
+                )
+                .unwrap_or((0, 0)),
+            None => conn
+                .query_row(
+                    "SELECT COUNT(*), COALESCE(SUM(is_error),0)
+                     FROM tool_calls WHERE timestamp >= ?1",
+                    params![cutoff],
+                    |r| Ok((r.get(0)?, r.get(1)?)),
+                )
+                .unwrap_or((0, 0)),
+        };
+
+        let total_with_cache = input_tokens + cache_read_tokens;
+        let cache_hit_ratio = if total_with_cache > 0 {
+            cache_read_tokens as f64 / total_with_cache as f64
+        } else {
+            0.0
+        };
+
+        let overview = OverviewStats {
+            total_sessions,
+            active_sessions,
+            input_tokens,
+            output_tokens,
+            cache_creation_tokens,
+            cache_read_tokens,
+            cost_usd,
+            tool_calls,
+            tool_errors,
+            cache_hit_ratio,
+        };
+
+        // ── プロジェクト別内訳 ────────────────────────────────────
+        let projects: Vec<ProjectStats> = match project {
+            Some(proj) => {
+                // 単一プロジェクト指定時は overview の値をそのまま使う
+                vec![ProjectStats {
+                    project: proj.to_string(),
+                    sessions: total_sessions,
+                    input_tokens,
+                    output_tokens,
+                    cache_creation_tokens,
+                    cache_read_tokens,
+                    cost_usd,
+                    tool_calls,
+                }]
+            }
+            None => {
+                // トークン集計
+                let mut stmt = conn.prepare(
+                    "SELECT s.project,
+                            COUNT(DISTINCT s.session_id),
+                            COALESCE(SUM(te.input_tokens),0),
+                            COALESCE(SUM(te.output_tokens),0),
+                            COALESCE(SUM(te.cache_creation_tokens),0),
+                            COALESCE(SUM(te.cache_read_tokens),0),
+                            COALESCE(SUM(te.cost_usd),0.0)
+                     FROM sessions s
+                     LEFT JOIN token_events te ON s.session_id = te.session_id
+                       AND te.timestamp >= ?1
+                     WHERE s.last_seen_at >= ?1
+                     GROUP BY s.project
+                     ORDER BY SUM(te.cost_usd) DESC NULLS LAST",
+                )?;
+                let mut rows: Vec<ProjectStats> = stmt
+                    .query_map(params![cutoff], |r| {
+                        Ok(ProjectStats {
+                            project: r.get(0)?,
+                            sessions: r.get(1)?,
+                            input_tokens: r.get(2)?,
+                            output_tokens: r.get(3)?,
+                            cache_creation_tokens: r.get(4)?,
+                            cache_read_tokens: r.get(5)?,
+                            cost_usd: r.get(6)?,
+                            tool_calls: 0,
+                        })
+                    })?
+                    .flatten()
+                    .collect();
+
+                // ツール数を別クエリで補完
+                let mut stmt = conn.prepare(
+                    "SELECT s.project, COUNT(tc.id)
+                     FROM sessions s
+                     LEFT JOIN tool_calls tc ON s.session_id = tc.session_id
+                       AND tc.timestamp >= ?1
+                     WHERE s.last_seen_at >= ?1
+                     GROUP BY s.project",
+                )?;
+                let tc_map: std::collections::HashMap<String, i64> = stmt
+                    .query_map(params![cutoff], |r| {
+                        Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?))
+                    })?
+                    .flatten()
+                    .collect();
+                for p in &mut rows {
+                    p.tool_calls = *tc_map.get(&p.project).unwrap_or(&0);
+                }
+                rows
+            }
+        };
+
+        // ── 日別内訳 ─────────────────────────────────────────────
+        let daily: Vec<DailyStats> = match project {
+            Some(proj) => {
+                let mut stmt = conn.prepare(
+                    "SELECT DATE(te.timestamp),
+                            COALESCE(SUM(te.input_tokens),0),
+                            COALESCE(SUM(te.output_tokens),0),
+                            COALESCE(SUM(te.cache_creation_tokens),0),
+                            COALESCE(SUM(te.cache_read_tokens),0),
+                            COALESCE(SUM(te.cost_usd),0.0)
+                     FROM token_events te
+                     JOIN sessions s ON te.session_id = s.session_id
+                     WHERE s.project = ?1 AND te.timestamp >= ?2
+                     GROUP BY DATE(te.timestamp)
+                     ORDER BY DATE(te.timestamp)",
+                )?;
+                let rows: Vec<DailyStats> = stmt
+                    .query_map(params![proj, cutoff], |r| {
+                        Ok(DailyStats {
+                            date: r.get(0)?,
+                            input_tokens: r.get(1)?,
+                            output_tokens: r.get(2)?,
+                            cache_creation_tokens: r.get(3)?,
+                            cache_read_tokens: r.get(4)?,
+                            cost_usd: r.get(5)?,
+                        })
+                    })?
+                    .flatten()
+                    .collect();
+                rows
+            }
+            None => {
+                let mut stmt = conn.prepare(
+                    "SELECT DATE(timestamp),
+                            COALESCE(SUM(input_tokens),0),
+                            COALESCE(SUM(output_tokens),0),
+                            COALESCE(SUM(cache_creation_tokens),0),
+                            COALESCE(SUM(cache_read_tokens),0),
+                            COALESCE(SUM(cost_usd),0.0)
+                     FROM token_events
+                     WHERE timestamp >= ?1
+                     GROUP BY DATE(timestamp)
+                     ORDER BY DATE(timestamp)",
+                )?;
+                let rows: Vec<DailyStats> = stmt
+                    .query_map(params![cutoff], |r| {
+                        Ok(DailyStats {
+                            date: r.get(0)?,
+                            input_tokens: r.get(1)?,
+                            output_tokens: r.get(2)?,
+                            cache_creation_tokens: r.get(3)?,
+                            cache_read_tokens: r.get(4)?,
+                            cost_usd: r.get(5)?,
+                        })
+                    })?
+                    .flatten()
+                    .collect();
+                rows
+            }
+        };
+
+        Ok(StatsResponse {
+            period_days,
+            generated_at,
+            overview,
+            projects,
+            daily,
+        })
     }
 }
 
@@ -388,14 +679,15 @@ impl SqliteRepository {
 mod tests {
     use super::*;
     use crate::domain::model::{EventSource, Session, TokenEvent, ToolCall};
-    use crate::domain::port::{EventPort, OtlpPort, SessionPort};
+    use crate::domain::port::{EventPort, OtlpPort, SessionPort, StatsPort};
     use std::path::Path;
 
     fn repo() -> SqliteRepository {
         SqliteRepository::open(Path::new(":memory:")).unwrap()
     }
 
-    fn session(id: &str, project: &str, active: bool) -> Session {
+    /// `last_seen_at` を指定可能なセッション生成ヘルパー
+    fn session_at(id: &str, project: &str, active: bool, last_seen_at: &str) -> Session {
         Session {
             session_id: id.to_string(),
             project: project.to_string(),
@@ -404,35 +696,66 @@ mod tests {
             model: Some("claude-sonnet-4-6".to_string()),
             entrypoint: Some("cli".to_string()),
             version: None,
-            started_at: "2026-01-01T00:00:00Z".to_string(),
-            last_seen_at: "2026-01-01T00:00:00Z".to_string(),
+            started_at: last_seen_at.to_string(),
+            last_seen_at: last_seen_at.to_string(),
             is_active: active,
         }
     }
 
-    fn token_ev(session_id: &str, input: i64, output: i64, cost: f64) -> TokenEvent {
+    fn session(id: &str, project: &str, active: bool) -> Session {
+        session_at(id, project, active, "2026-01-01T00:00:00Z")
+    }
+
+    /// `timestamp` を指定可能なトークンイベント生成ヘルパー
+    fn token_ev_at(
+        session_id: &str,
+        input: i64,
+        output: i64,
+        cache_read: i64,
+        cost: f64,
+        timestamp: &str,
+    ) -> TokenEvent {
         TokenEvent {
             session_id: session_id.to_string(),
-            timestamp: "2026-01-01T00:00:00Z".to_string(),
+            timestamp: timestamp.to_string(),
             model: Some("claude-sonnet-4-6".to_string()),
             input_tokens: input,
             output_tokens: output,
             cache_creation_tokens: 0,
-            cache_read_tokens: 0,
+            cache_read_tokens: cache_read,
             cost_usd: cost,
             source: EventSource::Log,
         }
     }
 
-    fn tool_call(session_id: &str, name: &str, is_error: bool) -> ToolCall {
+    fn token_ev(session_id: &str, input: i64, output: i64, cost: f64) -> TokenEvent {
+        token_ev_at(session_id, input, output, 0, cost, "2026-01-01T00:00:00Z")
+    }
+
+    /// `timestamp` を指定可能なツールコール生成ヘルパー
+    fn tool_call_at(session_id: &str, name: &str, is_error: bool, timestamp: &str) -> ToolCall {
         ToolCall {
             session_id: session_id.to_string(),
             tool_id: Some(format!("{session_id}-{name}")),
-            timestamp: "2026-01-01T00:00:00Z".to_string(),
+            timestamp: timestamp.to_string(),
             tool_name: name.to_string(),
             is_error,
             source: EventSource::Log,
         }
+    }
+
+    fn tool_call(session_id: &str, name: &str, is_error: bool) -> ToolCall {
+        tool_call_at(session_id, name, is_error, "2026-01-01T00:00:00Z")
+    }
+
+    /// テスト用「現在時刻に近い」タイムスタンプ（期間フィルタで含まれる）
+    fn recent() -> String {
+        chrono::Utc::now().to_rfc3339()
+    }
+
+    /// テスト用「遠い過去」タイムスタンプ（期間フィルタで除外される）
+    fn old() -> &'static str {
+        "2020-01-01T00:00:00Z"
     }
 
     // ── セッション ─────────────────────────────────────────────
@@ -575,11 +898,169 @@ mod tests {
             let s = r.load_summary().unwrap();
             let alpha = s.projects.iter().find(|p| p.project == "alpha").unwrap();
             assert_eq!(alpha.sessions, 2);
-            assert_eq!(alpha.total_tokens, 430); // 100+50+200+80
+            assert_eq!(alpha.input_tokens + alpha.output_tokens, 430); // 100+50+200+80
 
             let beta = s.projects.iter().find(|p| p.project == "beta").unwrap();
             assert_eq!(beta.sessions, 1);
-            assert_eq!(beta.total_tokens, 0);
+            assert_eq!(beta.input_tokens + beta.output_tokens, 0);
+        });
+    }
+
+    // ── プロジェクト集計 tool_calls ─────────────────────────────
+
+    #[test]
+    fn project_summary_includes_tool_calls_per_project() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "alpha", true)).unwrap();
+            r.upsert_session(&session("s2", "beta", true)).unwrap();
+            r.insert_tool_call(&tool_call("s1", "Bash", false)).unwrap();
+            r.insert_tool_call(&tool_call("s1", "Read", false)).unwrap();
+            r.insert_tool_call(&tool_call("s2", "Edit", false)).unwrap();
+
+            let s = r.load_summary().unwrap();
+            let alpha = s.projects.iter().find(|p| p.project == "alpha").unwrap();
+            assert_eq!(alpha.tool_calls, 2, "alpha should have 2 tool calls");
+
+            let beta = s.projects.iter().find(|p| p.project == "beta").unwrap();
+            assert_eq!(beta.tool_calls, 1, "beta should have 1 tool call");
+        });
+    }
+
+    // ── StatsPort::query_stats ───────────────────────────────────
+
+    #[test]
+    fn query_stats_no_filter_returns_all_data() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            r.insert_token_event(&token_ev("s1", 100, 50, 0.003))
+                .unwrap();
+            r.insert_tool_call(&tool_call("s1", "Bash", false)).unwrap();
+
+            let stats = r.query_stats(None, None).unwrap();
+            assert_eq!(stats.overview.total_sessions, 1);
+            assert_eq!(stats.overview.input_tokens, 100);
+            assert_eq!(stats.overview.output_tokens, 50);
+            assert!((stats.overview.cost_usd - 0.003).abs() < 1e-9);
+            assert_eq!(stats.overview.tool_calls, 1);
+            assert_eq!(stats.period_days, None);
+        });
+    }
+
+    #[test]
+    fn query_stats_period_filter_excludes_old_events() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let now = recent();
+            // 最近のセッション（期間内）
+            r.upsert_session(&session_at("s1", "proj", true, &now))
+                .unwrap();
+            r.insert_token_event(&token_ev_at("s1", 200, 100, 0, 0.006, &now))
+                .unwrap();
+            // 古いセッション（期間外）
+            r.upsert_session(&session_at("s2", "proj", false, old()))
+                .unwrap();
+            r.insert_token_event(&token_ev_at("s2", 999, 999, 0, 9.999, old()))
+                .unwrap();
+
+            let stats = r.query_stats(Some(7), None).unwrap();
+            assert_eq!(
+                stats.overview.total_sessions, 1,
+                "old session should be excluded"
+            );
+            assert_eq!(
+                stats.overview.input_tokens, 200,
+                "old tokens should be excluded"
+            );
+            assert_eq!(stats.period_days, Some(7));
+        });
+    }
+
+    #[test]
+    fn query_stats_project_filter_scopes_to_project() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "alpha", true)).unwrap();
+            r.upsert_session(&session("s2", "beta", true)).unwrap();
+            r.insert_token_event(&token_ev("s1", 100, 50, 0.003))
+                .unwrap();
+            r.insert_token_event(&token_ev("s2", 999, 999, 9.999))
+                .unwrap();
+
+            let stats = r.query_stats(None, Some("alpha")).unwrap();
+            assert_eq!(
+                stats.overview.input_tokens, 100,
+                "beta tokens must not appear"
+            );
+            assert_eq!(stats.projects.len(), 1);
+            assert_eq!(stats.projects[0].project, "alpha");
+        });
+    }
+
+    #[test]
+    fn query_stats_overview_cache_hit_ratio() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            // input=100, cache_read=100 → ratio = 100/(100+100) = 0.5
+            r.insert_token_event(&token_ev_at("s1", 100, 0, 100, 0.0, "2026-01-01T00:00:00Z"))
+                .unwrap();
+
+            let stats = r.query_stats(None, None).unwrap();
+            assert!(
+                (stats.overview.cache_hit_ratio - 0.5).abs() < 1e-9,
+                "expected 0.5, got {}",
+                stats.overview.cache_hit_ratio
+            );
+        });
+    }
+
+    #[test]
+    fn query_stats_daily_breakdown_groups_by_date() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            r.insert_token_event(&token_ev_at("s1", 100, 0, 0, 0.003, "2026-03-25T10:00:00Z"))
+                .unwrap();
+            r.insert_token_event(&token_ev_at("s1", 200, 0, 0, 0.006, "2026-03-25T20:00:00Z"))
+                .unwrap();
+            r.insert_token_event(&token_ev_at("s1", 50, 0, 0, 0.0015, "2026-03-26T08:00:00Z"))
+                .unwrap();
+
+            let stats = r.query_stats(None, None).unwrap();
+            let daily = &stats.daily;
+            assert_eq!(daily.len(), 2, "should have 2 distinct dates");
+
+            let day25 = daily.iter().find(|d| d.date == "2026-03-25").unwrap();
+            assert_eq!(day25.input_tokens, 300, "day25: 100+200");
+
+            let day26 = daily.iter().find(|d| d.date == "2026-03-26").unwrap();
+            assert_eq!(day26.input_tokens, 50);
+        });
+    }
+
+    #[test]
+    fn query_stats_period_filter_excludes_old_tool_calls() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let now = recent();
+            r.upsert_session(&session_at("s1", "proj", true, &now))
+                .unwrap();
+            r.insert_tool_call(&tool_call_at("s1", "Bash", false, &now))
+                .unwrap();
+            r.insert_tool_call(&tool_call_at("s1", "Read", true, old()))
+                .unwrap(); // 古いエラー（除外されるべき）
+
+            let stats = r.query_stats(Some(7), None).unwrap();
+            assert_eq!(
+                stats.overview.tool_calls, 1,
+                "old tool call should be excluded"
+            );
+            assert_eq!(
+                stats.overview.tool_errors, 0,
+                "old error should be excluded"
+            );
         });
     }
 

@@ -83,6 +83,57 @@ pub struct MetricsSummary {
 pub struct ProjectSummary {
     pub project: String,
     pub sessions: i64,
-    pub total_tokens: i64,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cache_creation_tokens: i64,
+    pub cache_read_tokens: i64,
+    pub cost_usd: f64,
+    pub tool_calls: i64,
+}
+
+// ── /api/stats レスポンス型 ────────────────────────────────────────
+
+#[derive(Debug, Clone, serde::Serialize, Default)]
+pub struct StatsResponse {
+    pub period_days: Option<u32>,
+    pub generated_at: String,
+    pub overview: OverviewStats,
+    pub projects: Vec<ProjectStats>,
+    pub daily: Vec<DailyStats>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, Default)]
+pub struct OverviewStats {
+    pub total_sessions: i64,
+    pub active_sessions: i64,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cache_creation_tokens: i64,
+    pub cache_read_tokens: i64,
+    pub cost_usd: f64,
+    pub tool_calls: i64,
+    pub tool_errors: i64,
+    pub cache_hit_ratio: f64,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ProjectStats {
+    pub project: String,
+    pub sessions: i64,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cache_creation_tokens: i64,
+    pub cache_read_tokens: i64,
+    pub cost_usd: f64,
+    pub tool_calls: i64,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct DailyStats {
+    pub date: String,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cache_creation_tokens: i64,
+    pub cache_read_tokens: i64,
     pub cost_usd: f64,
 }

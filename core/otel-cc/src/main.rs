@@ -14,7 +14,7 @@ use application::{
 };
 use config::Config;
 use infrastructure::{sqlite::SqliteRepository, watcher::watch_log_dir};
-use interface::{metrics_handler, otlp_handler::OtlpState};
+use interface::{metrics_handler, otlp_handler::OtlpState, stats_handler};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -52,15 +52,21 @@ async fn main() -> Result<()> {
     }
     info!("Initial scan complete");
 
-    // ── Task 1: Prometheus /metrics サーバー ─────────────────────
+    // ── Task 1: Prometheus /metrics + /api/stats サーバー ────────
     let metrics_addr = format!("0.0.0.0:{}", config.metrics_port);
     let metrics_cache = cache.clone();
+    let stats_port = repo.clone() as Arc<dyn domain::port::StatsPort>;
     tokio::spawn(async move {
         let app = Router::new()
             .route("/metrics", get(metrics_handler::handle))
             .route("/health", get(|| async { "ok" }))
+            .route(
+                "/api/stats",
+                get(stats_handler::handle).with_state(stats_port),
+            )
             .with_state(metrics_cache);
         info!("Metrics server: http://{metrics_addr}/metrics");
+        info!("Stats API:      http://{metrics_addr}/api/stats");
         let listener = tokio::net::TcpListener::bind(&metrics_addr)
             .await
             .expect("bind metrics port");
