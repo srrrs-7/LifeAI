@@ -5,9 +5,6 @@ echo "Starting Dev Container setup..."
 
 cargo build
 
-# Install gemini-cli
-npm install -g @google/gemini-cli
-
 make hooks
 sudo make init-firewall
 
