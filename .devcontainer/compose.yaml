@@ -8,7 +8,7 @@ services:
         required: false
     volumes:
       - ..:/workspace/main/lifeai:cached
-      - claude-data:/home/vscode/.claude
+      - ${HOME}/.claude:/home/vscode/.claude
     command: sleep infinity
     cap_add:
       - NET_ADMIN
@@ -20,7 +20,7 @@ services:
       dockerfile: core/otel-cc/Dockerfile
     network_mode: "service:dev"
     volumes:
-      - claude-data:/home/vscode/.claude:ro
+      - ${HOME}/.claude:/home/vscode/.claude:ro
       - otel-cc-data:/data
     environment:
       - OTEL_CC_DB_PATH=/data/otel-cc.db
@@ -58,7 +58,6 @@ services:
       - prometheus
 
 volumes:
-  claude-data:
   otel-cc-data:
   prometheus-data:
   grafana-data:
