@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=builder /build/target/release/otel-cc /usr/local/bin/otel-cc
 
-RUN useradd -m vscode
+RUN useradd -m vscode && mkdir -p /data && chown vscode:vscode /data
 USER vscode
 
 EXPOSE 4318 9091

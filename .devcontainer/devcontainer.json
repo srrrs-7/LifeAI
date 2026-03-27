@@ -30,5 +30,5 @@
 
   "postCreateCommand": "chmod +x .devcontainer/setup.sh && .devcontainer/setup.sh",
 
-  "forwardPorts": [3000, 9090, 9091, 4318]
+  "forwardPorts": [3001, 9090, 9091, 4318]
 }
