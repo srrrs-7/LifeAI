@@ -4,7 +4,8 @@
 .PHONY: help build build-release test fmt clippy check clean \
         hooks init-firewall \
         build-otel-cc test-otel-cc \
-        metrics open-grafana open-prometheus
+        metrics open-grafana open-prometheus \
+        restart-infra
 
 # ------------------------------------------------------------
 # Default
@@ -59,6 +60,9 @@ open-grafana: ## Grafana をブラウザで開く
 
 open-prometheus: ## Prometheus をブラウザで開く
 	@echo "http://localhost:9090"
+
+restart-infra: ## 全コンテナを再起動（otel-cc, prometheus, grafana）
+	docker-compose -f .devcontainer/compose.yaml restart otel-cc prometheus grafana
 
 # ------------------------------------------------------------
 # Git Hooks
