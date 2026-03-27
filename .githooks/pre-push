@@ -3,3 +3,6 @@ set -euo pipefail
 
 echo "[pre-push] running tests"
 cargo test
+
+echo "[pre-push] checking coverage (>=60% lines required)"
+cargo llvm-cov --package otel-cc --fail-under-lines 60 --summary-only

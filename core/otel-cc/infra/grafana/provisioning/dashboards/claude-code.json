@@ -2,7 +2,7 @@
   "title": "Claude Code Monitor",
   "uid": "claude-code-monitor",
   "schemaVersion": 38,
-  "version": 4,
+  "version": 6,
   "refresh": "30s",
   "time": { "from": "now-24h", "to": "now" },
   "timepicker": {},
@@ -441,7 +441,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "increase(cc_tokens_total{type=\"output\"}[5m]) / (increase(cc_tokens_total{type=\"input\"}[5m]) > 0)",
+          "expr": "increase(cc_tokens_total{type=\"output\"}[5m]) / ignoring(type) clamp_min(increase(cc_tokens_total{type=\"input\"}[5m]), 1)",
           "legendFormat": "Output/Input Ratio"
         }
       ]
@@ -821,8 +821,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "topk(15, cc_tool_calls_total)",
-          "legendFormat": "{{tool}}",
-          "instant": true
+          "legendFormat": "{{tool}}"
         }
       ]
     },
@@ -858,8 +857,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sort_desc(cc_project_tool_calls_total)",
-          "legendFormat": "{{project}}",
-          "instant": true
+          "legendFormat": "{{project}}"
         }
       ]
     },
@@ -895,8 +893,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sort_desc(cc_entrypoint_sessions_total)",
-          "legendFormat": "{{entrypoint}}",
-          "instant": true
+          "legendFormat": "{{entrypoint}}"
         }
       ]
     }

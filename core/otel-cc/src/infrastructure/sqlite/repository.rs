@@ -1087,4 +1087,57 @@ mod tests {
             r.insert_span(None, None, None, "{}").unwrap();
         });
     }
+
+    // ── エントリーポイント集計 ────────────────────────────────────
+
+    #[test]
+    fn entrypoint_counts_groups_by_entrypoint() {
+        let r = repo();
+        r.with_rollback(|r| {
+            // "cli" x2, "daily-report" x1
+            r.upsert_session(&session("s1", "p", true)).unwrap(); // entrypoint = "cli"
+            r.upsert_session(&session("s2", "p", true)).unwrap(); // entrypoint = "cli"
+            r.upsert_session(&Session {
+                entrypoint: Some("daily-report".to_string()),
+                ..session("s3", "p", true)
+            })
+            .unwrap();
+
+            let s = r.load_summary().unwrap();
+            assert_eq!(s.entrypoint_counts.len(), 2);
+            // DESC 順: cli(2) が先
+            assert_eq!(s.entrypoint_counts[0], ("cli".to_string(), 2));
+            assert_eq!(s.entrypoint_counts[1], ("daily-report".to_string(), 1));
+        });
+    }
+
+    #[test]
+    fn entrypoint_counts_excludes_null_entrypoints() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&Session {
+                entrypoint: None,
+                ..session("s1", "p", true)
+            })
+            .unwrap();
+            r.upsert_session(&session("s2", "p", true)).unwrap(); // entrypoint = "cli"
+
+            let s = r.load_summary().unwrap();
+            assert_eq!(
+                s.entrypoint_counts.len(),
+                1,
+                "NULL entrypoint must not appear"
+            );
+            assert_eq!(s.entrypoint_counts[0].0, "cli");
+        });
+    }
+
+    #[test]
+    fn entrypoint_counts_empty_when_no_sessions() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let s = r.load_summary().unwrap();
+            assert!(s.entrypoint_counts.is_empty());
+        });
+    }
 }

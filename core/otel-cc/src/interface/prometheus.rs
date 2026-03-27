@@ -292,4 +292,45 @@ mod tests {
         let out = render_default();
         assert!(out.contains("cc_tool_error_rate 0.000000"));
     }
+
+    // ── エントリーポイント ─────────────────────────────────────
+
+    #[test]
+    fn entrypoint_sessions_total_uses_counter_type() {
+        let out = render_default();
+        let lines: Vec<&str> = out.lines().collect();
+        let type_line = lines
+            .iter()
+            .find(|l| l.contains("TYPE") && l.contains("cc_entrypoint_sessions_total"))
+            .expect("TYPE line for cc_entrypoint_sessions_total not found");
+        assert!(
+            type_line.contains("counter"),
+            "expected TYPE counter, got: {type_line}"
+        );
+    }
+
+    #[test]
+    fn entrypoint_sessions_total_rendered_with_label() {
+        let s = MetricsSummary {
+            entrypoint_counts: vec![
+                ("cli".to_string(), 10),
+                ("daily-report".to_string(), 3),
+            ],
+            ..Default::default()
+        };
+        let out = render(&s);
+        assert!(out.contains("cc_entrypoint_sessions_total{entrypoint=\"cli\"} 10"));
+        assert!(out.contains("cc_entrypoint_sessions_total{entrypoint=\"daily-report\"} 3"));
+    }
+
+    #[test]
+    fn entrypoint_sessions_total_not_rendered_when_no_data() {
+        let out = render_default();
+        // HELP/TYPE 行は出力されるが、データ行（ラベル付き）はゼロ件
+        assert!(out.contains("# HELP cc_entrypoint_sessions_total"));
+        assert!(
+            !out.contains("cc_entrypoint_sessions_total{"),
+            "no data lines expected when entrypoint_counts is empty"
+        );
+    }
 }

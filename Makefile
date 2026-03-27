@@ -4,8 +4,9 @@
 .PHONY: help build build-release test fmt clippy check clean \
         hooks init-firewall \
         build-otel-cc test-otel-cc \
+        coverage coverage-html coverage-check \
         metrics open-grafana open-prometheus \
-        restart-infra logs-otel-cc logs-prometheus logs-grafana
+        restart-infra rebuild-otel-cc logs-otel-cc logs-prometheus logs-grafana
 
 # ------------------------------------------------------------
 # Default
@@ -35,10 +36,23 @@ fmt-check: ## フォーマットチェック（CI 用）
 clippy: ## リント（warnings = error）
 	cargo clippy --all-targets --all-features -- -D warnings
 
-check: fmt clippy test ## fmt + clippy + test を一括実行
+check: fmt clippy test ## fmt + clippy + test を一括実行（高速ループ用）
 
 clean: ## target/ を削除
 	cargo clean
+
+# ------------------------------------------------------------
+# カバレッジ（cargo-llvm-cov 必須: cargo install cargo-llvm-cov）
+# ------------------------------------------------------------
+coverage: ## カバレッジ計測（テキストサマリー表示）
+	cargo llvm-cov --package otel-cc --summary-only
+
+coverage-html: ## カバレッジ HTML レポート生成
+	cargo llvm-cov --package otel-cc --html
+	@echo "Report: target/llvm-cov/html/index.html"
+
+coverage-check: ## カバレッジ計測（60% 未満で CI 失敗）
+	cargo llvm-cov --package otel-cc --fail-under-lines 60
 
 # ------------------------------------------------------------
 # Rust — クレート個別
@@ -63,6 +77,14 @@ open-prometheus: ## Prometheus をブラウザで開く
 
 restart-infra: ## 全コンテナを再起動（otel-cc, prometheus, grafana）
 	docker-compose -f .devcontainer/compose.yaml restart otel-cc prometheus grafana
+
+rebuild-otel-cc: ## otel-cc を再ビルドして再起動（コード変更後に実行）
+	@OTEL_CONTAINER=$$(docker ps --filter "name=otel-cc" --format "{{.Names}}" | head -1); \
+	if [ -z "$$OTEL_CONTAINER" ]; then echo "ERROR: otel-cc container not found"; exit 1; fi; \
+	PROJECT=$$(docker inspect $$OTEL_CONTAINER --format '{{index .Config.Labels "com.docker.compose.project"}}'); \
+	echo "[rebuild-otel-cc] project=$$PROJECT  container=$$OTEL_CONTAINER"; \
+	docker-compose -p $$PROJECT -f .devcontainer/compose.yaml build otel-cc && \
+	docker-compose -p $$PROJECT -f .devcontainer/compose.yaml up -d --no-deps otel-cc
 
 logs-otel-cc: ## otel-cc のログを表示
 	docker logs lifeai_devcontainer-otel-cc-1

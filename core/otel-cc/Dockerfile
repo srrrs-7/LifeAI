@@ -24,7 +24,7 @@ COPY core/src/      core/src/
 COPY core/otel-cc/  core/otel-cc/
 
 # ダミービルド成果物のタイムスタンプをリセットして確実に再コンパイルさせる
-RUN touch core/src/*.rs core/otel-cc/src/*.rs 2>/dev/null || true \
+RUN find core -name "*.rs" | xargs touch \
     && cargo build --release -p otel-cc
 
 # ── ランタイムイメージ ───────────────────────────────────────────────────
