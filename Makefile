@@ -5,7 +5,7 @@
         hooks init-firewall \
         build-otel-cc test-otel-cc \
         metrics open-grafana open-prometheus \
-        restart-infra
+        restart-infra logs-otel-cc logs-prometheus logs-grafana
 
 # ------------------------------------------------------------
 # Default
@@ -63,6 +63,15 @@ open-prometheus: ## Prometheus をブラウザで開く
 
 restart-infra: ## 全コンテナを再起動（otel-cc, prometheus, grafana）
 	docker-compose -f .devcontainer/compose.yaml restart otel-cc prometheus grafana
+
+logs-otel-cc: ## otel-cc のログを表示
+	docker logs lifeai_devcontainer-otel-cc-1
+
+logs-prometheus: ## Prometheus のログを表示
+	docker logs lifeai_devcontainer-prometheus-1
+
+logs-grafana: ## Grafana のログを表示
+	docker logs lifeai_devcontainer-grafana-1
 
 # ------------------------------------------------------------
 # Git Hooks
