@@ -138,6 +138,37 @@ grafana/provisioning/
 
 - Rust 命名規約に従う（snake_case for functions/variables, CamelCase for types）
 - `clippy -D warnings` を通すこと。将来使用予定のフィールドには `#[allow(dead_code)]` を付ける
+- エラーハンドリングは `anyhow::Result` で統一。独自エラー型は不要（`thiserror` は未使用）
+- ロギングは `tracing` クレートを使用（`warn!`, `info!`, `debug!` 等）
+
+## otel-cc 新機能追加の手順
+
+Clean Architecture の依存方向に従い、内側から外側へ実装する:
+
+1. **domain/model.rs** — 必要なエンティティ・値オブジェクトを追加
+2. **domain/port.rs** — リポジトリ境界となる Port トレイトを定義
+3. **infrastructure/sqlite/repository.rs** — Port の SQLite 実装を追加
+4. **application/** — ユースケース struct を作成し Port を注入
+5. **interface/** — axum ハンドラーからユースケースを呼び出す
+6. **main.rs** — 依存性を組み立て（コンポジションルート）
+
+## テスト方針
+
+- ユニットテストは各モジュール末尾の `#[cfg(test)]` ブロックに記述
+- `cargo test -p otel-cc <test_name>` で単一テストを実行
+- インフラ層（SQLite, JSONL パース）は実ファイル／インメモリ DB を使う統合テストを優先。Port のモック化は原則しない
+
+## スキル新規追加フロー
+
+1. `/gen-skill` スキルを起動してヒアリングを受ける（対話形式）
+2. 生成されるファイル構成:
+   ```
+   .claude/skills/<name>/SKILL.md       ← スキル本体（対話ロジック）
+   .claude/agents/<name>-writer.md      ← 成果物生成エージェント（model: opus）
+   .claude/skills/<name>/templates/     ← 出力テンプレート
+   .claude/skills/<name>/assets/        ← 生成成果物の保存先
+   ```
+3. スキルは必ずゴール・方針・方向性を冒頭で定義してから実装する
 
 ## Claude Code Instructions
 

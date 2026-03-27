@@ -292,6 +292,14 @@ impl SessionPort for SqliteRepository {
             p.tool_calls = *tool_counts_by_project.get(&p.project).unwrap_or(&0);
         }
 
+        let mut stmt = conn.prepare(
+            "SELECT entrypoint, COUNT(*) FROM sessions WHERE entrypoint IS NOT NULL GROUP BY entrypoint ORDER BY COUNT(*) DESC",
+        )?;
+        let entrypoint_counts = stmt
+            .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?)))?
+            .flatten()
+            .collect();
+
         Ok(MetricsSummary {
             total_sessions,
             active_sessions,
@@ -305,6 +313,7 @@ impl SessionPort for SqliteRepository {
             total_compression_events,
             tool_counts,
             projects,
+            entrypoint_counts,
         })
     }
 }

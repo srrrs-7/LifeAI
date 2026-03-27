@@ -96,6 +96,20 @@ pub fn render(s: &MetricsSummary) -> String {
         s.total_compression_events as f64,
     );
 
+    let _ = writeln!(
+        out,
+        "# HELP cc_entrypoint_sessions_total Sessions per entrypoint (cli or slash command)"
+    );
+    let _ = writeln!(out, "# TYPE cc_entrypoint_sessions_total counter");
+    for (ep, count) in &s.entrypoint_counts {
+        labeled(
+            &mut out,
+            "cc_entrypoint_sessions_total",
+            &[("entrypoint", ep)],
+            *count,
+        );
+    }
+
     let _ = writeln!(out, "# HELP cc_project_sessions_total Sessions per project");
     let _ = writeln!(out, "# TYPE cc_project_sessions_total gauge");
     let _ = writeln!(

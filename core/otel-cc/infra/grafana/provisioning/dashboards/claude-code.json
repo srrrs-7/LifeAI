@@ -2,7 +2,7 @@
   "title": "Claude Code Monitor",
   "uid": "claude-code-monitor",
   "schemaVersion": 38,
-  "version": 3,
+  "version": 4,
   "refresh": "30s",
   "time": { "from": "now-24h", "to": "now" },
   "timepicker": {},
@@ -778,6 +778,125 @@
               "Value #C": "Tool Calls"
             }
           }
+        }
+      ]
+    },
+
+    {
+      "id": 40,
+      "title": "ランキング",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 45, "w": 24, "h": 1 }
+    },
+
+    {
+      "id": 41,
+      "title": "ツール使用回数 TOP15",
+      "description": "累計呼び出し回数の多いツールランキング。Bash/Read 偏重や意外なツール多用を発見できる",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 46, "w": 12, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 10 },
+              { "color": "yellow", "value": 100 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "topk(15, cc_tool_calls_total)",
+          "legendFormat": "{{tool}}",
+          "instant": true
+        }
+      ]
+    },
+
+    {
+      "id": 42,
+      "title": "プロジェクト別ツール使用回数",
+      "description": "プロジェクトごとのツール呼び出し累計。作業量の多いプロジェクトを確認できる",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 12, "y": 46, "w": 12, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 50 },
+              { "color": "yellow", "value": 500 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sort_desc(cc_project_tool_calls_total)",
+          "legendFormat": "{{project}}",
+          "instant": true
+        }
+      ]
+    },
+
+    {
+      "id": 43,
+      "title": "エントリーポイント別セッション数",
+      "description": "「cli」=直接起動、スラッシュコマンド名=スキル経由。どのスキルが最も使われているかがわかる",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 54, "w": 24, "h": 6 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 5 },
+              { "color": "yellow", "value": 20 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sort_desc(cc_entrypoint_sessions_total)",
+          "legendFormat": "{{entrypoint}}",
+          "instant": true
         }
       ]
     }

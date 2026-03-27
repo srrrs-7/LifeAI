@@ -77,6 +77,8 @@ pub struct MetricsSummary {
     /// (tool_name, call_count, error_count)
     pub tool_counts: Vec<(String, i64, i64)>,
     pub projects: Vec<ProjectSummary>,
+    /// (entrypoint, session_count)
+    pub entrypoint_counts: Vec<(String, i64)>,
 }
 
 #[derive(Debug, Clone)]
