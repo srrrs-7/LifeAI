@@ -2,7 +2,7 @@
   "title": "Claude Code Monitor",
   "uid": "claude-code-monitor",
   "schemaVersion": 38,
-  "version": 9,
+  "version": 10,
   "refresh": "30s",
   "time": {
     "from": "now-24h",
@@ -2054,7 +2054,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "cc_cost_usd_total / clamp_min(sum(cc_tool_calls_total), 1)",
+          "expr": "cc_cost_usd_total / on() clamp_min(sum(cc_tool_calls_total), 1)",
           "legendFormat": "$/ツール呼び出し"
         }
       ]
