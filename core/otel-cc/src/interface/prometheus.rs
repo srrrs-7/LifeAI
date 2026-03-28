@@ -312,10 +312,7 @@ mod tests {
     #[test]
     fn entrypoint_sessions_total_rendered_with_label() {
         let s = MetricsSummary {
-            entrypoint_counts: vec![
-                ("cli".to_string(), 10),
-                ("daily-report".to_string(), 3),
-            ],
+            entrypoint_counts: vec![("cli".to_string(), 10), ("daily-report".to_string(), 3)],
             ..Default::default()
         };
         let out = render(&s);
