@@ -2,7 +2,7 @@
   "title": "Claude Code Monitor",
   "uid": "claude-code-monitor",
   "schemaVersion": 38,
-  "version": 13,
+  "version": 14,
   "refresh": "30s",
   "time": {
     "from": "now-24h",
@@ -24,7 +24,7 @@
   "panels": [
     {
       "id": 1,
-      "title": "概要",
+      "title": "Overview",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -36,8 +36,8 @@
     },
     {
       "id": 2,
-      "title": "コスト燃焼率 (/h)",
-      "description": "直近1時間のコスト増分。意思決定: 急上昇時はセッション確認・タスク分割を検討",
+      "title": "Cost Burn Rate (/h)",
+      "description": "Cost increase in the last hour. A sudden spike means a session is consuming tokens rapidly — consider reviewing or splitting the task.",
       "type": "stat",
       "datasource": {
         "type": "prometheus",
@@ -99,7 +99,7 @@
     },
     {
       "id": 3,
-      "title": "アクティブセッション",
+      "title": "Active Sessions",
       "type": "stat",
       "datasource": {
         "type": "prometheus",
@@ -155,12 +155,13 @@
           "expr": "cc_active_sessions",
           "legendFormat": "Active"
         }
-      ]
+      ],
+      "description": "Number of currently active Claude Code sessions."
     },
     {
       "id": 4,
-      "title": "キャッシュ効率",
-      "description": "cache_read / (input + cache_read)。高い方が良い。低下時はCLAUDE.md構造の見直しを検討",
+      "title": "Cache Efficiency",
+      "description": "cache_read / (input + cache_read). Higher is better. A drop suggests the session cache is not being reused — try --continue or --resume instead of starting fresh.",
       "type": "gauge",
       "datasource": {
         "type": "prometheus",
@@ -222,8 +223,8 @@
     },
     {
       "id": 5,
-      "title": "ツールエラー率",
-      "description": "全ツールの総合エラー率。>5%で注意、>15%でCLAUDE.mdにプロジェクト構造の明記を検討",
+      "title": "Tool Error Rate",
+      "description": "Overall error rate across all tool calls. >5% warrants attention; >15% suggests adding explicit file/structure guidance to CLAUDE.md.",
       "type": "gauge",
       "datasource": {
         "type": "prometheus",
@@ -285,8 +286,8 @@
     },
     {
       "id": 6,
-      "title": "圧縮頻度 (/h)",
-      "description": "直近1時間のコンテキスト圧縮回数。≥3回/セッションならタスク粒度が大きすぎるシグナル",
+      "title": "Compression Frequency (/h)",
+      "description": "Context compression events in the last hour. ≥3 per session signals the task scope is too large and should be split.",
       "type": "stat",
       "datasource": {
         "type": "prometheus",
@@ -346,7 +347,7 @@
     },
     {
       "id": 10,
-      "title": "トレンド",
+      "title": "Trends",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -358,8 +359,8 @@
     },
     {
       "id": 11,
-      "title": "コスト推移（時間あたり）",
-      "description": "5分粒度の増分と1時間移動平均。急勾配=調査範囲の暴走の可能性",
+      "title": "Cost Trend (per hour)",
+      "description": "5-minute incremental cost with a 1-hour moving average. A steep slope may indicate runaway exploration or overly verbose responses.",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -454,8 +455,8 @@
     },
     {
       "id": 12,
-      "title": "トークン消費レート",
-      "description": "5分あたりのトークン消費量（4種）。Stacked表示でinput/output/cacheの比率を可視化",
+      "title": "Token Consumption Rate",
+      "description": "Token consumption per 5 minutes broken down by type (input/output/cache_create/cache_read). Stacked view reveals the input/output/cache ratio over time.",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -590,8 +591,8 @@
     },
     {
       "id": 13,
-      "title": "効率指標（キャッシュ率 × 圧縮頻度）",
-      "description": "左軸: キャッシュヒット率（高い=良好）、右軸: 圧縮回数/h（低い=良好）。逆相関が健全",
+      "title": "Efficiency: Cache Rate vs Compression Frequency",
+      "description": "Left axis: cache hit rate (higher = better). Right axis: context compression count per hour (lower = better). An inverse correlation between the two is a healthy sign.",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -720,8 +721,8 @@
     },
     {
       "id": 14,
-      "title": "出力/入力トークン比",
-      "description": "Output/Input ratio。高い=大量コード生成、低い=入力過多（CLAUDE.md肥大化の兆候）",
+      "title": "Output/Input Token Ratio",
+      "description": "Ratio of output tokens to input tokens. High = Claude is generating large amounts of code or text. Low = input is dominant, which may indicate a bloated CLAUDE.md.",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -789,7 +790,7 @@
     },
     {
       "id": 20,
-      "title": "ツール詳細",
+      "title": "Tool Details",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -801,8 +802,8 @@
     },
     {
       "id": 21,
-      "title": "ツール使用量とエラー",
-      "description": "ツール別の1時間あたり呼び出し数(面)とエラー数(赤線)。面積の差がエラーの相対的影響度",
+      "title": "Tool Usage and Errors",
+      "description": "Hourly tool calls (area) and errors (red line) per tool. The gap between the area and the red line represents the relative error impact of each tool.",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -893,8 +894,8 @@
     },
     {
       "id": 22,
-      "title": "ツール別エラー率",
-      "description": "ツールごとのエラー率。>5%で注意、>15%で対策検討",
+      "title": "Error Rate by Tool",
+      "description": "Error rate per tool. >5% warrants attention; >15% requires action such as refining prompts or providing better context about the codebase.",
       "type": "bargauge",
       "datasource": {
         "type": "prometheus",
@@ -956,7 +957,7 @@
     },
     {
       "id": 30,
-      "title": "プロジェクト詳細",
+      "title": "Project Details",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -968,7 +969,7 @@
     },
     {
       "id": 31,
-      "title": "プロジェクト別コスト (USD)",
+      "title": "Cost by Project (USD)",
       "type": "bargauge",
       "datasource": {
         "type": "prometheus",
@@ -1025,12 +1026,13 @@
           "expr": "sort_desc(cc_project_cost_usd)",
           "legendFormat": "{{project}}"
         }
-      ]
+      ],
+      "description": "Total accumulated cost per project."
     },
     {
       "id": 32,
-      "title": "セッション単価 (USD/session)",
-      "description": "プロジェクトごとのコスト÷セッション数。高い=非効率なタスク設計の可能性",
+      "title": "Cost per Session (USD/session)",
+      "description": "Total cost divided by number of sessions per project. High values may indicate inefficient task design or excessive trial-and-error within sessions.",
       "type": "bargauge",
       "datasource": {
         "type": "prometheus",
@@ -1091,8 +1093,8 @@
     },
     {
       "id": 33,
-      "title": "トークン構成比（全体）",
-      "description": "input/output/cache_read/cache_create の割合。cache_read が大きいほどコスト効率が良い",
+      "title": "Token Composition (Overall)",
+      "description": "Breakdown of input / output / cache_read / cache_create tokens. A larger cache_read share indicates better cost efficiency through cache reuse.",
       "type": "piechart",
       "datasource": {
         "type": "prometheus",
@@ -1229,8 +1231,8 @@
     },
     {
       "id": 34,
-      "title": "プロジェクト詳細テーブル",
-      "description": "ソート可能な一覧。Cost/Session列で非効率なプロジェクトを特定",
+      "title": "Project Details Table",
+      "description": "Sortable project-level summary. Use the Cost/Session column to identify inefficient projects and the Tool Calls column to compare workload.",
       "type": "table",
       "datasource": {
         "type": "prometheus",
@@ -1389,7 +1391,7 @@
     },
     {
       "id": 40,
-      "title": "ランキング",
+      "title": "Rankings",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -1401,8 +1403,8 @@
     },
     {
       "id": 41,
-      "title": "ツール使用回数 TOP15",
-      "description": "累計呼び出し回数の多いツールランキング。Bash/Read 偏重や意外なツール多用を発見できる",
+      "title": "Top 15 Tool Usage",
+      "description": "Most-called tools by cumulative count. Reveals tool overuse patterns such as heavy Bash/Read reliance or unexpectedly frequent Agent calls.",
       "type": "bargauge",
       "datasource": {
         "type": "prometheus",
@@ -1462,8 +1464,8 @@
     },
     {
       "id": 42,
-      "title": "プロジェクト別ツール使用回数",
-      "description": "プロジェクトごとのツール呼び出し累計。作業量の多いプロジェクトを確認できる",
+      "title": "Tool Usage by Project",
+      "description": "Cumulative tool calls per project. Use this to compare workload and tool-usage patterns across projects.",
       "type": "bargauge",
       "datasource": {
         "type": "prometheus",
@@ -1523,8 +1525,8 @@
     },
     {
       "id": 43,
-      "title": "エントリーポイント別セッション数",
-      "description": "「cli」=直接起動、スラッシュコマンド名=スキル経由。どのスキルが最も使われているかがわかる",
+      "title": "Sessions by Entrypoint",
+      "description": "'cli' = direct launch; slash command names = skill-based entry. Shows which skills drive the most sessions.",
       "type": "bargauge",
       "datasource": {
         "type": "prometheus",
@@ -1585,7 +1587,7 @@
     {
       "id": 50,
       "type": "row",
-      "title": "インサイト",
+      "title": "Insights",
       "collapsed": false,
       "gridPos": {
         "x": 0,
@@ -1597,7 +1599,7 @@
     {
       "id": 51,
       "type": "stat",
-      "title": "セッションあたりコスト",
+      "title": "Cost per Session",
       "gridPos": {
         "x": 0,
         "y": 61,
@@ -1656,12 +1658,13 @@
           "expr": "cc_cost_usd_total / clamp_min(cc_sessions_total, 1)",
           "legendFormat": "$/session"
         }
-      ]
+      ],
+      "description": "Total cost divided by session count. Reflects overall session efficiency. Good: <$8 | Warning: $8–$15 | Alert: >$15."
     },
     {
       "id": 52,
       "type": "gauge",
-      "title": "キャッシュ効率",
+      "title": "Cache Efficiency",
       "gridPos": {
         "x": 8,
         "y": 61,
@@ -1721,12 +1724,13 @@
           "expr": "cc_cache_hit_ratio * 100",
           "legendFormat": "cache hit %"
         }
-      ]
+      ],
+      "description": "Cache hit ratio as a percentage. Low values mean the prompt cache is being rebuilt each session — use --continue/--resume to reuse it. Good: ≥95% | Warning: 80–95% | Alert: <80%."
     },
     {
       "id": 53,
       "type": "stat",
-      "title": "出力/入力トークン比",
+      "title": "Output/Input Token Ratio",
       "gridPos": {
         "x": 16,
         "y": 61,
@@ -1785,12 +1789,13 @@
           "expr": "cc_tokens_total{type=\"output\"} / ignoring(type) clamp_min(cc_tokens_total{type=\"input\"}, 1)",
           "legendFormat": "output/input"
         }
-      ]
+      ],
+      "description": "Ratio of output tokens to input tokens. A high ratio means Claude is generating very verbose responses. Good: <5 | Warning: 5–10 | Alert: >10."
     },
     {
       "id": 54,
       "type": "table",
-      "title": "ツール別エラー率",
+      "title": "Error Rate by Tool",
       "gridPos": {
         "x": 0,
         "y": 65,
@@ -1917,12 +1922,13 @@
             ]
           }
         }
-      ]
+      ],
+      "description": "Error rate per tool. Consistently high error rates on a specific tool indicate repeated failed exploration — delegate to an Explore agent after 2–3 failures. Good: <5% | Warning: 5–10% | Alert: >10%."
     },
     {
       "id": 60,
       "type": "row",
-      "title": "セッション効率分析（非効率指標）",
+      "title": "Session Efficiency Analysis",
       "collapsed": false,
       "gridPos": {
         "x": 0,
@@ -1934,8 +1940,8 @@
     {
       "id": 61,
       "type": "stat",
-      "title": "コンテキスト圧縮 / セッション",
-      "description": "値が高いほど長い試行錯誤が多いセッションが存在する（目安: 0.2 以下が良好）",
+      "title": "Context Compression / Session",
+      "description": "Average number of context compression events per session. High values indicate sessions with long trial-and-error chains that exceeded the context window. Good: <0.2.",
       "gridPos": {
         "x": 0,
         "y": 74,
@@ -1998,8 +2004,8 @@
     {
       "id": 62,
       "type": "stat",
-      "title": "コスト / ツール呼び出し",
-      "description": "1回の操作あたりコスト。高いほど少ない操作で多くのコストが発生している（試行錯誤が少ない逆指標としても使える）",
+      "title": "Cost / Tool Call",
+      "description": "Average cost per tool invocation. High values indicate that each operation is generating large amounts of output. Good: <$0.05 | Caution: $0.05–$0.20 | Alert: >$0.20.",
       "gridPos": {
         "x": 6,
         "y": 74,
@@ -2062,8 +2068,8 @@
     {
       "id": 63,
       "type": "stat",
-      "title": "全体ツールエラー率",
-      "description": "ツール呼び出し全体に占めるエラーの割合。高いほど Claude が誤ったアプローチを繰り返している",
+      "title": "Overall Tool Error Rate",
+      "description": "Percentage of all tool calls that resulted in errors. A high value indicates Claude is repeatedly attempting incorrect approaches. Good: <5%.",
       "gridPos": {
         "x": 12,
         "y": 74,
@@ -2126,8 +2132,8 @@
     {
       "id": 64,
       "type": "stat",
-      "title": "圧縮イベント累計",
-      "description": "コンテキスト圧縮（文脈の切り捨て）が発生した総回数",
+      "title": "Total Compression Events",
+      "description": "Cumulative number of context window compression events. Each event represents a context truncation, meaning earlier conversation history was discarded.",
       "gridPos": {
         "x": 18,
         "y": 74,
@@ -2190,8 +2196,8 @@
     {
       "id": 65,
       "type": "bargauge",
-      "title": "プロジェクト別 コスト/セッション（非効率スコア）",
-      "description": "セッションあたりコストが高いプロジェクトほど意図との不一致や試行錯誤が多い可能性がある",
+      "title": "Cost per Session by Project",
+      "description": "Cost per session for each project, sorted descending. Projects with high values may have more intent mismatches, poor upfront planning, or excessive trial-and-error. Good: <$8.",
       "gridPos": {
         "x": 0,
         "y": 78,
@@ -2255,8 +2261,8 @@
     {
       "id": 66,
       "type": "bargauge",
-      "title": "プロジェクト別 コスト/ツール呼び出し（操作効率）",
-      "description": "1操作あたりのコストが高いプロジェクト。高いほど少ない操作で多く消費している（大量出力・長い応答が原因のことが多い）",
+      "title": "Cost per Tool Call by Project",
+      "description": "Cost per tool invocation for each project. High values often result from large code generation outputs or overly verbose responses per call. Good: <$0.05.",
       "gridPos": {
         "x": 12,
         "y": 78,
