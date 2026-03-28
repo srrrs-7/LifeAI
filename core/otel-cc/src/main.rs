@@ -10,10 +10,8 @@ use std::sync::Arc;
 use tracing::info;
 
 use application::{
-    ingest_otlp::IngestOtlpUseCase,
-    insight_analysis::InsightAnalysisUseCase,
-    metrics_cache::MetricsCache,
-    scan_logs::ScanLogsUseCase,
+    ingest_otlp::IngestOtlpUseCase, insight_analysis::InsightAnalysisUseCase,
+    metrics_cache::MetricsCache, scan_logs::ScanLogsUseCase,
 };
 use config::Config;
 use infrastructure::{
@@ -132,8 +130,7 @@ async fn main() -> Result<()> {
     tokio::spawn(async move {
         // 起動直後は少し待ってから最初の分析を実行
         tokio::time::sleep(std::time::Duration::from_secs(30)).await;
-        let mut interval =
-            tokio::time::interval(std::time::Duration::from_secs(insight_interval));
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(insight_interval));
         loop {
             interval.tick().await;
             if let Err(e) = insight_uc.run().await {

@@ -1144,7 +1144,10 @@ mod tests {
         r.with_rollback(|r| {
             r.upsert_insight_state("tool_error_rate:Grep", "2026-03-28T10:00:00Z", 5)
                 .unwrap();
-            let state = r.get_insight_state("tool_error_rate:Grep").unwrap().unwrap();
+            let state = r
+                .get_insight_state("tool_error_rate:Grep")
+                .unwrap()
+                .unwrap();
             assert_eq!(state.key, "tool_error_rate:Grep");
             assert_eq!(state.last_sent_at, "2026-03-28T10:00:00Z");
             assert_eq!(state.last_count, 5);

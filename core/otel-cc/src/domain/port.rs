@@ -1,6 +1,6 @@
 use crate::domain::model::{
-    InsightAnnotation, InsightState, MetricsSummary, ScanState, Session, StatsResponse,
-    TokenEvent, ToolCall,
+    InsightAnnotation, InsightState, MetricsSummary, ScanState, Session, StatsResponse, TokenEvent,
+    ToolCall,
 };
 use anyhow::Result;
 use async_trait::async_trait;

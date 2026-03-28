@@ -60,7 +60,10 @@ impl InsightAnalysisUseCase {
                     }
                 }
                 Ok(false) => {}
-                Err(e) => warn!("Failed to check insight state for '{}': {e}", ann.annotation.key),
+                Err(e) => warn!(
+                    "Failed to check insight state for '{}': {e}",
+                    ann.annotation.key
+                ),
             }
         }
         Ok(())
@@ -92,11 +95,7 @@ impl InsightAnalysisUseCase {
                             "ツール {tool} のエラー率が {:.1}% です（{errors}/{calls} 回）",
                             rate * 100.0
                         ),
-                        tags: vec![
-                            "otel-cc".into(),
-                            "tool-error".into(),
-                            tool.to_lowercase(),
-                        ],
+                        tags: vec!["otel-cc".into(), "tool-error".into(), tool.to_lowercase()],
                     },
                     count_snapshot: *errors,
                 });
@@ -217,11 +216,21 @@ mod tests {
     struct MockSession(MetricsSummary);
 
     impl SessionPort for MockSession {
-        fn upsert_session(&self, _: &Session) -> Result<()> { Ok(()) }
-        fn get_scan_state(&self, _: &str) -> Result<Option<ScanState>> { Ok(None) }
-        fn set_scan_state(&self, _: &str, _: &ScanState) -> Result<()> { Ok(()) }
-        fn insert_compression_event(&self, _: &str, _: &str, _: Option<&str>) -> Result<()> { Ok(()) }
-        fn load_summary(&self) -> Result<MetricsSummary> { Ok(self.0.clone()) }
+        fn upsert_session(&self, _: &Session) -> Result<()> {
+            Ok(())
+        }
+        fn get_scan_state(&self, _: &str) -> Result<Option<ScanState>> {
+            Ok(None)
+        }
+        fn set_scan_state(&self, _: &str, _: &ScanState) -> Result<()> {
+            Ok(())
+        }
+        fn insert_compression_event(&self, _: &str, _: &str, _: Option<&str>) -> Result<()> {
+            Ok(())
+        }
+        fn load_summary(&self) -> Result<MetricsSummary> {
+            Ok(self.0.clone())
+        }
     }
 
     // ── Mock: AnnotationPort ──────────────────────────────────────
@@ -269,12 +278,7 @@ mod tests {
         state: Arc<MockInsightState>,
         cooldown: i64,
     ) -> InsightAnalysisUseCase {
-        InsightAnalysisUseCase::new(
-            Arc::new(MockSession(summary)),
-            annotation,
-            state,
-            cooldown,
-        )
+        InsightAnalysisUseCase::new(Arc::new(MockSession(summary)), annotation, state, cooldown)
     }
 
     // ── ツールエラー率 ──────────────────────────────────────────
@@ -302,7 +306,12 @@ mod tests {
             ..Default::default()
         };
         let ann = Arc::new(MockAnnotation::default());
-        let uc = make_uc(summary, ann.clone(), Arc::new(MockInsightState::default()), 60);
+        let uc = make_uc(
+            summary,
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+        );
         uc.run().await.unwrap();
         let sent = ann.sent.lock().unwrap();
         assert_eq!(sent[0].severity, InsightSeverity::Alert);
@@ -315,7 +324,12 @@ mod tests {
             ..Default::default()
         };
         let ann = Arc::new(MockAnnotation::default());
-        let uc = make_uc(summary, ann.clone(), Arc::new(MockInsightState::default()), 60);
+        let uc = make_uc(
+            summary,
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+        );
         uc.run().await.unwrap();
         assert!(ann.sent.lock().unwrap().is_empty());
     }
@@ -327,7 +341,12 @@ mod tests {
             ..Default::default()
         };
         let ann = Arc::new(MockAnnotation::default());
-        let uc = make_uc(summary, ann.clone(), Arc::new(MockInsightState::default()), 60);
+        let uc = make_uc(
+            summary,
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+        );
         uc.run().await.unwrap();
         assert!(ann.sent.lock().unwrap().is_empty());
     }
@@ -342,7 +361,12 @@ mod tests {
             ..Default::default()
         };
         let ann = Arc::new(MockAnnotation::default());
-        let uc = make_uc(summary, ann.clone(), Arc::new(MockInsightState::default()), 60);
+        let uc = make_uc(
+            summary,
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+        );
         uc.run().await.unwrap();
         let sent = ann.sent.lock().unwrap();
         assert!(sent.iter().any(|a| a.key == "cache_hit_ratio"));
@@ -352,9 +376,19 @@ mod tests {
     async fn cache_hit_ratio_no_annotation_when_tokens_zero() {
         let summary = MetricsSummary::default();
         let ann = Arc::new(MockAnnotation::default());
-        let uc = make_uc(summary, ann.clone(), Arc::new(MockInsightState::default()), 60);
+        let uc = make_uc(
+            summary,
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+        );
         uc.run().await.unwrap();
-        assert!(ann.sent.lock().unwrap().iter().all(|a| a.key != "cache_hit_ratio"));
+        assert!(ann
+            .sent
+            .lock()
+            .unwrap()
+            .iter()
+            .all(|a| a.key != "cache_hit_ratio"));
     }
 
     // ── コスト ─────────────────────────────────────────────────
@@ -367,7 +401,12 @@ mod tests {
             ..Default::default()
         };
         let ann = Arc::new(MockAnnotation::default());
-        let uc = make_uc(summary, ann.clone(), Arc::new(MockInsightState::default()), 60);
+        let uc = make_uc(
+            summary,
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+        );
         uc.run().await.unwrap();
         let sent = ann.sent.lock().unwrap();
         let cost_ann = sent.iter().find(|a| a.key == "cost_per_session").unwrap();
@@ -382,7 +421,12 @@ mod tests {
             ..Default::default()
         };
         let ann = Arc::new(MockAnnotation::default());
-        let uc = make_uc(summary, ann.clone(), Arc::new(MockInsightState::default()), 60);
+        let uc = make_uc(
+            summary,
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+        );
         uc.run().await.unwrap();
         let sent = ann.sent.lock().unwrap();
         let cost_ann = sent.iter().find(|a| a.key == "cost_per_session").unwrap();
@@ -397,9 +441,19 @@ mod tests {
             ..Default::default()
         };
         let ann = Arc::new(MockAnnotation::default());
-        let uc = make_uc(summary, ann.clone(), Arc::new(MockInsightState::default()), 60);
+        let uc = make_uc(
+            summary,
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+        );
         uc.run().await.unwrap();
-        assert!(ann.sent.lock().unwrap().iter().all(|a| a.key != "cost_per_session"));
+        assert!(ann
+            .sent
+            .lock()
+            .unwrap()
+            .iter()
+            .all(|a| a.key != "cost_per_session"));
     }
 
     // ── 圧縮イベント ────────────────────────────────────────────
@@ -411,20 +465,32 @@ mod tests {
             ..Default::default()
         };
         let ann = Arc::new(MockAnnotation::default());
-        let uc = make_uc(summary, ann.clone(), Arc::new(MockInsightState::default()), 60);
+        let uc = make_uc(
+            summary,
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+        );
         uc.run().await.unwrap();
-        assert!(ann.sent.lock().unwrap().iter().any(|a| a.key == "compression_events"));
+        assert!(ann
+            .sent
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|a| a.key == "compression_events"));
     }
 
     #[tokio::test]
     async fn compression_event_resent_when_count_increases() {
         let state = Arc::new(MockInsightState::default());
         // 前回送信時 count=3
-        state.upsert_insight_state(
-            "compression_events",
-            "2000-01-01T00:00:00Z", // 遠い過去でもOK（件数増加で送信）
-            3,
-        ).unwrap();
+        state
+            .upsert_insight_state(
+                "compression_events",
+                "2000-01-01T00:00:00Z", // 遠い過去でもOK（件数増加で送信）
+                3,
+            )
+            .unwrap();
 
         let summary = MetricsSummary {
             total_compression_events: 5, // 増加 → 送信
@@ -433,7 +499,12 @@ mod tests {
         let ann = Arc::new(MockAnnotation::default());
         let uc = make_uc(summary, ann.clone(), state, 60 * 24 * 365); // cooldown 1年
         uc.run().await.unwrap();
-        assert!(ann.sent.lock().unwrap().iter().any(|a| a.key == "compression_events"));
+        assert!(ann
+            .sent
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|a| a.key == "compression_events"));
     }
 
     // ── クールダウン ────────────────────────────────────────────
@@ -443,7 +514,9 @@ mod tests {
         let state = Arc::new(MockInsightState::default());
         // 直近に送信済み
         let just_now = chrono::Utc::now().to_rfc3339();
-        state.upsert_insight_state("tool_error_rate:Grep", &just_now, 2).unwrap();
+        state
+            .upsert_insight_state("tool_error_rate:Grep", &just_now, 2)
+            .unwrap();
 
         let summary = MetricsSummary {
             tool_counts: vec![("Grep".to_string(), 22, 2)],
@@ -460,7 +533,9 @@ mod tests {
         let state = Arc::new(MockInsightState::default());
         // 2時間前に送信済み（cooldown 60分 → 期限切れ）
         let two_hours_ago = (chrono::Utc::now() - chrono::Duration::hours(2)).to_rfc3339();
-        state.upsert_insight_state("tool_error_rate:Grep", &two_hours_ago, 2).unwrap();
+        state
+            .upsert_insight_state("tool_error_rate:Grep", &two_hours_ago, 2)
+            .unwrap();
 
         let summary = MetricsSummary {
             tool_counts: vec![("Grep".to_string(), 22, 2)],
