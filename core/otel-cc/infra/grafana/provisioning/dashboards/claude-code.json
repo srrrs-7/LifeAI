@@ -2,7 +2,7 @@
   "title": "Claude Code Monitor",
   "uid": "claude-code-monitor",
   "schemaVersion": 38,
-  "version": 16,
+  "version": 17,
   "refresh": "30s",
   "time": {
     "from": "now-24h",
@@ -47,7 +47,7 @@
         "x": 0,
         "y": 1,
         "w": 6,
-        "h": 4
+        "h": 8
       },
       "options": {
         "reduceOptions": {
@@ -109,7 +109,7 @@
         "x": 6,
         "y": 1,
         "w": 4,
-        "h": 4
+        "h": 8
       },
       "options": {
         "reduceOptions": {
@@ -171,7 +171,7 @@
         "x": 10,
         "y": 1,
         "w": 5,
-        "h": 4
+        "h": 8
       },
       "options": {
         "reduceOptions": {
@@ -234,7 +234,7 @@
         "x": 15,
         "y": 1,
         "w": 5,
-        "h": 4
+        "h": 8
       },
       "options": {
         "reduceOptions": {
@@ -297,7 +297,7 @@
         "x": 20,
         "y": 1,
         "w": 4,
-        "h": 4
+        "h": 8
       },
       "options": {
         "reduceOptions": {
@@ -352,7 +352,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 5,
+        "y": 9,
         "w": 24,
         "h": 1
       }
@@ -368,9 +368,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 10,
         "w": 12,
-        "h": 8
+        "h": 14
       },
       "options": {
         "legend": {
@@ -464,9 +464,9 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 6,
+        "y": 10,
         "w": 12,
-        "h": 8
+        "h": 14
       },
       "options": {
         "legend": {
@@ -600,9 +600,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 14,
+        "y": 24,
         "w": 12,
-        "h": 7
+        "h": 14
       },
       "options": {
         "legend": {
@@ -730,9 +730,9 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 14,
+        "y": 24,
         "w": 12,
-        "h": 7
+        "h": 14
       },
       "options": {
         "legend": {
@@ -795,7 +795,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 21,
+        "y": 38,
         "w": 24,
         "h": 1
       }
@@ -811,9 +811,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 22,
+        "y": 39,
         "w": 14,
-        "h": 8
+        "h": 14
       },
       "options": {
         "legend": {
@@ -903,9 +903,9 @@
       },
       "gridPos": {
         "x": 14,
-        "y": 22,
+        "y": 39,
         "w": 10,
-        "h": 8
+        "h": 14
       },
       "options": {
         "orientation": "horizontal",
@@ -962,7 +962,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 30,
+        "y": 53,
         "w": 24,
         "h": 1
       }
@@ -977,9 +977,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 31,
+        "y": 54,
         "w": 8,
-        "h": 8
+        "h": 14
       },
       "options": {
         "orientation": "horizontal",
@@ -1040,9 +1040,9 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 31,
+        "y": 54,
         "w": 8,
-        "h": 8
+        "h": 14
       },
       "options": {
         "orientation": "horizontal",
@@ -1102,9 +1102,9 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 31,
+        "y": 54,
         "w": 8,
-        "h": 8
+        "h": 14
       },
       "options": {
         "reduceOptions": {
@@ -1240,9 +1240,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 39,
+        "y": 68,
         "w": 24,
-        "h": 6
+        "h": 10
       },
       "options": {
         "showHeader": true,
@@ -1396,7 +1396,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 45,
+        "y": 78,
         "w": 24,
         "h": 1
       }
@@ -1412,9 +1412,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 46,
+        "y": 79,
         "w": 12,
-        "h": 8
+        "h": 14
       },
       "options": {
         "orientation": "horizontal",
@@ -1473,9 +1473,9 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 46,
+        "y": 79,
         "w": 12,
-        "h": 8
+        "h": 14
       },
       "options": {
         "orientation": "horizontal",
@@ -1534,9 +1534,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 54,
+        "y": 93,
         "w": 24,
-        "h": 6
+        "h": 14
       },
       "options": {
         "orientation": "horizontal",
@@ -1591,7 +1591,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 60,
+        "y": 107,
         "w": 24,
         "h": 1
       }
@@ -1602,9 +1602,9 @@
       "title": "Cost per Session",
       "gridPos": {
         "x": 0,
-        "y": 61,
+        "y": 108,
         "w": 8,
-        "h": 4
+        "h": 8
       },
       "datasource": {
         "type": "prometheus",
@@ -1667,9 +1667,9 @@
       "title": "Cache Efficiency",
       "gridPos": {
         "x": 8,
-        "y": 61,
+        "y": 108,
         "w": 8,
-        "h": 4
+        "h": 8
       },
       "datasource": {
         "type": "prometheus",
@@ -1733,9 +1733,9 @@
       "title": "Output/Input Token Ratio",
       "gridPos": {
         "x": 16,
-        "y": 61,
+        "y": 108,
         "w": 8,
-        "h": 4
+        "h": 8
       },
       "datasource": {
         "type": "prometheus",
@@ -1798,9 +1798,9 @@
       "title": "Error Rate by Tool",
       "gridPos": {
         "x": 0,
-        "y": 65,
+        "y": 116,
         "w": 24,
-        "h": 8
+        "h": 10
       },
       "datasource": {
         "type": "prometheus",
@@ -1932,7 +1932,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 73,
+        "y": 126,
         "w": 24,
         "h": 1
       }
@@ -1944,9 +1944,9 @@
       "description": "Average number of context compression events per session. High values indicate sessions with long trial-and-error chains that exceeded the context window. Good: <0.2.",
       "gridPos": {
         "x": 0,
-        "y": 74,
+        "y": 127,
         "w": 6,
-        "h": 4
+        "h": 8
       },
       "datasource": {
         "type": "prometheus",
@@ -2008,9 +2008,9 @@
       "description": "Average cost per tool invocation. High values indicate that each operation is generating large amounts of output. Good: <$0.05 | Caution: $0.05–$0.20 | Alert: >$0.20.",
       "gridPos": {
         "x": 6,
-        "y": 74,
+        "y": 127,
         "w": 6,
-        "h": 4
+        "h": 8
       },
       "datasource": {
         "type": "prometheus",
@@ -2072,9 +2072,9 @@
       "description": "Percentage of all tool calls that resulted in errors. A high value indicates Claude is repeatedly attempting incorrect approaches. Good: <5%.",
       "gridPos": {
         "x": 12,
-        "y": 74,
+        "y": 127,
         "w": 6,
-        "h": 4
+        "h": 8
       },
       "datasource": {
         "type": "prometheus",
@@ -2136,9 +2136,9 @@
       "description": "Cumulative number of context window compression events. Each event represents a context truncation, meaning earlier conversation history was discarded.",
       "gridPos": {
         "x": 18,
-        "y": 74,
+        "y": 127,
         "w": 6,
-        "h": 4
+        "h": 8
       },
       "datasource": {
         "type": "prometheus",
@@ -2200,9 +2200,9 @@
       "description": "Cost per session for each project, sorted descending. Projects with high values may have more intent mismatches, poor upfront planning, or excessive trial-and-error. Good: <$8.",
       "gridPos": {
         "x": 0,
-        "y": 78,
+        "y": 135,
         "w": 12,
-        "h": 8
+        "h": 14
       },
       "datasource": {
         "type": "prometheus",
@@ -2265,9 +2265,9 @@
       "description": "Cost per tool invocation for each project. High values often result from large code generation outputs or overly verbose responses per call. Good: <$0.05.",
       "gridPos": {
         "x": 12,
-        "y": 78,
+        "y": 135,
         "w": 12,
-        "h": 8
+        "h": 14
       },
       "datasource": {
         "type": "prometheus",
