@@ -2,7 +2,7 @@
   "title": "Claude Code Monitor",
   "uid": "claude-code-monitor",
   "schemaVersion": 38,
-  "version": 10,
+  "version": 13,
   "refresh": "30s",
   "time": {
     "from": "now-24h",
@@ -1606,7 +1606,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "reduceOptions": {
@@ -1651,7 +1651,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "cc_cost_usd_total / clamp_min(cc_sessions_total, 1)",
           "legendFormat": "$/session"
@@ -1670,7 +1670,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "reduceOptions": {
@@ -1716,7 +1716,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "cc_cache_hit_ratio * 100",
           "legendFormat": "cache hit %"
@@ -1735,7 +1735,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "reduceOptions": {
@@ -1780,7 +1780,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "cc_tokens_total{type=\"output\"} / ignoring(type) clamp_min(cc_tokens_total{type=\"input\"}, 1)",
           "legendFormat": "output/input"
@@ -1799,7 +1799,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "showHeader": true,
@@ -1887,7 +1887,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "sort_desc(cc_tool_errors_total / clamp_min(cc_tool_calls_total, 1) * 100)",
           "legendFormat": "{{tool}}",
@@ -1944,7 +1944,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "reduceOptions": {
@@ -1988,7 +1988,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "cc_compression_events_total / clamp_min(cc_sessions_total, 1)",
           "legendFormat": "圧縮/セッション"
@@ -2008,7 +2008,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "reduceOptions": {
@@ -2052,7 +2052,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "cc_cost_usd_total / on() clamp_min(sum(cc_tool_calls_total), 1)",
           "legendFormat": "$/ツール呼び出し"
@@ -2072,7 +2072,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "reduceOptions": {
@@ -2116,7 +2116,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "cc_tool_error_rate",
           "legendFormat": "エラー率"
@@ -2136,7 +2136,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "reduceOptions": {
@@ -2180,7 +2180,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "cc_compression_events_total",
           "legendFormat": "圧縮イベント"
@@ -2200,7 +2200,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "reduceOptions": {
@@ -2245,7 +2245,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "sort_desc(cc_project_cost_usd / clamp_min(cc_project_sessions_total, 1))",
           "legendFormat": "{{project}}"
@@ -2265,7 +2265,7 @@
       },
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${datasource}"
       },
       "options": {
         "reduceOptions": {
@@ -2310,7 +2310,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${datasource}"
           },
           "expr": "sort_desc(cc_project_cost_usd / clamp_min(cc_project_tool_calls_total, 1))",
           "legendFormat": "{{project}}"
