@@ -2,7 +2,7 @@
   "title": "Claude Code Monitor",
   "uid": "claude-code-monitor",
   "schemaVersion": 38,
-  "version": 8,
+  "version": 9,
   "refresh": "30s",
   "time": {
     "from": "now-24h",
@@ -1654,8 +1654,7 @@
             "uid": "prometheus"
           },
           "expr": "cc_cost_usd_total / clamp_min(cc_sessions_total, 1)",
-          "legendFormat": "$/session",
-          "instant": true
+          "legendFormat": "$/session"
         }
       ]
     },
@@ -1720,8 +1719,7 @@
             "uid": "prometheus"
           },
           "expr": "cc_cache_hit_ratio * 100",
-          "legendFormat": "cache hit %",
-          "instant": true
+          "legendFormat": "cache hit %"
         }
       ]
     },
@@ -1785,8 +1783,7 @@
             "uid": "prometheus"
           },
           "expr": "cc_tokens_total{type=\"output\"} / ignoring(type) clamp_min(cc_tokens_total{type=\"input\"}, 1)",
-          "legendFormat": "output/input",
-          "instant": true
+          "legendFormat": "output/input"
         }
       ]
     },
@@ -1894,7 +1891,6 @@
           },
           "expr": "sort_desc(cc_tool_errors_total / clamp_min(cc_tool_calls_total, 1) * 100)",
           "legendFormat": "{{tool}}",
-          "instant": true,
           "format": "table"
         }
       ],
@@ -1995,8 +1991,7 @@
             "uid": "prometheus"
           },
           "expr": "cc_compression_events_total / clamp_min(cc_sessions_total, 1)",
-          "legendFormat": "圧縮/セッション",
-          "instant": true
+          "legendFormat": "圧縮/セッション"
         }
       ]
     },
@@ -2060,8 +2055,7 @@
             "uid": "prometheus"
           },
           "expr": "cc_cost_usd_total / clamp_min(sum(cc_tool_calls_total), 1)",
-          "legendFormat": "$/ツール呼び出し",
-          "instant": true
+          "legendFormat": "$/ツール呼び出し"
         }
       ]
     },
@@ -2125,8 +2119,7 @@
             "uid": "prometheus"
           },
           "expr": "cc_tool_error_rate",
-          "legendFormat": "エラー率",
-          "instant": true
+          "legendFormat": "エラー率"
         }
       ]
     },
@@ -2190,8 +2183,7 @@
             "uid": "prometheus"
           },
           "expr": "cc_compression_events_total",
-          "legendFormat": "圧縮イベント",
-          "instant": true
+          "legendFormat": "圧縮イベント"
         }
       ]
     },
@@ -2256,8 +2248,7 @@
             "uid": "prometheus"
           },
           "expr": "sort_desc(cc_project_cost_usd / clamp_min(cc_project_sessions_total, 1))",
-          "legendFormat": "{{project}}",
-          "instant": true
+          "legendFormat": "{{project}}"
         }
       ]
     },
@@ -2322,8 +2313,7 @@
             "uid": "prometheus"
           },
           "expr": "sort_desc(cc_project_cost_usd / clamp_min(cc_project_tool_calls_total, 1))",
-          "legendFormat": "{{project}}",
-          "instant": true
+          "legendFormat": "{{project}}"
         }
       ]
     }
