@@ -4,10 +4,10 @@ use std::sync::Mutex;
 
 use crate::domain::{
     model::{
-        DailyStats, MetricsSummary, OverviewStats, ProjectStats, ProjectSummary, ScanState,
-        Session, StatsResponse, TokenEvent, ToolCall,
+        DailyStats, InsightState, MetricsSummary, OverviewStats, ProjectStats, ProjectSummary,
+        ScanState, Session, StatsResponse, TokenEvent, ToolCall,
     },
-    port::{EventPort, OtlpPort, SessionPort, StatsPort},
+    port::{EventPort, InsightStatePort, OtlpPort, SessionPort, StatsPort},
 };
 
 pub struct SqliteRepository {
@@ -105,6 +105,13 @@ impl SqliteRepository {
             );
 
             CREATE INDEX IF NOT EXISTS idx_compression_session ON compression_events(session_id);
+
+            -- インサイトアノテーション送信状態（クールダウン管理）
+            CREATE TABLE IF NOT EXISTS insight_states (
+                key         TEXT PRIMARY KEY,
+                last_sent_at TEXT NOT NULL,
+                last_count  INTEGER NOT NULL DEFAULT 0
+            );
 
             CREATE INDEX IF NOT EXISTS idx_token_events_session ON token_events(session_id);
             CREATE INDEX IF NOT EXISTS idx_token_events_time    ON token_events(timestamp);
@@ -664,6 +671,39 @@ impl OtlpPort for SqliteRepository {
     }
 }
 
+impl InsightStatePort for SqliteRepository {
+    fn get_insight_state(&self, key: &str) -> Result<Option<InsightState>> {
+        let conn = self.conn.lock().unwrap();
+        let result = conn
+            .query_row(
+                "SELECT key, last_sent_at, last_count FROM insight_states WHERE key = ?1",
+                params![key],
+                |r| {
+                    Ok(InsightState {
+                        key: r.get(0)?,
+                        last_sent_at: r.get(1)?,
+                        last_count: r.get(2)?,
+                    })
+                },
+            )
+            .ok();
+        Ok(result)
+    }
+
+    fn upsert_insight_state(&self, key: &str, sent_at: &str, count: i64) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "INSERT INTO insight_states (key, last_sent_at, last_count)
+             VALUES (?1, ?2, ?3)
+             ON CONFLICT(key) DO UPDATE SET
+                last_sent_at = excluded.last_sent_at,
+                last_count   = excluded.last_count",
+            params![key, sent_at, count],
+        )?;
+        Ok(())
+    }
+}
+
 /// テスト用: SAVEPOINT を使ってテスト終了時に変更をロールバックする
 ///
 /// `:memory:` DB はテストごとに独立しているが、トランザクション境界を明示することで
@@ -1085,6 +1125,58 @@ mod tests {
             r.insert_log(r#"{"body":"hello"}"#).unwrap();
             // NULL IDs も受け付ける
             r.insert_span(None, None, None, "{}").unwrap();
+        });
+    }
+
+    // ── InsightStatePort ─────────────────────────────────────────
+
+    #[test]
+    fn insight_state_returns_none_before_set() {
+        let r = repo();
+        r.with_rollback(|r| {
+            assert!(r.get_insight_state("unknown_key").unwrap().is_none());
+        });
+    }
+
+    #[test]
+    fn insight_state_roundtrip_stores_and_retrieves() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_insight_state("tool_error_rate:Grep", "2026-03-28T10:00:00Z", 5)
+                .unwrap();
+            let state = r.get_insight_state("tool_error_rate:Grep").unwrap().unwrap();
+            assert_eq!(state.key, "tool_error_rate:Grep");
+            assert_eq!(state.last_sent_at, "2026-03-28T10:00:00Z");
+            assert_eq!(state.last_count, 5);
+        });
+    }
+
+    #[test]
+    fn insight_state_upsert_overwrites_existing() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_insight_state("compression_events", "2026-03-01T00:00:00Z", 3)
+                .unwrap();
+            r.upsert_insight_state("compression_events", "2026-03-28T00:00:00Z", 7)
+                .unwrap();
+            let state = r.get_insight_state("compression_events").unwrap().unwrap();
+            assert_eq!(state.last_count, 7, "count should be updated to 7");
+            assert_eq!(state.last_sent_at, "2026-03-28T00:00:00Z");
+        });
+    }
+
+    #[test]
+    fn insight_state_multiple_keys_independent() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_insight_state("key_a", "2026-03-28T10:00:00Z", 1)
+                .unwrap();
+            r.upsert_insight_state("key_b", "2026-03-28T11:00:00Z", 2)
+                .unwrap();
+            let a = r.get_insight_state("key_a").unwrap().unwrap();
+            let b = r.get_insight_state("key_b").unwrap().unwrap();
+            assert_eq!(a.last_count, 1);
+            assert_eq!(b.last_count, 2);
         });
     }
 

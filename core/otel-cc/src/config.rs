@@ -10,6 +10,12 @@ pub struct Config {
     pub otlp_port: u16,
     /// Prometheus /metrics 公開ポート
     pub metrics_port: u16,
+    /// Grafana ベース URL（アノテーション送信先）
+    pub grafana_url: String,
+    /// インサイト分析の実行間隔（秒）
+    pub insight_interval_secs: u64,
+    /// 同一インサイトの再送クールダウン（分）
+    pub insight_cooldown_minutes: i64,
 }
 
 impl Config {
@@ -32,6 +38,16 @@ impl Config {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(9091),
+            grafana_url: std::env::var("OTEL_CC_GRAFANA_URL")
+                .unwrap_or_else(|_| "http://localhost:3000".to_string()),
+            insight_interval_secs: std::env::var("OTEL_CC_INSIGHT_INTERVAL")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(300),
+            insight_cooldown_minutes: std::env::var("OTEL_CC_INSIGHT_COOLDOWN_MIN")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(60),
         }
     }
 }

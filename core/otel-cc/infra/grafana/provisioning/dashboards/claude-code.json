@@ -2,9 +2,12 @@
   "title": "Claude Code Monitor",
   "uid": "claude-code-monitor",
   "schemaVersion": 38,
-  "version": 6,
+  "version": 7,
   "refresh": "30s",
-  "time": { "from": "now-24h", "to": "now" },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
   "timepicker": {},
   "templating": {
     "list": [
@@ -19,24 +22,39 @@
     ]
   },
   "panels": [
-
     {
       "id": 1,
       "title": "概要",
       "type": "row",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      }
     },
-
     {
       "id": 2,
       "title": "コスト燃焼率 (/h)",
       "description": "直近1時間のコスト増分。意思決定: 急上昇時はセッション確認・タスク分割を検討",
       "type": "stat",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 0, "y": 1, "w": 6, "h": 4 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "value",
         "graphMode": "area",
@@ -49,31 +67,56 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 5 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_cost_usd_total[1h])",
           "legendFormat": "Cost/h"
         }
       ]
     },
-
     {
       "id": 3,
       "title": "アクティブセッション",
       "type": "stat",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 6, "y": 1, "w": 4, "h": 4 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "colorMode": "value",
         "graphMode": "area",
         "textMode": "auto"
@@ -84,32 +127,57 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 3 },
-              { "color": "red", "value": 6 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 6
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_active_sessions",
           "legendFormat": "Active"
         }
       ]
     },
-
     {
       "id": 4,
       "title": "キャッシュ効率",
       "description": "cache_read / (input + cache_read)。高い方が良い。低下時はCLAUDE.md構造の見直しを検討",
       "type": "gauge",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 10, "y": 1, "w": 5, "h": 4 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 10,
+        "y": 1,
+        "w": 5,
+        "h": 4
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
@@ -122,32 +190,57 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 0.3 },
-              { "color": "green", "value": 0.6 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "green",
+                "value": 0.6
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_cache_hit_ratio",
           "legendFormat": "Cache Hit"
         }
       ]
     },
-
     {
       "id": 5,
       "title": "ツールエラー率",
       "description": "全ツールの総合エラー率。>5%で注意、>15%でCLAUDE.mdにプロジェクト構造の明記を検討",
       "type": "gauge",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 15, "y": 1, "w": 5, "h": 4 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 15,
+        "y": 1,
+        "w": 5,
+        "h": 4
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
@@ -160,32 +253,57 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.05 },
-              { "color": "red", "value": 0.15 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.05
+              },
+              {
+                "color": "red",
+                "value": 0.15
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_tool_error_rate",
           "legendFormat": "Error Rate"
         }
       ]
     },
-
     {
       "id": 6,
       "title": "圧縮頻度 (/h)",
       "description": "直近1時間のコンテキスト圧縮回数。≥3回/セッションならタスク粒度が大きすぎるシグナル",
       "type": "stat",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 20, "y": 1, "w": 4, "h": 4 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "colorMode": "value",
         "graphMode": "area",
         "textMode": "auto"
@@ -196,41 +314,72 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 2 },
-              { "color": "red", "value": 5 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_compression_events_total[1h])",
           "legendFormat": "Compressions/h"
         }
       ]
     },
-
     {
       "id": 10,
       "title": "トレンド",
       "type": "row",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 5, "w": 24, "h": 1 }
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      }
     },
-
     {
       "id": 11,
       "title": "コスト推移（時間あたり）",
       "description": "5分粒度の増分と1時間移動平均。急勾配=調査範囲の暴走の可能性",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      },
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
@@ -245,45 +394,88 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "コスト/5m" },
+            "matcher": {
+              "id": "byName",
+              "options": "コスト/5m"
+            },
             "properties": [
-              { "id": "custom.fillOpacity", "value": 20 },
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "light-blue" } }
+              {
+                "id": "custom.fillOpacity",
+                "value": 20
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "コスト/1h (平均)" },
+            "matcher": {
+              "id": "byName",
+              "options": "コスト/1h (平均)"
+            },
             "properties": [
-              { "id": "custom.lineWidth", "value": 2 },
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_cost_usd_total[5m])",
           "legendFormat": "コスト/5m"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_cost_usd_total[1h]) / 12",
           "legendFormat": "コスト/1h (平均)"
         }
       ]
     },
-
     {
       "id": 12,
       "title": "トークン消費レート",
       "description": "5分あたりのトークン消費量（4種）。Stacked表示でinput/output/cacheの比率を可視化",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 12, "y": 6, "w": 12, "h": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      },
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
@@ -291,71 +483,135 @@
           "custom": {
             "lineInterpolation": "stepAfter",
             "fillOpacity": 40,
-            "stacking": { "mode": "normal", "group": "A" },
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
             "showPoints": "never"
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Input" },
+            "matcher": {
+              "id": "byName",
+              "options": "Input"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Output" },
+            "matcher": {
+              "id": "byName",
+              "options": "Output"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Cache Read" },
+            "matcher": {
+              "id": "byName",
+              "options": "Cache Read"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Cache Create" },
+            "matcher": {
+              "id": "byName",
+              "options": "Cache Create"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "light-purple" } }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-purple"
+                }
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_tokens_total{type=\"input\"}[5m])",
           "legendFormat": "Input"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_tokens_total{type=\"output\"}[5m])",
           "legendFormat": "Output"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_tokens_total{type=\"cache_read\"}[5m])",
           "legendFormat": "Cache Read"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_tokens_total{type=\"cache_create\"}[5m])",
           "legendFormat": "Cache Create"
         }
       ]
     },
-
     {
       "id": 13,
       "title": "効率指標（キャッシュ率 × 圧縮頻度）",
       "description": "左軸: キャッシュヒット率（高い=良好）、右軸: 圧縮回数/h（低い=良好）。逆相関が健全",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 0, "y": 14, "w": 12, "h": 7 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 7
+      },
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
@@ -368,54 +624,124 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "キャッシュヒット率" },
+            "matcher": {
+              "id": "byName",
+              "options": "キャッシュヒット率"
+            },
             "properties": [
-              { "id": "unit", "value": "percentunit" },
-              { "id": "min", "value": 0 },
-              { "id": "max", "value": 1 },
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } },
-              { "id": "custom.fillOpacity", "value": 10 },
-              { "id": "custom.axisPlacement", "value": "left" },
-              { "id": "custom.lineWidth", "value": 2 }
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 10
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "圧縮/h" },
+            "matcher": {
+              "id": "byName",
+              "options": "圧縮/h"
+            },
             "properties": [
-              { "id": "unit", "value": "short" },
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } },
-              { "id": "custom.axisPlacement", "value": "right" },
-              { "id": "custom.drawStyle", "value": "bars" },
-              { "id": "custom.fillOpacity", "value": 50 },
-              { "id": "custom.lineWidth", "value": 0 }
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "bars"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 50
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_cache_hit_ratio",
           "legendFormat": "キャッシュヒット率"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_compression_events_total[1h])",
           "legendFormat": "圧縮/h"
         }
       ]
     },
-
     {
       "id": 14,
       "title": "出力/入力トークン比",
       "description": "Output/Input ratio。高い=大量コード生成、低い=入力過多（CLAUDE.md肥大化の兆候）",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 12, "y": 14, "w": 12, "h": 7 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 7
+      },
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "fieldConfig": {
         "defaults": {
@@ -427,44 +753,79 @@
             "showPoints": "never",
             "lineWidth": 2
           },
-          "color": { "mode": "fixed", "fixedColor": "dark-yellow" },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "dark-yellow"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 0.1 },
-              { "color": "green", "value": 0.3 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.1
+              },
+              {
+                "color": "green",
+                "value": 0.3
+              }
             ]
           }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "increase(cc_tokens_total{type=\"output\"}[5m]) / ignoring(type) clamp_min(increase(cc_tokens_total{type=\"input\"}[5m]), 1)",
           "legendFormat": "Output/Input Ratio"
         }
       ]
     },
-
     {
       "id": 20,
       "title": "ツール詳細",
       "type": "row",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 21, "w": 24, "h": 1 }
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 24,
+        "h": 1
+      }
     },
-
     {
       "id": 21,
       "title": "ツール使用量とエラー",
       "description": "ツール別の1時間あたり呼び出し数(面)とエラー数(赤線)。面積の差がエラーの相対的影響度",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 0, "y": 22, "w": 14, "h": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 14,
+        "h": 8
+      },
       "options": {
-        "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "fieldConfig": {
         "defaults": {
@@ -477,40 +838,81 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byRegexp", "options": ".* errors" },
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* errors"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } },
-              { "id": "custom.fillOpacity", "value": 0 },
-              { "id": "custom.lineWidth", "value": 2 },
-              { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 5] } }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    5
+                  ]
+                }
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "topk(10, increase(cc_tool_calls_total[1h]))",
           "legendFormat": "{{tool}} calls"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "topk(10, increase(cc_tool_errors_total[1h]))",
           "legendFormat": "{{tool}} errors"
         }
       ]
     },
-
     {
       "id": 22,
       "title": "ツール別エラー率",
       "description": "ツールごとのエラー率。>5%で注意、>15%で対策検討",
       "type": "bargauge",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 14, "y": 22, "w": 10, "h": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 22,
+        "w": 10,
+        "h": 8
+      },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "displayMode": "gradient",
         "showUnfilled": true
       },
@@ -522,40 +924,69 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.05 },
-              { "color": "red", "value": 0.15 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.05
+              },
+              {
+                "color": "red",
+                "value": 0.15
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_tool_errors_total / (cc_tool_calls_total > 0)",
           "legendFormat": "{{tool}}"
         }
       ]
     },
-
     {
       "id": 30,
       "title": "プロジェクト詳細",
       "type": "row",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 30, "w": 24, "h": 1 }
+      "gridPos": {
+        "x": 0,
+        "y": 30,
+        "w": 24,
+        "h": 1
+      }
     },
-
     {
       "id": 31,
       "title": "プロジェクト別コスト (USD)",
       "type": "bargauge",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 0, "y": 31, "w": 8, "h": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 8,
+        "h": 8
+      },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "displayMode": "gradient",
         "showUnfilled": true
       },
@@ -566,33 +997,58 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 2 },
-              { "color": "red", "value": 10 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "sort_desc(cc_project_cost_usd)",
           "legendFormat": "{{project}}"
         }
       ]
     },
-
     {
       "id": 32,
       "title": "セッション単価 (USD/session)",
       "description": "プロジェクトごとのコスト÷セッション数。高い=非効率なタスク設計の可能性",
       "type": "bargauge",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 8, "y": 31, "w": 8, "h": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 31,
+        "w": 8,
+        "h": 8
+      },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "displayMode": "gradient",
         "showUnfilled": true
       },
@@ -603,142 +1059,284 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.5 },
-              { "color": "red", "value": 2 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_project_cost_usd / (cc_project_sessions_total > 0)",
           "legendFormat": "{{project}}"
         }
       ]
     },
-
     {
       "id": 33,
       "title": "トークン構成比（全体）",
       "description": "input/output/cache_read/cache_create の割合。cache_read が大きいほどコスト効率が良い",
       "type": "piechart",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 16, "y": 31, "w": 8, "h": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 31,
+        "w": 8,
+        "h": 8
+      },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "pieType": "donut",
-        "legend": { "displayMode": "table", "placement": "right", "values": ["percent"] },
-        "tooltip": { "mode": "single" }
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "percent"
+          ]
+        },
+        "tooltip": {
+          "mode": "single"
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "color": { "mode": "palette-classic" }
+          "color": {
+            "mode": "palette-classic"
+          }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Input" },
+            "matcher": {
+              "id": "byName",
+              "options": "Input"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Output" },
+            "matcher": {
+              "id": "byName",
+              "options": "Output"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Cache Read" },
+            "matcher": {
+              "id": "byName",
+              "options": "Cache Read"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Cache Create" },
+            "matcher": {
+              "id": "byName",
+              "options": "Cache Create"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "light-purple" } }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-purple"
+                }
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_tokens_total{type=\"input\"}",
           "legendFormat": "Input"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_tokens_total{type=\"output\"}",
           "legendFormat": "Output"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_tokens_total{type=\"cache_read\"}",
           "legendFormat": "Cache Read"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_tokens_total{type=\"cache_create\"}",
           "legendFormat": "Cache Create"
         }
       ]
     },
-
     {
       "id": 34,
       "title": "プロジェクト詳細テーブル",
       "description": "ソート可能な一覧。Cost/Session列で非効率なプロジェクトを特定",
       "type": "table",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 0, "y": 39, "w": 24, "h": 6 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 39,
+        "w": 24,
+        "h": 6
+      },
       "options": {
         "showHeader": true,
-        "sortBy": [{ "displayName": "Cost USD", "desc": true }],
-        "footer": { "show": true, "reducer": ["sum"] }
+        "sortBy": [
+          {
+            "displayName": "Cost USD",
+            "desc": true
+          }
+        ],
+        "footer": {
+          "show": true,
+          "reducer": [
+            "sum"
+          ]
+        }
       },
       "fieldConfig": {
         "defaults": {
-          "custom": { "align": "auto", "filterable": true }
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Cost USD" },
+            "matcher": {
+              "id": "byName",
+              "options": "Cost USD"
+            },
             "properties": [
-              { "id": "unit", "value": "currencyUSD" },
-              { "id": "decimals", "value": 4 },
-              { "id": "thresholds", "value": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 2 },
-                  { "color": "red", "value": 10 }
-                ]
-              }},
-              { "id": "custom.displayMode", "value": "color-background-solid" }
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "decimals",
+                "value": 4
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 2
+                    },
+                    {
+                      "color": "red",
+                      "value": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background-solid"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Tool Calls" },
+            "matcher": {
+              "id": "byName",
+              "options": "Tool Calls"
+            },
             "properties": [
-              { "id": "unit", "value": "short" }
+              {
+                "id": "unit",
+                "value": "short"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Sessions" },
+            "matcher": {
+              "id": "byName",
+              "options": "Sessions"
+            },
             "properties": [
-              { "id": "unit", "value": "short" }
+              {
+                "id": "unit",
+                "value": "short"
+              }
             ]
           }
         ]
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_project_sessions_total",
           "legendFormat": "{{project}}",
           "format": "table",
@@ -746,7 +1344,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_project_cost_usd",
           "legendFormat": "{{project}}",
           "format": "table",
@@ -754,7 +1355,10 @@
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "cc_project_tool_calls_total",
           "legendFormat": "{{project}}",
           "format": "table",
@@ -770,7 +1374,9 @@
         {
           "id": "organize",
           "options": {
-            "excludeByName": { "Time": true },
+            "excludeByName": {
+              "Time": true
+            },
             "renameByName": {
               "project": "Project",
               "Value #A": "Sessions",
@@ -781,25 +1387,40 @@
         }
       ]
     },
-
     {
       "id": 40,
       "title": "ランキング",
       "type": "row",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 45, "w": 24, "h": 1 }
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 24,
+        "h": 1
+      }
     },
-
     {
       "id": 41,
       "title": "ツール使用回数 TOP15",
       "description": "累計呼び出し回数の多いツールランキング。Bash/Read 偏重や意外なツール多用を発見できる",
       "type": "bargauge",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 0, "y": 46, "w": 12, "h": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 46,
+        "w": 12,
+        "h": 8
+      },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "displayMode": "gradient",
         "showUnfilled": true
       },
@@ -809,33 +1430,58 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null },
-              { "color": "green", "value": 10 },
-              { "color": "yellow", "value": 100 }
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 10
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "topk(15, cc_tool_calls_total)",
           "legendFormat": "{{tool}}"
         }
       ]
     },
-
     {
       "id": 42,
       "title": "プロジェクト別ツール使用回数",
       "description": "プロジェクトごとのツール呼び出し累計。作業量の多いプロジェクトを確認できる",
       "type": "bargauge",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 12, "y": 46, "w": 12, "h": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 46,
+        "w": 12,
+        "h": 8
+      },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "displayMode": "gradient",
         "showUnfilled": true
       },
@@ -845,33 +1491,58 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null },
-              { "color": "green", "value": 50 },
-              { "color": "yellow", "value": 500 }
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 50
+              },
+              {
+                "color": "yellow",
+                "value": 500
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "sort_desc(cc_project_tool_calls_total)",
           "legendFormat": "{{project}}"
         }
       ]
     },
-
     {
       "id": 43,
       "title": "エントリーポイント別セッション数",
       "description": "「cli」=直接起動、スラッシュコマンド名=スキル経由。どのスキルが最も使われているかがわかる",
       "type": "bargauge",
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "gridPos": { "x": 0, "y": 54, "w": 24, "h": 6 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 54,
+        "w": 24,
+        "h": 6
+      },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "displayMode": "gradient",
         "showUnfilled": true
       },
@@ -881,22 +1552,376 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null },
-              { "color": "green", "value": 5 },
-              { "color": "yellow", "value": 20 }
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 5
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "expr": "sort_desc(cc_entrypoint_sessions_total)",
           "legendFormat": "{{entrypoint}}"
         }
       ]
+    },
+    {
+      "id": 50,
+      "type": "row",
+      "title": "インサイト",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 60,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 51,
+      "type": "stat",
+      "title": "セッションあたりコスト",
+      "gridPos": {
+        "x": 0,
+        "y": 61,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 8
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "cc_cost_usd_total / clamp_min(cc_sessions_total, 1)",
+          "legendFormat": "$/session",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "type": "gauge",
+      "title": "キャッシュ効率",
+      "gridPos": {
+        "x": 8,
+        "y": 61,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "green",
+                "value": 95
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "cc_cache_hit_ratio * 100",
+          "legendFormat": "cache hit %",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "type": "stat",
+      "title": "出力/入力トークン比",
+      "gridPos": {
+        "x": 16,
+        "y": 61,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "cc_tokens_total{type=\"output\"} / ignoring(type) clamp_min(cc_tokens_total{type=\"input\"}, 1)",
+          "legendFormat": "output/input",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "type": "table",
+      "title": "ツール別エラー率",
+      "gridPos": {
+        "x": 0,
+        "y": 65,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "エラー率 (%)",
+            "desc": true
+          }
+        ],
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 1,
+          "custom": {
+            "align": "auto",
+            "displayMode": "color-background",
+            "inspect": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tool"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "ツール名"
+              },
+              {
+                "id": "custom.width",
+                "value": 200
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "auto"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "エラー率 (%)"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sort_desc(cc_tool_errors_total / clamp_min(cc_tool_calls_total, 1) * 100)",
+          "legendFormat": "{{tool}}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "tool",
+                "Value"
+              ]
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": [
+              {
+                "displayName": "Value",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
     }
-
   ]
 }

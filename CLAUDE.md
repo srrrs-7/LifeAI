@@ -49,11 +49,12 @@ core/otel-cc/          ← otel-cc クレート（Claude Code 使用状況モニ
 OTLP/HTTP :4318            ──→ infrastructure/otlp_reader  ─┘
 ```
 
-**4つの並走タスク (main.rs):**
+**5つの並走タスク (main.rs):**
 1. `/metrics` HTTP サーバー (:9091) — Prometheus スクレイプ用
 2. OTLP/HTTP レシーバー (:4318) — Claude Code OTel 受信
 3. inotify ファイル監視 — JSONL 変更を即時検知・差分スキャン
 4. 定期スキャン (60秒) — inotify のフォールバック
+5. インサイト分析 (5分周期) — 閾値チェック → Grafana アノテーション自動投稿
 
 **Clean Architecture レイヤー構成:**
 
@@ -82,6 +83,9 @@ interface/      — axum HTTP ハンドラー: /metrics（Prometheus）、/healt
 | `OTEL_CC_CLAUDE_LOG_DIR` | `~/.claude/projects` | Claude Code ログディレクトリ |
 | `OTEL_CC_OTLP_PORT` | `4318` | OTLP/HTTP 受信ポート |
 | `OTEL_CC_METRICS_PORT` | `9091` | Prometheus /metrics 公開ポート |
+| `OTEL_CC_GRAFANA_URL` | `http://localhost:3000` | Grafana ベース URL（アノテーション送信先） |
+| `OTEL_CC_INSIGHT_INTERVAL` | `300` | インサイト分析実行間隔（秒） |
+| `OTEL_CC_INSIGHT_COOLDOWN_MIN` | `60` | 同一インサイトの再送クールダウン（分） |
 
 **Docker Compose インフラ (.devcontainer/compose.yaml):**
 - `otel-cc` — volume: `otel-cc-data` (SQLite)

@@ -10,10 +10,15 @@ use std::sync::Arc;
 use tracing::info;
 
 use application::{
-    ingest_otlp::IngestOtlpUseCase, metrics_cache::MetricsCache, scan_logs::ScanLogsUseCase,
+    ingest_otlp::IngestOtlpUseCase,
+    insight_analysis::InsightAnalysisUseCase,
+    metrics_cache::MetricsCache,
+    scan_logs::ScanLogsUseCase,
 };
 use config::Config;
-use infrastructure::{sqlite::SqliteRepository, watcher::watch_log_dir};
+use infrastructure::{
+    grafana::GrafanaAnnotationClient, sqlite::SqliteRepository, watcher::watch_log_dir,
+};
 use interface::{metrics_handler, otlp_handler::OtlpState, stats_handler};
 
 #[tokio::main]
@@ -43,6 +48,14 @@ async fn main() -> Result<()> {
         repo.clone() as Arc<dyn domain::port::SessionPort>,
         repo.clone() as Arc<dyn domain::port::EventPort>,
         repo.clone() as Arc<dyn domain::port::OtlpPort>,
+    ));
+
+    let grafana_client = Arc::new(GrafanaAnnotationClient::new(&config.grafana_url));
+    let insight_uc = Arc::new(InsightAnalysisUseCase::new(
+        repo.clone() as Arc<dyn domain::port::SessionPort>,
+        grafana_client,
+        repo.clone() as Arc<dyn domain::port::InsightStatePort>,
+        config.insight_cooldown_minutes,
     ));
 
     // ── 起動時スキャン ───────────────────────────────────────────
@@ -110,6 +123,21 @@ async fn main() -> Result<()> {
                 tracing::warn!("Periodic scan error: {e}");
             } else if let Ok(summary) = scan_uc.load_summary() {
                 cache.update(summary).await;
+            }
+        }
+    });
+
+    // ── Task 5: インサイト分析 & Grafana アノテーション ──────────
+    let insight_interval = config.insight_interval_secs;
+    tokio::spawn(async move {
+        // 起動直後は少し待ってから最初の分析を実行
+        tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+        let mut interval =
+            tokio::time::interval(std::time::Duration::from_secs(insight_interval));
+        loop {
+            interval.tick().await;
+            if let Err(e) = insight_uc.run().await {
+                tracing::warn!("Insight analysis error: {e}");
             }
         }
     });

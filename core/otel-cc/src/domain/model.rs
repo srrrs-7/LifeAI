@@ -93,6 +93,45 @@ pub struct ProjectSummary {
     pub tool_calls: i64,
 }
 
+// ── インサイト・アノテーション型 ──────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum InsightSeverity {
+    Info,
+    Warn,
+    Alert,
+}
+
+impl InsightSeverity {
+    pub fn as_tag(&self) -> &'static str {
+        match self {
+            Self::Info => "info",
+            Self::Warn => "warn",
+            Self::Alert => "alert",
+        }
+    }
+}
+
+/// Grafana アノテーション送信用
+#[derive(Debug, Clone)]
+pub struct InsightAnnotation {
+    /// デdup キー（例: "tool_error_rate:Grep"）
+    pub key: String,
+    pub severity: InsightSeverity,
+    pub text: String,
+    pub tags: Vec<String>,
+}
+
+/// アノテーション送信状態（クールダウン管理用）
+#[derive(Debug, Clone)]
+pub struct InsightState {
+    #[allow(dead_code)]
+    pub key: String,
+    pub last_sent_at: String, // ISO-8601
+    /// 前回送信時点のカウント値（compression events 等の増分検知用）
+    pub last_count: i64,
+}
+
 // ── /api/stats レスポンス型 ────────────────────────────────────────
 
 #[derive(Debug, Clone, serde::Serialize, Default)]
