@@ -94,6 +94,17 @@ interface/      — axum HTTP ハンドラー: /metrics（Prometheus）、/healt
 - サービス間通信はすべて **`localhost`** 経由（Docker 内部 DNS によるサービス名解決は不可）
 - 設定ファイルで他サービスを参照する際は `http://localhost:<port>` を使用すること
 
+**HTTP エンドポイント一覧:**
+
+| エンドポイント | 用途 |
+|---|---|
+| `GET /metrics` | Prometheus テキスト形式 |
+| `GET /health` | ヘルスチェック |
+| `GET /api/stats` | JSON 統計（`period=N` で直近 N 日、`project=名前` でプロジェクト絞り込み） |
+| `POST /v1/traces` `/v1/metrics` `/v1/logs` | OTLP/HTTP 受信 |
+
+`/api/stats` レスポンス構造: `{ overview, projects[], daily[], generated_at }` — insight-report スキルなどがこの API を使って統計を取得する。
+
 **infra 設定ファイル (`core/otel-cc/infra/`):**
 ```
 prometheus.yml                          — スクレイプ設定（localhost:9091/metrics, 15秒間隔）
