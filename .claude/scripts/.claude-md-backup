@@ -25,9 +25,6 @@ LifeAI は、個人の活動のレコード（日報・振り返り・気づき�
 - `make restart-infra` — otel-cc, prometheus, grafana コンテナを再起動（**ホスト側で実行**）
 - `make rebuild-otel-cc` — otel-cc を再ビルドして再起動（**ホスト側で実行**、Rust コード変更後に必須）
 - `make logs-otel-cc` / `make logs-prometheus` / `make logs-grafana` — 各コンテナのログ表示（**ホスト側で実行**）
-- `make build-release` — リリースビルド
-- `make clean` — `target/` を削除
-- `make open-grafana` / `make open-prometheus` — Grafana / Prometheus の URL 表示
 
 ## Architecture
 
@@ -62,17 +59,16 @@ OTLP/HTTP :4318            ──→ infrastructure/otlp_reader  ─┘
 **Clean Architecture レイヤー構成:**
 
 ```
-domain/         — エンティティ（Session, TokenEvent, ToolCall 等）、コスト計算（cost.rs）、トレンド分析（trend.rs）、Port トレイト（リポジトリ境界）
-infrastructure/ — Port 実装: sqlite/（SqliteRepository）、log_reader/（JSONL パース・差分スキャン）、otlp_reader/（OTLP パース）、watcher/（notify クレートによるファイル監視）、grafana/（GrafanaAnnotationClient）
-application/    — ユースケース: ScanLogsUseCase, IngestOtlpUseCase, InsightAnalysisUseCase, MetricsCache
+domain/         — エンティティ（Session, TokenEvent, ToolCall 等）、コスト計算、Port トレイト（リポジトリ境界）
+infrastructure/ — Port 実装: sqlite/（SqliteRepository）、log_reader/（JSONL パース・差分スキャン）、otlp_reader/（OTLP パース）、watcher/（notify クレートによるファイル監視）
+application/    — ユースケース: ScanLogsUseCase, IngestOtlpUseCase, MetricsCache
 interface/      — axum HTTP ハンドラー: /metrics（Prometheus）、/health、/api/stats（JSON 統計）、/v1/{traces,metrics,logs}（OTLP）
 ```
 
 依存方向: `interface → application → domain ← infrastructure`（domain は外部に依存しない）
 
 **依存性注入 (main.rs がコンポジションルート):**
-- `SqliteRepository` を `Arc<dyn SessionPort>` / `Arc<dyn EventPort>` / `Arc<dyn OtlpPort>` / `Arc<dyn StatsPort>` / `Arc<dyn InsightStatePort>` / `Arc<dyn TrendDataPort>` として各ユースケースに注入
-- `GrafanaAnnotationClient` を `Arc<dyn AnnotationPort>` として `InsightAnalysisUseCase` に注入
+- `SqliteRepository` を `Arc<dyn SessionPort>` / `Arc<dyn EventPort>` / `Arc<dyn OtlpPort>` / `Arc<dyn StatsPort>` として各ユースケースに注入
 - SQLite は `std::sync::Mutex<Connection>` で保護（`Sync` を実現するため tokio Mutex は不使用）
 
 **差分スキャンの仕組み:**
@@ -136,7 +132,6 @@ grafana/provisioning/
 **スキル一覧:**
 - `daily-report/` — 対話型日報作成（テキスト + SVG インフォグラフィック）。成果物: `assets/<yyyy-mm-dd>/`
 - `idea/` — アイデアブレスト＆構造化（10問ヒアリング → アイデアシート）。成果物: `assets/<theme-name>/`
-- `blog/` — 対話型ブログ記事作成（ヒアリング → Markdown 記事）
 - `insight-report/` — Claude 使用状況ログ解析（並列サブエージェント4本で分析）
 - `gen-skill/` — 対話型スキルスキャフォールド生成。新スキル作成時はこれを使う
 
