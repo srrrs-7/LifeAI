@@ -4,8 +4,8 @@ use std::sync::Mutex;
 
 use crate::domain::{
     model::{
-        DailyDataPoint, DailyStats, InsightState, MetricsSummary, OverviewStats, ProjectStats,
-        ProjectSummary, ScanState, Session, StatsResponse, TokenEvent, ToolCall,
+        DailyDataPoint, DailyStats, InsightState, MetricsSummary, ModelSummary, OverviewStats,
+        ProjectStats, ProjectSummary, ScanState, Session, StatsResponse, TokenEvent, ToolCall,
     },
     port::{EventPort, InsightStatePort, OtlpPort, SessionPort, StatsPort, TrendDataPort},
 };
@@ -307,6 +307,34 @@ impl SessionPort for SqliteRepository {
             .flatten()
             .collect();
 
+        // モデル別集計
+        let mut stmt = conn.prepare(
+            "SELECT COALESCE(model, 'unknown'),
+                    COUNT(DISTINCT session_id),
+                    COALESCE(SUM(input_tokens), 0),
+                    COALESCE(SUM(output_tokens), 0),
+                    COALESCE(SUM(cache_creation_tokens), 0),
+                    COALESCE(SUM(cache_read_tokens), 0),
+                    COALESCE(SUM(cost_usd), 0.0)
+             FROM token_events
+             GROUP BY COALESCE(model, 'unknown')
+             ORDER BY SUM(cost_usd) DESC",
+        )?;
+        let model_counts = stmt
+            .query_map([], |r| {
+                Ok(ModelSummary {
+                    model: r.get(0)?,
+                    sessions: r.get(1)?,
+                    input_tokens: r.get(2)?,
+                    output_tokens: r.get(3)?,
+                    cache_creation_tokens: r.get(4)?,
+                    cache_read_tokens: r.get(5)?,
+                    cost_usd: r.get(6)?,
+                })
+            })?
+            .flatten()
+            .collect();
+
         Ok(MetricsSummary {
             total_sessions,
             active_sessions,
@@ -321,6 +349,7 @@ impl SessionPort for SqliteRepository {
             tool_counts,
             projects,
             entrypoint_counts,
+            model_counts,
         })
     }
 }
@@ -1426,6 +1455,40 @@ mod tests {
             assert_eq!(result[0].1.len(), 2);
             assert!((result[0].1[0].value - 0.2).abs() < 1e-9);
             assert!((result[0].1[1].value - 0.2).abs() < 1e-9);
+        });
+    }
+
+    #[test]
+    fn load_summary_model_counts_groups_by_model() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            // Sonnet event
+            let mut ev = token_ev("s1", 100, 50, 0.5);
+            ev.model = Some("claude-sonnet-4-20250514".to_string());
+            r.insert_token_event(&ev).unwrap();
+            // Opus event
+            let mut ev2 = token_ev("s1", 3000, 1500, 5.0);
+            ev2.model = Some("claude-opus-4-20250514".to_string());
+            r.insert_token_event(&ev2).unwrap();
+
+            let summary = r.load_summary().unwrap();
+            assert_eq!(summary.model_counts.len(), 2);
+            // Sorted by cost DESC → opus first
+            assert_eq!(summary.model_counts[0].model, "claude-opus-4-20250514");
+            assert_eq!(summary.model_counts[0].input_tokens, 3000);
+            assert!((summary.model_counts[0].cost_usd - 5.0).abs() < 1e-9);
+            assert_eq!(summary.model_counts[1].model, "claude-sonnet-4-20250514");
+            assert_eq!(summary.model_counts[1].input_tokens, 100);
+        });
+    }
+
+    #[test]
+    fn load_summary_model_counts_empty_when_no_events() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let summary = r.load_summary().unwrap();
+            assert!(summary.model_counts.is_empty());
         });
     }
 }

@@ -168,6 +168,51 @@ pub fn render(s: &MetricsSummary) -> String {
         );
     }
 
+    // ── モデル別メトリクス ─────────────────────────────────────────
+    let _ = writeln!(out, "# HELP cc_model_sessions Sessions per model");
+    let _ = writeln!(out, "# TYPE cc_model_sessions gauge");
+    let _ = writeln!(out, "# HELP cc_model_tokens_total Tokens per model by type");
+    let _ = writeln!(out, "# TYPE cc_model_tokens_total gauge");
+    let _ = writeln!(out, "# HELP cc_model_cost_usd Cost in USD per model");
+    let _ = writeln!(out, "# TYPE cc_model_cost_usd gauge");
+    for m in &s.model_counts {
+        labeled(
+            &mut out,
+            "cc_model_sessions",
+            &[("model", &m.model)],
+            m.sessions,
+        );
+        labeled(
+            &mut out,
+            "cc_model_tokens_total",
+            &[("model", &m.model), ("type", "input")],
+            m.input_tokens,
+        );
+        labeled(
+            &mut out,
+            "cc_model_tokens_total",
+            &[("model", &m.model), ("type", "output")],
+            m.output_tokens,
+        );
+        labeled(
+            &mut out,
+            "cc_model_tokens_total",
+            &[("model", &m.model), ("type", "cache_create")],
+            m.cache_creation_tokens,
+        );
+        labeled(
+            &mut out,
+            "cc_model_tokens_total",
+            &[("model", &m.model), ("type", "cache_read")],
+            m.cache_read_tokens,
+        );
+        let _ = writeln!(
+            out,
+            "cc_model_cost_usd{{model=\"{}\"}} {:.6}",
+            m.model, m.cost_usd
+        );
+    }
+
     out
 }
 
@@ -204,7 +249,7 @@ fn label_str(labels: &[(&str, &str)]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::model::{MetricsSummary, ProjectSummary};
+    use crate::domain::model::{MetricsSummary, ModelSummary, ProjectSummary};
 
     fn render_default() -> String {
         render(&MetricsSummary::default())
@@ -328,6 +373,59 @@ mod tests {
         assert!(
             !out.contains("cc_entrypoint_sessions_total{"),
             "no data lines expected when entrypoint_counts is empty"
+        );
+    }
+
+    // ── モデル別メトリクス ────────────────────────────────────────
+
+    #[test]
+    fn model_metrics_rendered_with_labels() {
+        let s = MetricsSummary {
+            model_counts: vec![
+                ModelSummary {
+                    model: "claude-sonnet-4-20250514".to_string(),
+                    sessions: 5,
+                    input_tokens: 1000,
+                    output_tokens: 500,
+                    cache_creation_tokens: 200,
+                    cache_read_tokens: 800,
+                    cost_usd: 0.012345,
+                },
+                ModelSummary {
+                    model: "claude-opus-4-20250514".to_string(),
+                    sessions: 2,
+                    input_tokens: 3000,
+                    output_tokens: 1500,
+                    cache_creation_tokens: 600,
+                    cache_read_tokens: 2400,
+                    cost_usd: 0.567890,
+                },
+            ],
+            ..Default::default()
+        };
+        let out = render(&s);
+        // sessions
+        assert!(out.contains("cc_model_sessions{model=\"claude-sonnet-4-20250514\"} 5"));
+        assert!(out.contains("cc_model_sessions{model=\"claude-opus-4-20250514\"} 2"));
+        // tokens
+        assert!(out.contains(
+            "cc_model_tokens_total{model=\"claude-sonnet-4-20250514\",type=\"input\"} 1000"
+        ));
+        assert!(out.contains(
+            "cc_model_tokens_total{model=\"claude-opus-4-20250514\",type=\"output\"} 1500"
+        ));
+        // cost
+        assert!(out.contains("cc_model_cost_usd{model=\"claude-sonnet-4-20250514\"} 0.012345"));
+        assert!(out.contains("cc_model_cost_usd{model=\"claude-opus-4-20250514\"} 0.567890"));
+    }
+
+    #[test]
+    fn model_metrics_not_rendered_when_empty() {
+        let out = render_default();
+        assert!(out.contains("# HELP cc_model_sessions"));
+        assert!(
+            !out.contains("cc_model_sessions{"),
+            "no data lines expected when model_counts is empty"
         );
     }
 }

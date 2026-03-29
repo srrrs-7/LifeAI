@@ -79,6 +79,19 @@ pub struct MetricsSummary {
     pub projects: Vec<ProjectSummary>,
     /// (entrypoint, session_count)
     pub entrypoint_counts: Vec<(String, i64)>,
+    /// モデル別集計
+    pub model_counts: Vec<ModelSummary>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ModelSummary {
+    pub model: String,
+    pub sessions: i64,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cache_creation_tokens: i64,
+    pub cache_read_tokens: i64,
+    pub cost_usd: f64,
 }
 
 #[derive(Debug, Clone)]
