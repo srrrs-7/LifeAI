@@ -178,3 +178,24 @@ pub struct DailyStats {
     pub cache_read_tokens: i64,
     pub cost_usd: f64,
 }
+
+// ── トレンド分析用型 ─────────────────────────────────────────────
+
+/// 日次集計データポイント（線形回帰の入力）
+#[derive(Debug, Clone)]
+pub struct DailyDataPoint {
+    pub date: String, // "2026-03-28"
+    pub value: f64,
+}
+
+/// 線形回帰結果
+#[derive(Debug, Clone)]
+pub struct TrendResult {
+    /// 1日あたりの変化量（正=増加、負=減少）
+    pub slope_per_day: f64,
+    /// 最新データポイントの値
+    pub current_value: f64,
+    /// 使用したデータポイント数
+    #[allow(dead_code)]
+    pub data_points: usize,
+}

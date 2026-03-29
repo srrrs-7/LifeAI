@@ -1,6 +1,6 @@
 use crate::domain::model::{
-    InsightAnnotation, InsightState, MetricsSummary, ScanState, Session, StatsResponse, TokenEvent,
-    ToolCall,
+    DailyDataPoint, InsightAnnotation, InsightState, MetricsSummary, ScanState, Session,
+    StatsResponse, TokenEvent, ToolCall,
 };
 use anyhow::Result;
 use async_trait::async_trait;
@@ -43,6 +43,19 @@ pub trait InsightStatePort: Send + Sync {
 #[async_trait]
 pub trait AnnotationPort: Send + Sync {
     async fn push_annotation(&self, ann: &InsightAnnotation) -> Result<()>;
+}
+
+/// トレンド分析用の日次集計データ取得ポート
+pub trait TrendDataPort: Send + Sync {
+    /// 直近 N 日間の日次セッション単価
+    fn daily_cost_per_session(&self, lookback_days: u32) -> Result<Vec<DailyDataPoint>>;
+    /// 直近 N 日間の日次キャッシュヒット率
+    fn daily_cache_hit_ratio(&self, lookback_days: u32) -> Result<Vec<DailyDataPoint>>;
+    /// 直近 N 日間のツール別日次エラー率。戻り値: Vec<(tool_name, Vec<DailyDataPoint>)>
+    fn daily_tool_error_rates(
+        &self,
+        lookback_days: u32,
+    ) -> Result<Vec<(String, Vec<DailyDataPoint>)>>;
 }
 
 /// OTel 生データを保存するポート

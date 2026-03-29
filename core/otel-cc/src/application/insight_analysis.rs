@@ -4,7 +4,8 @@ use tracing::warn;
 
 use crate::domain::{
     model::{InsightAnnotation, InsightSeverity, MetricsSummary},
-    port::{AnnotationPort, InsightStatePort, SessionPort},
+    port::{AnnotationPort, InsightStatePort, SessionPort, TrendDataPort},
+    trend::{self, CrossingDirection},
 };
 
 /// 閾値定数
@@ -16,10 +17,15 @@ const CACHE_HIT_RATIO_ALERT: f64 = 0.50;
 const COST_PER_SESSION_WARN: f64 = 10.0;
 const COST_PER_SESSION_ALERT: f64 = 15.0;
 
+/// 予測的インサイト定数
+const TREND_LOOKBACK_DAYS: u32 = 14;
+const TREND_PREDICTION_HORIZON_DAYS: f64 = 7.0;
+
 pub struct InsightAnalysisUseCase {
     session_port: Arc<dyn SessionPort>,
     annotation_port: Arc<dyn AnnotationPort>,
     state_port: Arc<dyn InsightStatePort>,
+    trend_port: Arc<dyn TrendDataPort>,
     /// 同一キーを再送しない冷却期間（分）
     cooldown_minutes: i64,
 }
@@ -29,19 +35,27 @@ impl InsightAnalysisUseCase {
         session_port: Arc<dyn SessionPort>,
         annotation_port: Arc<dyn AnnotationPort>,
         state_port: Arc<dyn InsightStatePort>,
+        trend_port: Arc<dyn TrendDataPort>,
         cooldown_minutes: i64,
     ) -> Self {
         Self {
             session_port,
             annotation_port,
             state_port,
+            trend_port,
             cooldown_minutes,
         }
     }
 
     pub async fn run(&self) -> Result<()> {
         let summary = self.session_port.load_summary()?;
-        let annotations = self.analyze(&summary);
+        let mut annotations = self.analyze(&summary);
+
+        // 予測的インサイト（失敗しても閾値検知は継続）
+        match self.analyze_trends() {
+            Ok(trend_anns) => annotations.extend(trend_anns),
+            Err(e) => warn!("Trend analysis failed: {e}"),
+        }
 
         for ann in annotations {
             match self.should_send(&ann.annotation.key, ann.count_snapshot) {
@@ -192,6 +206,154 @@ impl InsightAnalysisUseCase {
             }
         }
     }
+
+    /// トレンド分析による予測的インサイトを生成
+    fn analyze_trends(&self) -> Result<Vec<PendingAnnotation>> {
+        let mut out = Vec::new();
+
+        // P1: セッション単価の上昇トレンド
+        let cost_points = self
+            .trend_port
+            .daily_cost_per_session(TREND_LOOKBACK_DAYS)?;
+        if let Some(t) = trend::linear_regression(&cost_points) {
+            // Warn: 7日以内に $10 超え予測
+            if let Some(days) =
+                trend::days_until_crossing(&t, COST_PER_SESSION_WARN, CrossingDirection::Rising)
+            {
+                if days <= TREND_PREDICTION_HORIZON_DAYS {
+                    let projected = t.current_value + t.slope_per_day * days;
+                    out.push(PendingAnnotation {
+                        annotation: InsightAnnotation {
+                            key: "predict:cost_per_session:warn".into(),
+                            severity: InsightSeverity::Warn,
+                            text: format!(
+                                "コスト上昇トレンド — {days:.1}日後に ${projected:.2}/session に到達予測（現在: ${:.2}/session）",
+                                t.current_value
+                            ),
+                            tags: vec!["otel-cc".into(), "predictive".into(), "cost".into()],
+                        },
+                        count_snapshot: 0,
+                    });
+                }
+            }
+            // Alert: 7日以内に $15 超え予測
+            if let Some(days) =
+                trend::days_until_crossing(&t, COST_PER_SESSION_ALERT, CrossingDirection::Rising)
+            {
+                if days <= TREND_PREDICTION_HORIZON_DAYS {
+                    let projected = t.current_value + t.slope_per_day * days;
+                    out.push(PendingAnnotation {
+                        annotation: InsightAnnotation {
+                            key: "predict:cost_per_session:alert".into(),
+                            severity: InsightSeverity::Alert,
+                            text: format!(
+                                "コスト急上昇 — {days:.1}日後に ${projected:.2}/session に到達予測（現在: ${:.2}/session）",
+                                t.current_value
+                            ),
+                            tags: vec!["otel-cc".into(), "predictive".into(), "cost".into()],
+                        },
+                        count_snapshot: 0,
+                    });
+                }
+            }
+        }
+
+        // P2: キャッシュヒット率の低下トレンド
+        let cache_points = self.trend_port.daily_cache_hit_ratio(TREND_LOOKBACK_DAYS)?;
+        if let Some(t) = trend::linear_regression(&cache_points) {
+            // Warn: 7日以内に 90% 割れ予測
+            if let Some(days) =
+                trend::days_until_crossing(&t, CACHE_HIT_RATIO_WARN, CrossingDirection::Falling)
+            {
+                if days <= TREND_PREDICTION_HORIZON_DAYS {
+                    let projected = t.current_value + t.slope_per_day * days;
+                    out.push(PendingAnnotation {
+                        annotation: InsightAnnotation {
+                            key: "predict:cache_hit_ratio:warn".into(),
+                            severity: InsightSeverity::Warn,
+                            text: format!(
+                                "キャッシュ率低下トレンド — {days:.1}日後に {:.1}% に低下予測（現在: {:.1}%）",
+                                projected * 100.0, t.current_value * 100.0
+                            ),
+                            tags: vec!["otel-cc".into(), "predictive".into(), "cache".into()],
+                        },
+                        count_snapshot: 0,
+                    });
+                }
+            }
+            // Alert: 7日以内に 50% 割れ予測
+            if let Some(days) =
+                trend::days_until_crossing(&t, CACHE_HIT_RATIO_ALERT, CrossingDirection::Falling)
+            {
+                if days <= TREND_PREDICTION_HORIZON_DAYS {
+                    let projected = t.current_value + t.slope_per_day * days;
+                    out.push(PendingAnnotation {
+                        annotation: InsightAnnotation {
+                            key: "predict:cache_hit_ratio:alert".into(),
+                            severity: InsightSeverity::Alert,
+                            text: format!(
+                                "キャッシュ率急低下 — {days:.1}日後に {:.1}% に低下予測（現在: {:.1}%）",
+                                projected * 100.0, t.current_value * 100.0
+                            ),
+                            tags: vec!["otel-cc".into(), "predictive".into(), "cache".into()],
+                        },
+                        count_snapshot: 0,
+                    });
+                }
+            }
+        }
+
+        // P3: ツール別エラー率の上昇トレンド
+        let tool_rates = self
+            .trend_port
+            .daily_tool_error_rates(TREND_LOOKBACK_DAYS)?;
+        for (tool_name, points) in &tool_rates {
+            if let Some(t) = trend::linear_regression(points) {
+                // Warn: 7日以内に 5% 超え予測
+                if let Some(days) =
+                    trend::days_until_crossing(&t, TOOL_ERROR_RATE_WARN, CrossingDirection::Rising)
+                {
+                    if days <= TREND_PREDICTION_HORIZON_DAYS {
+                        let projected = t.current_value + t.slope_per_day * days;
+                        out.push(PendingAnnotation {
+                            annotation: InsightAnnotation {
+                                key: format!("predict:tool_error_rate:{tool_name}:warn"),
+                                severity: InsightSeverity::Warn,
+                                text: format!(
+                                    "ツール {tool_name} エラー率上昇トレンド — {days:.1}日後に {:.1}% に到達予測（現在: {:.1}%）",
+                                    projected * 100.0, t.current_value * 100.0
+                                ),
+                                tags: vec!["otel-cc".into(), "predictive".into(), "tool-error".into(), tool_name.to_lowercase()],
+                            },
+                            count_snapshot: 0,
+                        });
+                    }
+                }
+                // Alert: 7日以内に 10% 超え予測
+                if let Some(days) =
+                    trend::days_until_crossing(&t, TOOL_ERROR_RATE_ALERT, CrossingDirection::Rising)
+                {
+                    if days <= TREND_PREDICTION_HORIZON_DAYS {
+                        let projected = t.current_value + t.slope_per_day * days;
+                        out.push(PendingAnnotation {
+                            annotation: InsightAnnotation {
+                                key: format!("predict:tool_error_rate:{tool_name}:alert"),
+                                severity: InsightSeverity::Alert,
+                                text: format!(
+                                    "ツール {tool_name} エラー率急上昇 — {days:.1}日後に {:.1}% に到達予測（現在: {:.1}%）",
+                                    projected * 100.0, t.current_value * 100.0
+                                ),
+                                tags: vec!["otel-cc".into(), "predictive".into(), "tool-error".into(), tool_name.to_lowercase()],
+                            },
+                            count_snapshot: 0,
+                        });
+                    }
+                }
+            }
+        }
+
+        Ok(out)
+    }
 }
 
 /// analyze() の内部型（アノテーション + 状態保存用カウント）
@@ -205,8 +367,10 @@ struct PendingAnnotation {
 mod tests {
     use super::*;
     use crate::domain::{
-        model::{InsightAnnotation, InsightState, MetricsSummary, ScanState, Session},
-        port::{AnnotationPort, InsightStatePort, SessionPort},
+        model::{
+            DailyDataPoint, InsightAnnotation, InsightState, MetricsSummary, ScanState, Session,
+        },
+        port::{AnnotationPort, InsightStatePort, SessionPort, TrendDataPort},
     };
     use async_trait::async_trait;
     use std::sync::{Arc, Mutex};
@@ -272,13 +436,56 @@ mod tests {
         }
     }
 
+    // ── Mock: TrendDataPort ─────────────────────────────────────────
+
+    #[derive(Default)]
+    struct MockTrendData {
+        cost: Vec<DailyDataPoint>,
+        cache: Vec<DailyDataPoint>,
+        tools: Vec<(String, Vec<DailyDataPoint>)>,
+    }
+
+    impl TrendDataPort for MockTrendData {
+        fn daily_cost_per_session(&self, _: u32) -> Result<Vec<DailyDataPoint>> {
+            Ok(self.cost.clone())
+        }
+        fn daily_cache_hit_ratio(&self, _: u32) -> Result<Vec<DailyDataPoint>> {
+            Ok(self.cache.clone())
+        }
+        fn daily_tool_error_rates(&self, _: u32) -> Result<Vec<(String, Vec<DailyDataPoint>)>> {
+            Ok(self.tools.clone())
+        }
+    }
+
     fn make_uc(
         summary: MetricsSummary,
         annotation: Arc<MockAnnotation>,
         state: Arc<MockInsightState>,
         cooldown: i64,
     ) -> InsightAnalysisUseCase {
-        InsightAnalysisUseCase::new(Arc::new(MockSession(summary)), annotation, state, cooldown)
+        make_uc_with_trends(
+            summary,
+            annotation,
+            state,
+            cooldown,
+            MockTrendData::default(),
+        )
+    }
+
+    fn make_uc_with_trends(
+        summary: MetricsSummary,
+        annotation: Arc<MockAnnotation>,
+        state: Arc<MockInsightState>,
+        cooldown: i64,
+        trend_data: MockTrendData,
+    ) -> InsightAnalysisUseCase {
+        InsightAnalysisUseCase::new(
+            Arc::new(MockSession(summary)),
+            annotation,
+            state,
+            Arc::new(trend_data),
+            cooldown,
+        )
     }
 
     // ── ツールエラー率 ──────────────────────────────────────────
@@ -545,5 +752,192 @@ mod tests {
         let uc = make_uc(summary, ann.clone(), state, 60);
         uc.run().await.unwrap();
         assert_eq!(ann.sent.lock().unwrap().len(), 1); // 再送される
+    }
+
+    // ── 予測的インサイト ────────────────────────────────────────
+
+    fn dp(date: &str, value: f64) -> DailyDataPoint {
+        DailyDataPoint {
+            date: date.to_string(),
+            value,
+        }
+    }
+
+    #[tokio::test]
+    async fn predict_cost_rising_triggers_warn() {
+        // コストが日あたり $1 上昇中、現在 $8 → 2日後に $10 超え
+        let trend_data = MockTrendData {
+            cost: vec![
+                dp("2026-03-25", 5.0),
+                dp("2026-03-26", 6.0),
+                dp("2026-03-27", 7.0),
+                dp("2026-03-28", 8.0),
+            ],
+            ..Default::default()
+        };
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = make_uc_with_trends(
+            MetricsSummary::default(),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+            trend_data,
+        );
+        uc.run().await.unwrap();
+        let sent = ann.sent.lock().unwrap();
+        assert!(sent
+            .iter()
+            .any(|a| a.key == "predict:cost_per_session:warn"));
+    }
+
+    #[tokio::test]
+    async fn predict_cost_rising_triggers_alert_at_15() {
+        // コストが日あたり $2 上昇中、現在 $12 → 1.5日後に $15 超え
+        let trend_data = MockTrendData {
+            cost: vec![
+                dp("2026-03-25", 6.0),
+                dp("2026-03-26", 8.0),
+                dp("2026-03-27", 10.0),
+                dp("2026-03-28", 12.0),
+            ],
+            ..Default::default()
+        };
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = make_uc_with_trends(
+            MetricsSummary::default(),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+            trend_data,
+        );
+        uc.run().await.unwrap();
+        let sent = ann.sent.lock().unwrap();
+        assert!(sent
+            .iter()
+            .any(|a| a.key == "predict:cost_per_session:alert"));
+    }
+
+    #[tokio::test]
+    async fn predict_no_annotation_for_flat_cost() {
+        let trend_data = MockTrendData {
+            cost: vec![
+                dp("2026-03-25", 5.0),
+                dp("2026-03-26", 5.0),
+                dp("2026-03-27", 5.0),
+                dp("2026-03-28", 5.0),
+            ],
+            ..Default::default()
+        };
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = make_uc_with_trends(
+            MetricsSummary::default(),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+            trend_data,
+        );
+        uc.run().await.unwrap();
+        let sent = ann.sent.lock().unwrap();
+        assert!(!sent.iter().any(|a| a.key.starts_with("predict:")));
+    }
+
+    #[tokio::test]
+    async fn predict_no_annotation_for_insufficient_data() {
+        // 2ポイントしかない → 回帰スキップ
+        let trend_data = MockTrendData {
+            cost: vec![dp("2026-03-27", 8.0), dp("2026-03-28", 9.0)],
+            ..Default::default()
+        };
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = make_uc_with_trends(
+            MetricsSummary::default(),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+            trend_data,
+        );
+        uc.run().await.unwrap();
+        let sent = ann.sent.lock().unwrap();
+        assert!(!sent.iter().any(|a| a.key.starts_with("predict:")));
+    }
+
+    #[tokio::test]
+    async fn predict_cache_falling_triggers_warn() {
+        // キャッシュ率が日あたり -1% 低下中、現在 92% → 2日後に 90% 割れ
+        let trend_data = MockTrendData {
+            cache: vec![
+                dp("2026-03-25", 0.95),
+                dp("2026-03-26", 0.94),
+                dp("2026-03-27", 0.93),
+                dp("2026-03-28", 0.92),
+            ],
+            ..Default::default()
+        };
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = make_uc_with_trends(
+            MetricsSummary::default(),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+            trend_data,
+        );
+        uc.run().await.unwrap();
+        let sent = ann.sent.lock().unwrap();
+        assert!(sent.iter().any(|a| a.key == "predict:cache_hit_ratio:warn"));
+    }
+
+    #[tokio::test]
+    async fn predict_tool_error_rising_triggers_warn() {
+        // Grep のエラー率が日あたり +0.5% 上昇中、現在 3% → 4日後に 5% 超え
+        let trend_data = MockTrendData {
+            tools: vec![(
+                "Grep".to_string(),
+                vec![
+                    dp("2026-03-25", 0.015),
+                    dp("2026-03-26", 0.02),
+                    dp("2026-03-27", 0.025),
+                    dp("2026-03-28", 0.03),
+                ],
+            )],
+            ..Default::default()
+        };
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = make_uc_with_trends(
+            MetricsSummary::default(),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+            trend_data,
+        );
+        uc.run().await.unwrap();
+        let sent = ann.sent.lock().unwrap();
+        assert!(sent
+            .iter()
+            .any(|a| a.key == "predict:tool_error_rate:Grep:warn"));
+    }
+
+    #[tokio::test]
+    async fn predict_cost_beyond_horizon_no_annotation() {
+        // コストが日あたり $0.2 上昇中、現在 $5 → $10 まで25日 → 7日horizon外
+        let trend_data = MockTrendData {
+            cost: vec![
+                dp("2026-03-25", 4.4),
+                dp("2026-03-26", 4.6),
+                dp("2026-03-27", 4.8),
+                dp("2026-03-28", 5.0),
+            ],
+            ..Default::default()
+        };
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = make_uc_with_trends(
+            MetricsSummary::default(),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            60,
+            trend_data,
+        );
+        uc.run().await.unwrap();
+        let sent = ann.sent.lock().unwrap();
+        assert!(!sent.iter().any(|a| a.key.starts_with("predict:")));
     }
 }

@@ -4,10 +4,10 @@ use std::sync::Mutex;
 
 use crate::domain::{
     model::{
-        DailyStats, InsightState, MetricsSummary, OverviewStats, ProjectStats, ProjectSummary,
-        ScanState, Session, StatsResponse, TokenEvent, ToolCall,
+        DailyDataPoint, DailyStats, InsightState, MetricsSummary, OverviewStats, ProjectStats,
+        ProjectSummary, ScanState, Session, StatsResponse, TokenEvent, ToolCall,
     },
-    port::{EventPort, InsightStatePort, OtlpPort, SessionPort, StatsPort},
+    port::{EventPort, InsightStatePort, OtlpPort, SessionPort, StatsPort, TrendDataPort},
 };
 
 pub struct SqliteRepository {
@@ -704,6 +704,98 @@ impl InsightStatePort for SqliteRepository {
     }
 }
 
+impl TrendDataPort for SqliteRepository {
+    fn daily_cost_per_session(&self, lookback_days: u32) -> Result<Vec<DailyDataPoint>> {
+        let conn = self.conn.lock().unwrap();
+        let cutoff =
+            (chrono::Utc::now() - chrono::Duration::days(lookback_days as i64)).to_rfc3339();
+        let mut stmt = conn.prepare(
+            "SELECT DATE(te.timestamp) AS day,
+                    COALESCE(SUM(te.cost_usd), 0.0) / MAX(1, COUNT(DISTINCT te.session_id))
+             FROM token_events te
+             WHERE te.timestamp >= ?1
+             GROUP BY DATE(te.timestamp)
+             ORDER BY day",
+        )?;
+        let rows = stmt
+            .query_map(params![cutoff], |r| {
+                Ok(DailyDataPoint {
+                    date: r.get(0)?,
+                    value: r.get(1)?,
+                })
+            })?
+            .flatten()
+            .collect();
+        Ok(rows)
+    }
+
+    fn daily_cache_hit_ratio(&self, lookback_days: u32) -> Result<Vec<DailyDataPoint>> {
+        let conn = self.conn.lock().unwrap();
+        let cutoff =
+            (chrono::Utc::now() - chrono::Duration::days(lookback_days as i64)).to_rfc3339();
+        let mut stmt = conn.prepare(
+            "SELECT DATE(te.timestamp) AS day,
+                    CAST(COALESCE(SUM(te.cache_read_tokens), 0) AS REAL) /
+                      MAX(1, COALESCE(SUM(te.input_tokens), 0) + COALESCE(SUM(te.cache_read_tokens), 0))
+             FROM token_events te
+             WHERE te.timestamp >= ?1
+             GROUP BY DATE(te.timestamp)
+             ORDER BY day",
+        )?;
+        let rows = stmt
+            .query_map(params![cutoff], |r| {
+                Ok(DailyDataPoint {
+                    date: r.get(0)?,
+                    value: r.get(1)?,
+                })
+            })?
+            .flatten()
+            .collect();
+        Ok(rows)
+    }
+
+    fn daily_tool_error_rates(
+        &self,
+        lookback_days: u32,
+    ) -> Result<Vec<(String, Vec<DailyDataPoint>)>> {
+        let conn = self.conn.lock().unwrap();
+        let cutoff =
+            (chrono::Utc::now() - chrono::Duration::days(lookback_days as i64)).to_rfc3339();
+        let mut stmt = conn.prepare(
+            "SELECT DATE(tc.timestamp) AS day,
+                    tc.tool_name,
+                    COUNT(*) AS total_calls,
+                    SUM(tc.is_error) AS error_calls
+             FROM tool_calls tc
+             WHERE tc.timestamp >= ?1
+             GROUP BY DATE(tc.timestamp), tc.tool_name
+             ORDER BY tc.tool_name, day",
+        )?;
+        let rows: Vec<(String, String, i64, i64)> = stmt
+            .query_map(params![cutoff], |r| {
+                Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))
+            })?
+            .flatten()
+            .collect();
+
+        // ツール名でグルーピング
+        let mut map: std::collections::BTreeMap<String, Vec<DailyDataPoint>> =
+            std::collections::BTreeMap::new();
+        for (day, tool_name, total, errors) in rows {
+            let rate = if total > 0 {
+                errors as f64 / total as f64
+            } else {
+                0.0
+            };
+            map.entry(tool_name).or_default().push(DailyDataPoint {
+                date: day,
+                value: rate,
+            });
+        }
+        Ok(map.into_iter().collect())
+    }
+}
+
 /// テスト用: SAVEPOINT を使ってテスト終了時に変更をロールバックする
 ///
 /// `:memory:` DB はテストごとに独立しているが、トランザクション境界を明示することで
@@ -1233,6 +1325,107 @@ mod tests {
         r.with_rollback(|r| {
             let s = r.load_summary().unwrap();
             assert!(s.entrypoint_counts.is_empty());
+        });
+    }
+
+    // ── TrendDataPort テスト ─────────────────────────────────────
+
+    #[test]
+    fn daily_cost_per_session_groups_by_date() {
+        let r = repo();
+        r.with_rollback(|r| {
+            // 2セッション、3日分のイベント
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            r.upsert_session(&session("s2", "proj", true)).unwrap();
+            r.insert_token_event(&token_ev_at("s1", 100, 50, 0, 5.0, "2026-03-26T10:00:00Z"))
+                .unwrap();
+            r.insert_token_event(&token_ev_at("s1", 100, 50, 0, 3.0, "2026-03-27T10:00:00Z"))
+                .unwrap();
+            r.insert_token_event(&token_ev_at("s2", 100, 50, 0, 7.0, "2026-03-27T14:00:00Z"))
+                .unwrap();
+            r.insert_token_event(&token_ev_at("s1", 100, 50, 0, 4.0, "2026-03-28T10:00:00Z"))
+                .unwrap();
+
+            let points = r.daily_cost_per_session(30).unwrap();
+            assert_eq!(points.len(), 3);
+            // day1: $5 / 1 session = $5
+            assert!((points[0].value - 5.0).abs() < 1e-9);
+            // day2: ($3+$7) / 2 sessions = $5
+            assert!((points[1].value - 5.0).abs() < 1e-9);
+            // day3: $4 / 1 session = $4
+            assert!((points[2].value - 4.0).abs() < 1e-9);
+        });
+    }
+
+    #[test]
+    fn daily_cost_per_session_empty_when_no_events() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let points = r.daily_cost_per_session(30).unwrap();
+            assert!(points.is_empty());
+        });
+    }
+
+    #[test]
+    fn daily_cache_hit_ratio_computes_correctly() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            // day1: input=100, cache_read=900 → ratio = 900/(100+900) = 0.9
+            r.insert_token_event(&token_ev_at(
+                "s1",
+                100,
+                50,
+                900,
+                1.0,
+                "2026-03-27T10:00:00Z",
+            ))
+            .unwrap();
+            // day2: input=500, cache_read=500 → ratio = 500/(500+500) = 0.5
+            r.insert_token_event(&token_ev_at(
+                "s1",
+                500,
+                50,
+                500,
+                1.0,
+                "2026-03-28T10:00:00Z",
+            ))
+            .unwrap();
+
+            let points = r.daily_cache_hit_ratio(30).unwrap();
+            assert_eq!(points.len(), 2);
+            assert!((points[0].value - 0.9).abs() < 1e-9);
+            assert!((points[1].value - 0.5).abs() < 1e-9);
+        });
+    }
+
+    #[test]
+    fn daily_tool_error_rates_groups_by_tool() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            // Grep: day1 = 2/10 = 0.2, day2 = 1/5 = 0.2
+            for _ in 0..8 {
+                r.insert_tool_call(&tool_call_at("s1", "Grep", false, "2026-03-27T10:00:00Z"))
+                    .unwrap();
+            }
+            for _ in 0..2 {
+                r.insert_tool_call(&tool_call_at("s1", "Grep", true, "2026-03-27T10:00:00Z"))
+                    .unwrap();
+            }
+            for _ in 0..4 {
+                r.insert_tool_call(&tool_call_at("s1", "Grep", false, "2026-03-28T10:00:00Z"))
+                    .unwrap();
+            }
+            r.insert_tool_call(&tool_call_at("s1", "Grep", true, "2026-03-28T10:00:00Z"))
+                .unwrap();
+
+            let result = r.daily_tool_error_rates(30).unwrap();
+            assert_eq!(result.len(), 1);
+            assert_eq!(result[0].0, "Grep");
+            assert_eq!(result[0].1.len(), 2);
+            assert!((result[0].1[0].value - 0.2).abs() < 1e-9);
+            assert!((result[0].1[1].value - 0.2).abs() < 1e-9);
         });
     }
 }
