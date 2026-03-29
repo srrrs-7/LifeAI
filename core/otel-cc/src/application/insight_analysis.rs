@@ -2,24 +2,12 @@ use anyhow::Result;
 use std::sync::Arc;
 use tracing::warn;
 
+use crate::config::InsightThresholds;
 use crate::domain::{
     model::{InsightAnnotation, InsightSeverity, MetricsSummary},
     port::{AnnotationPort, InsightStatePort, SessionPort, TrendDataPort},
     trend::{self, CrossingDirection},
 };
-
-/// 閾値定数
-const TOOL_ERROR_RATE_WARN: f64 = 0.05;
-const TOOL_ERROR_RATE_ALERT: f64 = 0.10;
-const TOOL_MIN_CALLS: i64 = 5;
-const CACHE_HIT_RATIO_WARN: f64 = 0.90;
-const CACHE_HIT_RATIO_ALERT: f64 = 0.50;
-const COST_PER_SESSION_WARN: f64 = 10.0;
-const COST_PER_SESSION_ALERT: f64 = 15.0;
-
-/// 予測的インサイト定数
-const TREND_LOOKBACK_DAYS: u32 = 14;
-const TREND_PREDICTION_HORIZON_DAYS: f64 = 7.0;
 
 pub struct InsightAnalysisUseCase {
     session_port: Arc<dyn SessionPort>,
@@ -28,6 +16,8 @@ pub struct InsightAnalysisUseCase {
     trend_port: Arc<dyn TrendDataPort>,
     /// 同一キーを再送しない冷却期間（分）
     cooldown_minutes: i64,
+    /// 外部設定可能な閾値
+    thresholds: InsightThresholds,
 }
 
 impl InsightAnalysisUseCase {
@@ -37,6 +27,7 @@ impl InsightAnalysisUseCase {
         state_port: Arc<dyn InsightStatePort>,
         trend_port: Arc<dyn TrendDataPort>,
         cooldown_minutes: i64,
+        thresholds: InsightThresholds,
     ) -> Self {
         Self {
             session_port,
@@ -44,6 +35,7 @@ impl InsightAnalysisUseCase {
             state_port,
             trend_port,
             cooldown_minutes,
+            thresholds,
         }
     }
 
@@ -89,13 +81,13 @@ impl InsightAnalysisUseCase {
 
         // Rule 1: ツール別エラー率
         for (tool, calls, errors) in &s.tool_counts {
-            if *calls < TOOL_MIN_CALLS {
+            if *calls < self.thresholds.tool_min_calls {
                 continue;
             }
             let rate = *errors as f64 / *calls as f64;
-            let severity = if rate >= TOOL_ERROR_RATE_ALERT {
+            let severity = if rate >= self.thresholds.tool_error_rate_alert {
                 Some(InsightSeverity::Alert)
-            } else if rate >= TOOL_ERROR_RATE_WARN {
+            } else if rate >= self.thresholds.tool_error_rate_warn {
                 Some(InsightSeverity::Warn)
             } else {
                 None
@@ -120,9 +112,9 @@ impl InsightAnalysisUseCase {
         let total_input = s.total_input_tokens + s.total_cache_read_tokens;
         if total_input > 0 {
             let ratio = s.total_cache_read_tokens as f64 / total_input as f64;
-            let severity = if ratio < CACHE_HIT_RATIO_ALERT {
+            let severity = if ratio < self.thresholds.cache_hit_ratio_alert {
                 Some(InsightSeverity::Alert)
-            } else if ratio < CACHE_HIT_RATIO_WARN {
+            } else if ratio < self.thresholds.cache_hit_ratio_warn {
                 Some(InsightSeverity::Warn)
             } else {
                 None
@@ -146,9 +138,9 @@ impl InsightAnalysisUseCase {
         // Rule 3: セッションあたりコスト
         if s.total_sessions > 0 {
             let cost_per = s.total_cost_usd / s.total_sessions as f64;
-            let severity = if cost_per >= COST_PER_SESSION_ALERT {
+            let severity = if cost_per >= self.thresholds.cost_per_session_alert {
                 Some(InsightSeverity::Alert)
-            } else if cost_per >= COST_PER_SESSION_WARN {
+            } else if cost_per >= self.thresholds.cost_per_session_warn {
                 Some(InsightSeverity::Warn)
             } else {
                 None
@@ -214,13 +206,15 @@ impl InsightAnalysisUseCase {
         // P1: セッション単価の上昇トレンド
         let cost_points = self
             .trend_port
-            .daily_cost_per_session(TREND_LOOKBACK_DAYS, None)?;
+            .daily_cost_per_session(self.thresholds.trend_lookback_days, None)?;
         if let Some(t) = trend::linear_regression(&cost_points) {
             // Warn: 7日以内に $10 超え予測
-            if let Some(days) =
-                trend::days_until_crossing(&t, COST_PER_SESSION_WARN, CrossingDirection::Rising)
-            {
-                if days <= TREND_PREDICTION_HORIZON_DAYS {
+            if let Some(days) = trend::days_until_crossing(
+                &t,
+                self.thresholds.cost_per_session_warn,
+                CrossingDirection::Rising,
+            ) {
+                if days <= self.thresholds.trend_prediction_horizon_days {
                     let projected = t.current_value + t.slope_per_day * days;
                     out.push(PendingAnnotation {
                         annotation: InsightAnnotation {
@@ -237,10 +231,12 @@ impl InsightAnalysisUseCase {
                 }
             }
             // Alert: 7日以内に $15 超え予測
-            if let Some(days) =
-                trend::days_until_crossing(&t, COST_PER_SESSION_ALERT, CrossingDirection::Rising)
-            {
-                if days <= TREND_PREDICTION_HORIZON_DAYS {
+            if let Some(days) = trend::days_until_crossing(
+                &t,
+                self.thresholds.cost_per_session_alert,
+                CrossingDirection::Rising,
+            ) {
+                if days <= self.thresholds.trend_prediction_horizon_days {
                     let projected = t.current_value + t.slope_per_day * days;
                     out.push(PendingAnnotation {
                         annotation: InsightAnnotation {
@@ -261,13 +257,15 @@ impl InsightAnalysisUseCase {
         // P2: キャッシュヒット率の低下トレンド
         let cache_points = self
             .trend_port
-            .daily_cache_hit_ratio(TREND_LOOKBACK_DAYS, None)?;
+            .daily_cache_hit_ratio(self.thresholds.trend_lookback_days, None)?;
         if let Some(t) = trend::linear_regression(&cache_points) {
             // Warn: 7日以内に 90% 割れ予測
-            if let Some(days) =
-                trend::days_until_crossing(&t, CACHE_HIT_RATIO_WARN, CrossingDirection::Falling)
-            {
-                if days <= TREND_PREDICTION_HORIZON_DAYS {
+            if let Some(days) = trend::days_until_crossing(
+                &t,
+                self.thresholds.cache_hit_ratio_warn,
+                CrossingDirection::Falling,
+            ) {
+                if days <= self.thresholds.trend_prediction_horizon_days {
                     let projected = t.current_value + t.slope_per_day * days;
                     out.push(PendingAnnotation {
                         annotation: InsightAnnotation {
@@ -284,10 +282,12 @@ impl InsightAnalysisUseCase {
                 }
             }
             // Alert: 7日以内に 50% 割れ予測
-            if let Some(days) =
-                trend::days_until_crossing(&t, CACHE_HIT_RATIO_ALERT, CrossingDirection::Falling)
-            {
-                if days <= TREND_PREDICTION_HORIZON_DAYS {
+            if let Some(days) = trend::days_until_crossing(
+                &t,
+                self.thresholds.cache_hit_ratio_alert,
+                CrossingDirection::Falling,
+            ) {
+                if days <= self.thresholds.trend_prediction_horizon_days {
                     let projected = t.current_value + t.slope_per_day * days;
                     out.push(PendingAnnotation {
                         annotation: InsightAnnotation {
@@ -308,14 +308,16 @@ impl InsightAnalysisUseCase {
         // P3: ツール別エラー率の上昇トレンド
         let tool_rates = self
             .trend_port
-            .daily_tool_error_rates(TREND_LOOKBACK_DAYS, None)?;
+            .daily_tool_error_rates(self.thresholds.trend_lookback_days, None)?;
         for (tool_name, points) in &tool_rates {
             if let Some(t) = trend::linear_regression(points) {
                 // Warn: 7日以内に 5% 超え予測
-                if let Some(days) =
-                    trend::days_until_crossing(&t, TOOL_ERROR_RATE_WARN, CrossingDirection::Rising)
-                {
-                    if days <= TREND_PREDICTION_HORIZON_DAYS {
+                if let Some(days) = trend::days_until_crossing(
+                    &t,
+                    self.thresholds.tool_error_rate_warn,
+                    CrossingDirection::Rising,
+                ) {
+                    if days <= self.thresholds.trend_prediction_horizon_days {
                         let projected = t.current_value + t.slope_per_day * days;
                         out.push(PendingAnnotation {
                             annotation: InsightAnnotation {
@@ -332,10 +334,12 @@ impl InsightAnalysisUseCase {
                     }
                 }
                 // Alert: 7日以内に 10% 超え予測
-                if let Some(days) =
-                    trend::days_until_crossing(&t, TOOL_ERROR_RATE_ALERT, CrossingDirection::Rising)
-                {
-                    if days <= TREND_PREDICTION_HORIZON_DAYS {
+                if let Some(days) = trend::days_until_crossing(
+                    &t,
+                    self.thresholds.tool_error_rate_alert,
+                    CrossingDirection::Rising,
+                ) {
+                    if days <= self.thresholds.trend_prediction_horizon_days {
                         let projected = t.current_value + t.slope_per_day * days;
                         out.push(PendingAnnotation {
                             annotation: InsightAnnotation {
@@ -471,6 +475,20 @@ mod tests {
         }
     }
 
+    fn default_thresholds() -> InsightThresholds {
+        InsightThresholds {
+            tool_error_rate_warn: 0.05,
+            tool_error_rate_alert: 0.10,
+            tool_min_calls: 5,
+            cache_hit_ratio_warn: 0.90,
+            cache_hit_ratio_alert: 0.50,
+            cost_per_session_warn: 10.0,
+            cost_per_session_alert: 15.0,
+            trend_lookback_days: 14,
+            trend_prediction_horizon_days: 7.0,
+        }
+    }
+
     fn make_uc(
         summary: MetricsSummary,
         annotation: Arc<MockAnnotation>,
@@ -499,6 +517,7 @@ mod tests {
             state,
             Arc::new(trend_data),
             cooldown,
+            default_thresholds(),
         )
     }
 

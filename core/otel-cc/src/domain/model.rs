@@ -218,6 +218,102 @@ pub struct DailyStats {
     pub cost_usd: f64,
 }
 
+// ── 行動パターン分析型 (#13) ─────────────────────────────────────
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct AnalyticsResponse {
+    pub generated_at: String,
+    pub tool_sequences: Vec<ToolSequence>,
+    pub model_switches: Vec<ModelSwitch>,
+    pub hourly_efficiency: Vec<HourlyEfficiency>,
+}
+
+/// 連続して使用されるツールペアの統計
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ToolSequence {
+    pub tool_a: String,
+    pub tool_b: String,
+    pub count: i64,
+    pub avg_interval_secs: f64,
+}
+
+/// セッション内でのモデル切り替えパターン
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ModelSwitch {
+    pub from_model: String,
+    pub to_model: String,
+    pub count: i64,
+}
+
+/// 時間帯別の効率指標
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct HourlyEfficiency {
+    pub hour: u8,
+    pub sessions: i64,
+    pub avg_cost_usd: f64,
+    pub avg_tokens_per_session: f64,
+}
+
+// ── コスト最適化提案型 (#14) ─────────────────────────────────────
+
+/// セッションのコストプロファイル（最適化分析用）
+#[derive(Debug, Clone)]
+pub struct SessionCostProfile {
+    pub session_id: String,
+    pub model: String,
+    pub cost_usd: f64,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cache_creation_tokens: i64,
+    pub cache_read_tokens: i64,
+    pub tool_calls: i64,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct CostOptimizationSuggestion {
+    pub session_id: String,
+    pub model_used: String,
+    pub suggested_model: String,
+    pub actual_cost_usd: f64,
+    pub estimated_savings_usd: f64,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct OptimizationReport {
+    pub generated_at: String,
+    pub suggestions: Vec<CostOptimizationSuggestion>,
+    pub total_potential_savings_usd: f64,
+}
+
+// ── チームベンチマーク型 (#15) ───────────────────────────────────
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct TeamBenchmark {
+    pub generated_at: String,
+    pub user_benchmarks: Vec<UserBenchmark>,
+    pub best_practices: Vec<BestPractice>,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct UserBenchmark {
+    pub user: String,
+    pub sessions: i64,
+    pub cost_per_session: f64,
+    pub cache_hit_ratio: f64,
+    pub tool_error_rate: f64,
+    pub total_cost_usd: f64,
+    pub rank: u32,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct BestPractice {
+    pub user: String,
+    pub metric: String,
+    pub value: f64,
+    pub description: String,
+}
+
 // ── トレンド分析用型 ─────────────────────────────────────────────
 
 /// 日次集計データポイント（線形回帰の入力）

@@ -99,7 +99,7 @@ $(cat "${conversations_file}")
 ## 指示
 1. 上記の対話ログを分析し、semantic-extraction-guide.md のカテゴリに従って知識を抽出してください
 2. CLAUDE.md に既に記載されている内容と重複するものは除外してください
-3. 以下のMarkdown形式で出力してください:
+3. 以下の2つのセクションを出力してください:
 
 # Context Hub — 知識抽出レポート (${today})
 
@@ -108,9 +108,20 @@ $(cat "${conversations_file}")
 | # | カテゴリ | 要約 | 詳細 | 信頼度 | 反映先セクション |
 |---|---------|------|------|--------|----------------|
 
-## CLAUDE.md への追記提案
+## CLAUDE.md への変更パッチ
 
-各セクションごとに追記すべき内容を具体的に記述してください。
+CLAUDE.md に対する変更を **unified diff 形式** で出力してください。
+フォーマット:
+\`\`\`diff
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ ... @@
+ （コンテキスト行）
++（追加行）
+\`\`\`
+
+各変更ブロックの直前に \`# reason: <変更理由>\` をコメントとして記載してください。
+変更がない場合は「変更提案なし」と記載してください。
 "
 
 # Step 3: Run Claude CLI for knowledge extraction
@@ -125,6 +136,20 @@ else
     echo "${prompt}" > "${output_dir}/extraction-prompt.md"
     echo "[context-hub] Prompt saved to: ${output_dir}/extraction-prompt.md"
     echo "[context-hub] Run manually: cat ${output_dir}/extraction-prompt.md | claude -p > ${proposed_changes}"
+fi
+
+# Step 4: Extract unified diff patch (if present)
+patch_file="${output_dir}/proposed.patch"
+if [[ -f "${proposed_changes}" ]]; then
+    # diff ブロックを抽出（```diff ... ``` の中身）
+    if sed -n '/^```diff$/,/^```$/p' "${proposed_changes}" | sed '1d;$d' > "${patch_file}" 2>/dev/null && [[ -s "${patch_file}" ]]; then
+        echo "[context-hub] Patch extracted to: ${patch_file}"
+        echo "[context-hub] To preview:  git apply --stat ${patch_file}"
+        echo "[context-hub] To apply:    ${SCRIPT_DIR}/context-hub-apply.sh"
+    else
+        rm -f "${patch_file}"
+        echo "[context-hub] No unified diff found in output (table-only report)."
+    fi
 fi
 
 # Update last run timestamp

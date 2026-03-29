@@ -18,6 +18,65 @@ pub struct Config {
     pub insight_cooldown_minutes: i64,
     /// ユーザー識別名（チーム内で一意であること）
     pub user: String,
+    /// インサイト閾値設定
+    pub insight_thresholds: InsightThresholds,
+}
+
+/// インサイト分析の閾値（すべて環境変数で上書き可能）
+#[derive(Debug, Clone)]
+pub struct InsightThresholds {
+    pub tool_error_rate_warn: f64,
+    pub tool_error_rate_alert: f64,
+    pub tool_min_calls: i64,
+    pub cache_hit_ratio_warn: f64,
+    pub cache_hit_ratio_alert: f64,
+    pub cost_per_session_warn: f64,
+    pub cost_per_session_alert: f64,
+    pub trend_lookback_days: u32,
+    pub trend_prediction_horizon_days: f64,
+}
+
+impl InsightThresholds {
+    pub fn from_env() -> Self {
+        Self {
+            tool_error_rate_warn: std::env::var("OTEL_CC_INSIGHT_TOOL_ERROR_WARN")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0.05),
+            tool_error_rate_alert: std::env::var("OTEL_CC_INSIGHT_TOOL_ERROR_ALERT")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0.10),
+            tool_min_calls: std::env::var("OTEL_CC_INSIGHT_TOOL_MIN_CALLS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(5),
+            cache_hit_ratio_warn: std::env::var("OTEL_CC_INSIGHT_CACHE_WARN")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0.90),
+            cache_hit_ratio_alert: std::env::var("OTEL_CC_INSIGHT_CACHE_ALERT")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0.50),
+            cost_per_session_warn: std::env::var("OTEL_CC_INSIGHT_COST_WARN")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(10.0),
+            cost_per_session_alert: std::env::var("OTEL_CC_INSIGHT_COST_ALERT")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(15.0),
+            trend_lookback_days: std::env::var("OTEL_CC_INSIGHT_TREND_LOOKBACK")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(14),
+            trend_prediction_horizon_days: std::env::var("OTEL_CC_INSIGHT_TREND_HORIZON")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(7.0),
+        }
+    }
 }
 
 impl Config {
@@ -51,6 +110,7 @@ impl Config {
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(60),
             user: std::env::var("OTEL_CC_USER").unwrap_or_else(|_| whoami::username()),
+            insight_thresholds: InsightThresholds::from_env(),
         }
     }
 }

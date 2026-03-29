@@ -4,11 +4,15 @@ use std::sync::Mutex;
 
 use crate::domain::{
     model::{
-        DailyDataPoint, DailyStats, InsightState, MetricsSummary, ModelSummary, OverviewStats,
-        ProjectStats, ProjectSummary, ScanState, Session, StatsResponse, TokenEvent, ToolCall,
+        DailyDataPoint, DailyStats, HourlyEfficiency, InsightState, MetricsSummary, ModelSummary,
+        ModelSwitch, OverviewStats, ProjectStats, ProjectSummary, ScanState, Session,
+        SessionCostProfile, StatsResponse, TokenEvent, ToolCall, ToolSequence, UserBenchmark,
         UserStats, UserSummary,
     },
-    port::{EventPort, InsightStatePort, OtlpPort, SessionPort, StatsPort, TrendDataPort},
+    port::{
+        AnalyticsPort, BenchmarkPort, EventPort, InsightStatePort, OptimizationPort, OtlpPort,
+        SessionPort, StatsPort, TrendDataPort,
+    },
 };
 
 pub struct SqliteRepository {
@@ -118,6 +122,12 @@ impl SqliteRepository {
             CREATE INDEX IF NOT EXISTS idx_token_events_time    ON token_events(timestamp);
             CREATE INDEX IF NOT EXISTS idx_tool_calls_session   ON tool_calls(session_id);
             CREATE INDEX IF NOT EXISTS idx_tool_calls_name      ON tool_calls(tool_name);
+
+            -- 複合インデックス（パフォーマンス改善 #3）
+            CREATE INDEX IF NOT EXISTS idx_token_events_session_time
+                ON token_events(session_id, timestamp);
+            CREATE INDEX IF NOT EXISTS idx_tool_calls_session_time
+                ON tool_calls(session_id, timestamp);
         ",
         )?;
 
@@ -133,6 +143,12 @@ impl SqliteRepository {
                  CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user);",
             )?;
         }
+
+        // user カラム追加後に複合インデックスを作成
+        conn.execute_batch(
+            "CREATE INDEX IF NOT EXISTS idx_sessions_user_project
+                ON sessions(user, project);",
+        )?;
 
         Ok(())
     }
@@ -1006,6 +1022,227 @@ impl TrendDataPort for SqliteRepository {
     }
 }
 
+// ── AnalyticsPort (#13) ─────────────────────────────────────────
+
+impl AnalyticsPort for SqliteRepository {
+    fn tool_usage_sequences(&self, limit: usize) -> Result<Vec<ToolSequence>> {
+        let conn = self.conn.lock().unwrap();
+        // LAG ウィンドウ関数で連続ツールペアを検出
+        let sql = "
+            WITH ordered AS (
+                SELECT tool_name,
+                       LAG(tool_name) OVER (PARTITION BY session_id ORDER BY id) AS prev_tool,
+                       timestamp,
+                       LAG(timestamp) OVER (PARTITION BY session_id ORDER BY id) AS prev_ts
+                FROM tool_calls
+            )
+            SELECT prev_tool, tool_name,
+                   COUNT(*) AS cnt,
+                   AVG(
+                       CASE WHEN prev_ts IS NOT NULL
+                            THEN (julianday(timestamp) - julianday(prev_ts)) * 86400
+                            ELSE 0 END
+                   ) AS avg_interval
+            FROM ordered
+            WHERE prev_tool IS NOT NULL
+            GROUP BY prev_tool, tool_name
+            ORDER BY cnt DESC
+            LIMIT ?1
+        ";
+        let mut stmt = conn.prepare(sql)?;
+        let rows = stmt
+            .query_map(params![limit as i64], |r| {
+                Ok(ToolSequence {
+                    tool_a: r.get(0)?,
+                    tool_b: r.get(1)?,
+                    count: r.get(2)?,
+                    avg_interval_secs: r.get(3)?,
+                })
+            })?
+            .flatten()
+            .collect();
+        Ok(rows)
+    }
+
+    fn model_switching_patterns(&self) -> Result<Vec<ModelSwitch>> {
+        let conn = self.conn.lock().unwrap();
+        let sql = "
+            WITH ordered AS (
+                SELECT model,
+                       LAG(model) OVER (PARTITION BY session_id ORDER BY id) AS prev_model
+                FROM token_events
+                WHERE model IS NOT NULL
+            )
+            SELECT prev_model, model, COUNT(*) AS cnt
+            FROM ordered
+            WHERE prev_model IS NOT NULL AND prev_model != model
+            GROUP BY prev_model, model
+            ORDER BY cnt DESC
+        ";
+        let mut stmt = conn.prepare(sql)?;
+        let rows = stmt
+            .query_map([], |r| {
+                Ok(ModelSwitch {
+                    from_model: r.get(0)?,
+                    to_model: r.get(1)?,
+                    count: r.get(2)?,
+                })
+            })?
+            .flatten()
+            .collect();
+        Ok(rows)
+    }
+
+    fn hourly_efficiency(&self) -> Result<Vec<HourlyEfficiency>> {
+        let conn = self.conn.lock().unwrap();
+        let sql = "
+            SELECT CAST(STRFTIME('%H', te.timestamp) AS INTEGER) AS hour,
+                   COUNT(DISTINCT te.session_id) AS sessions,
+                   COALESCE(SUM(te.cost_usd), 0.0) /
+                       MAX(1, COUNT(DISTINCT te.session_id)) AS avg_cost,
+                   CAST(COALESCE(SUM(te.input_tokens + te.output_tokens), 0) AS REAL) /
+                       MAX(1, COUNT(DISTINCT te.session_id)) AS avg_tokens
+            FROM token_events te
+            GROUP BY CAST(STRFTIME('%H', te.timestamp) AS INTEGER)
+            ORDER BY hour
+        ";
+        let mut stmt = conn.prepare(sql)?;
+        let rows = stmt
+            .query_map([], |r| {
+                Ok(HourlyEfficiency {
+                    hour: r.get::<_, i64>(0)? as u8,
+                    sessions: r.get(1)?,
+                    avg_cost_usd: r.get(2)?,
+                    avg_tokens_per_session: r.get(3)?,
+                })
+            })?
+            .flatten()
+            .collect();
+        Ok(rows)
+    }
+}
+
+// ── OptimizationPort (#14) ──────────────────────────────────────
+
+impl OptimizationPort for SqliteRepository {
+    fn find_overprovisioned_sessions(
+        &self,
+        period_days: Option<u32>,
+    ) -> Result<Vec<SessionCostProfile>> {
+        let conn = self.conn.lock().unwrap();
+        let cutoff = period_days
+            .map(|d| (chrono::Utc::now() - chrono::Duration::days(d as i64)).to_rfc3339())
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string());
+
+        let sql = "
+            SELECT s.session_id,
+                   COALESCE(s.model, 'unknown'),
+                   COALESCE(SUM(te.cost_usd), 0.0),
+                   COALESCE(SUM(te.input_tokens), 0),
+                   COALESCE(SUM(te.output_tokens), 0),
+                   COALESCE(SUM(te.cache_creation_tokens), 0),
+                   COALESCE(SUM(te.cache_read_tokens), 0),
+                   (SELECT COUNT(*) FROM tool_calls tc WHERE tc.session_id = s.session_id) AS tool_count
+            FROM sessions s
+            LEFT JOIN token_events te ON s.session_id = te.session_id
+            WHERE s.last_seen_at >= ?1
+              AND LOWER(COALESCE(s.model, '')) LIKE '%opus%'
+            GROUP BY s.session_id
+        ";
+        let mut stmt = conn.prepare(sql)?;
+        let rows = stmt
+            .query_map(params![cutoff], |r| {
+                Ok(SessionCostProfile {
+                    session_id: r.get(0)?,
+                    model: r.get(1)?,
+                    cost_usd: r.get(2)?,
+                    input_tokens: r.get(3)?,
+                    output_tokens: r.get(4)?,
+                    cache_creation_tokens: r.get(5)?,
+                    cache_read_tokens: r.get(6)?,
+                    tool_calls: r.get(7)?,
+                })
+            })?
+            .flatten()
+            .collect();
+        Ok(rows)
+    }
+}
+
+// ── BenchmarkPort (#15) ─────────────────────────────────────────
+
+impl BenchmarkPort for SqliteRepository {
+    fn user_efficiency_metrics(&self, period_days: Option<u32>) -> Result<Vec<UserBenchmark>> {
+        let conn = self.conn.lock().unwrap();
+        let cutoff = period_days
+            .map(|d| (chrono::Utc::now() - chrono::Duration::days(d as i64)).to_rfc3339())
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string());
+
+        let sql = "
+            SELECT COALESCE(s.user, 'local') AS u,
+                   COUNT(DISTINCT s.session_id) AS sessions,
+                   COALESCE(SUM(te.cost_usd), 0.0) AS total_cost,
+                   COALESCE(SUM(te.input_tokens), 0) AS total_input,
+                   COALESCE(SUM(te.cache_read_tokens), 0) AS total_cache_read,
+                   (SELECT COUNT(*) FROM tool_calls tc
+                    JOIN sessions s2 ON tc.session_id = s2.session_id
+                    WHERE COALESCE(s2.user, 'local') = COALESCE(s.user, 'local')
+                      AND tc.timestamp >= ?1) AS total_tools,
+                   (SELECT COUNT(*) FROM tool_calls tc
+                    JOIN sessions s2 ON tc.session_id = s2.session_id
+                    WHERE COALESCE(s2.user, 'local') = COALESCE(s.user, 'local')
+                      AND tc.is_error = 1
+                      AND tc.timestamp >= ?1) AS total_errors
+            FROM sessions s
+            LEFT JOIN token_events te ON s.session_id = te.session_id
+              AND te.timestamp >= ?1
+            WHERE s.last_seen_at >= ?1
+            GROUP BY COALESCE(s.user, 'local')
+            ORDER BY total_cost DESC
+        ";
+        let mut stmt = conn.prepare(sql)?;
+        let rows: Vec<UserBenchmark> = stmt
+            .query_map(params![cutoff], |r| {
+                let sessions: i64 = r.get(1)?;
+                let total_cost: f64 = r.get(2)?;
+                let total_input: i64 = r.get(3)?;
+                let total_cache_read: i64 = r.get(4)?;
+                let total_tools: i64 = r.get(5)?;
+                let total_errors: i64 = r.get(6)?;
+
+                let cost_per_session = if sessions > 0 {
+                    total_cost / sessions as f64
+                } else {
+                    0.0
+                };
+                let total_with_cache = total_input + total_cache_read;
+                let cache_hit_ratio = if total_with_cache > 0 {
+                    total_cache_read as f64 / total_with_cache as f64
+                } else {
+                    0.0
+                };
+                let tool_error_rate = if total_tools > 0 {
+                    total_errors as f64 / total_tools as f64
+                } else {
+                    0.0
+                };
+
+                Ok(UserBenchmark {
+                    user: r.get(0)?,
+                    sessions,
+                    cost_per_session,
+                    cache_hit_ratio,
+                    tool_error_rate,
+                    total_cost_usd: total_cost,
+                    rank: 0, // ランクは application 層で計算
+                })
+            })?
+            .flatten()
+            .collect();
+        Ok(rows)
+    }
+}
+
 /// テスト用: SAVEPOINT を使ってテスト終了時に変更をロールバックする
 ///
 /// `:memory:` DB はテストごとに独立しているが、トランザクション境界を明示することで
@@ -1030,7 +1267,9 @@ impl SqliteRepository {
 mod tests {
     use super::*;
     use crate::domain::model::{EventSource, Session, TokenEvent, ToolCall};
-    use crate::domain::port::{EventPort, OtlpPort, SessionPort, StatsPort};
+    use crate::domain::port::{
+        AnalyticsPort, BenchmarkPort, EventPort, OptimizationPort, OtlpPort, SessionPort, StatsPort,
+    };
     use std::path::Path;
 
     fn repo() -> SqliteRepository {
@@ -1671,6 +1910,162 @@ mod tests {
         r.with_rollback(|r| {
             let summary = r.load_summary().unwrap();
             assert!(summary.model_counts.is_empty());
+        });
+    }
+
+    // ── AnalyticsPort テスト (#13) ──────────────────────────────
+
+    #[test]
+    fn tool_usage_sequences_detects_pairs() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            // 順序: Read → Edit → Read → Edit → Bash
+            r.insert_tool_call(&tool_call_at("s1", "Read", false, "2026-01-01T00:00:01Z"))
+                .unwrap();
+            r.insert_tool_call(&tool_call_at("s1", "Edit", false, "2026-01-01T00:00:02Z"))
+                .unwrap();
+            r.insert_tool_call(&tool_call_at("s1", "Read", false, "2026-01-01T00:00:03Z"))
+                .unwrap();
+            r.insert_tool_call(&tool_call_at("s1", "Edit", false, "2026-01-01T00:00:04Z"))
+                .unwrap();
+            r.insert_tool_call(&tool_call_at("s1", "Bash", false, "2026-01-01T00:00:05Z"))
+                .unwrap();
+
+            let seqs = r.tool_usage_sequences(10).unwrap();
+            assert!(!seqs.is_empty());
+            // Read→Edit が最も多い (2回)
+            let top = &seqs[0];
+            assert_eq!(top.tool_a, "Read");
+            assert_eq!(top.tool_b, "Edit");
+            assert_eq!(top.count, 2);
+        });
+    }
+
+    #[test]
+    fn tool_usage_sequences_empty_when_no_calls() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let seqs = r.tool_usage_sequences(10).unwrap();
+            assert!(seqs.is_empty());
+        });
+    }
+
+    #[test]
+    fn model_switching_patterns_detects_switches() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            let mut ev1 = token_ev_at("s1", 100, 50, 0, 1.0, "2026-01-01T00:00:01Z");
+            ev1.model = Some("claude-sonnet-4-6".to_string());
+            r.insert_token_event(&ev1).unwrap();
+            let mut ev2 = token_ev_at("s1", 100, 50, 0, 5.0, "2026-01-01T00:00:02Z");
+            ev2.model = Some("claude-opus-4-6".to_string());
+            r.insert_token_event(&ev2).unwrap();
+            let mut ev3 = token_ev_at("s1", 100, 50, 0, 1.0, "2026-01-01T00:00:03Z");
+            ev3.model = Some("claude-sonnet-4-6".to_string());
+            r.insert_token_event(&ev3).unwrap();
+
+            let switches = r.model_switching_patterns().unwrap();
+            assert_eq!(switches.len(), 2);
+        });
+    }
+
+    #[test]
+    fn model_switching_patterns_empty_when_no_switches() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            r.insert_token_event(&token_ev("s1", 100, 50, 1.0)).unwrap();
+            r.insert_token_event(&token_ev("s1", 200, 50, 2.0)).unwrap();
+
+            let switches = r.model_switching_patterns().unwrap();
+            assert!(switches.is_empty());
+        });
+    }
+
+    #[test]
+    fn hourly_efficiency_groups_by_hour() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            r.insert_token_event(&token_ev_at("s1", 100, 50, 0, 2.0, "2026-01-01T10:00:00Z"))
+                .unwrap();
+            r.insert_token_event(&token_ev_at("s1", 200, 80, 0, 4.0, "2026-01-01T14:00:00Z"))
+                .unwrap();
+
+            let hours = r.hourly_efficiency().unwrap();
+            assert_eq!(hours.len(), 2);
+            assert_eq!(hours[0].hour, 10);
+            assert_eq!(hours[1].hour, 14);
+        });
+    }
+
+    // ── OptimizationPort テスト (#14) ────────────────────────────
+
+    #[test]
+    fn find_overprovisioned_sessions_filters_opus() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let mut s1 = session("s1", "proj", true);
+            s1.model = Some("claude-opus-4-6".to_string());
+            r.upsert_session(&s1).unwrap();
+            let mut s2 = session("s2", "proj", true);
+            s2.model = Some("claude-sonnet-4-6".to_string());
+            r.upsert_session(&s2).unwrap();
+
+            r.insert_token_event(&token_ev("s1", 100, 50, 5.0)).unwrap();
+            r.insert_token_event(&token_ev("s2", 100, 50, 1.0)).unwrap();
+
+            let profiles = r.find_overprovisioned_sessions(None).unwrap();
+            assert_eq!(profiles.len(), 1, "only opus sessions");
+            assert_eq!(profiles[0].session_id, "s1");
+        });
+    }
+
+    #[test]
+    fn find_overprovisioned_sessions_empty_when_no_opus() {
+        let r = repo();
+        r.with_rollback(|r| {
+            r.upsert_session(&session("s1", "proj", true)).unwrap();
+            r.insert_token_event(&token_ev("s1", 100, 50, 1.0)).unwrap();
+
+            let profiles = r.find_overprovisioned_sessions(None).unwrap();
+            assert!(profiles.is_empty());
+        });
+    }
+
+    // ── BenchmarkPort テスト (#15) ───────────────────────────────
+
+    #[test]
+    fn user_efficiency_metrics_groups_by_user() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let mut s1 = session("s1", "proj", true);
+            s1.user = "alice".to_string();
+            r.upsert_session(&s1).unwrap();
+            let mut s2 = session("s2", "proj", true);
+            s2.user = "bob".to_string();
+            r.upsert_session(&s2).unwrap();
+
+            r.insert_token_event(&token_ev("s1", 100, 50, 5.0)).unwrap();
+            r.insert_token_event(&token_ev("s2", 200, 80, 2.0)).unwrap();
+
+            let benchmarks = r.user_efficiency_metrics(None).unwrap();
+            assert_eq!(benchmarks.len(), 2);
+            // コスト降順: alice ($5) が先
+            assert_eq!(benchmarks[0].user, "alice");
+            assert!((benchmarks[0].cost_per_session - 5.0).abs() < 1e-9);
+            assert_eq!(benchmarks[1].user, "bob");
+        });
+    }
+
+    #[test]
+    fn user_efficiency_metrics_empty_when_no_sessions() {
+        let r = repo();
+        r.with_rollback(|r| {
+            let benchmarks = r.user_efficiency_metrics(None).unwrap();
+            assert!(benchmarks.is_empty());
         });
     }
 }

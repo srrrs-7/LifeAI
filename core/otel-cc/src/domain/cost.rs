@@ -71,6 +71,26 @@ fn rates_for(model: &str) -> &'static Rates {
     }
 }
 
+/// モデルが "高コスト" カテゴリか判定（Opus 系）
+pub fn is_expensive_model(model: &str) -> bool {
+    model.contains("opus")
+}
+
+/// 指定モデルの Sonnet 代替コストを計算
+pub fn calculate_sonnet_alternative(
+    input_tokens: i64,
+    output_tokens: i64,
+    cache_creation_tokens: i64,
+    cache_read_tokens: i64,
+) -> f64 {
+    let r = &SONNET;
+    (input_tokens as f64 * r.input
+        + output_tokens as f64 * r.output
+        + cache_creation_tokens as f64 * r.cache_write
+        + cache_read_tokens as f64 * r.cache_read)
+        / 1_000_000.0
+}
+
 pub fn calculate(
     model: &str,
     input_tokens: i64,

@@ -17,7 +17,10 @@ use config::Config;
 use infrastructure::{
     grafana::GrafanaAnnotationClient, sqlite::SqliteRepository, watcher::watch_log_dir,
 };
-use interface::{metrics_handler, otlp_handler::OtlpState, stats_handler};
+use interface::{
+    analytics_handler, benchmark_handler, metrics_handler, optimization_handler,
+    otlp_handler::OtlpState, stats_handler,
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -58,6 +61,7 @@ async fn main() -> Result<()> {
         repo.clone() as Arc<dyn domain::port::InsightStatePort>,
         repo.clone() as Arc<dyn domain::port::TrendDataPort>,
         config.insight_cooldown_minutes,
+        config.insight_thresholds,
     ));
 
     // ── 起動時スキャン ───────────────────────────────────────────
@@ -67,10 +71,13 @@ async fn main() -> Result<()> {
     }
     info!("Initial scan complete");
 
-    // ── Task 1: Prometheus /metrics + /api/stats サーバー ────────
+    // ── Task 1: Prometheus /metrics + /api/* サーバー ─────────────
     let metrics_addr = format!("0.0.0.0:{}", config.metrics_port);
     let metrics_cache = cache.clone();
     let stats_port = repo.clone() as Arc<dyn domain::port::StatsPort>;
+    let analytics_port = repo.clone() as Arc<dyn domain::port::AnalyticsPort>;
+    let optimization_port = repo.clone() as Arc<dyn domain::port::OptimizationPort>;
+    let benchmark_port = repo.clone() as Arc<dyn domain::port::BenchmarkPort>;
     tokio::spawn(async move {
         let app = Router::new()
             .route("/metrics", get(metrics_handler::handle))
@@ -78,6 +85,18 @@ async fn main() -> Result<()> {
             .route(
                 "/api/stats",
                 get(stats_handler::handle).with_state(stats_port),
+            )
+            .route(
+                "/api/analytics",
+                get(analytics_handler::handle).with_state(analytics_port),
+            )
+            .route(
+                "/api/optimization",
+                get(optimization_handler::handle).with_state(optimization_port),
+            )
+            .route(
+                "/api/benchmarks",
+                get(benchmark_handler::handle).with_state(benchmark_port),
             )
             .with_state(metrics_cache);
         info!("Metrics server: http://{metrics_addr}/metrics");

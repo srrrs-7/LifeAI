@@ -1,6 +1,7 @@
 use crate::domain::model::{
-    DailyDataPoint, InsightAnnotation, InsightState, MetricsSummary, ScanState, Session,
-    StatsResponse, TokenEvent, ToolCall,
+    DailyDataPoint, HourlyEfficiency, InsightAnnotation, InsightState, MetricsSummary, ModelSwitch,
+    ScanState, Session, SessionCostProfile, StatsResponse, TokenEvent, ToolCall, ToolSequence,
+    UserBenchmark,
 };
 use anyhow::Result;
 use async_trait::async_trait;
@@ -70,6 +71,31 @@ pub trait TrendDataPort: Send + Sync {
         lookback_days: u32,
         user: Option<&str>,
     ) -> Result<Vec<(String, Vec<DailyDataPoint>)>>;
+}
+
+/// ユーザー行動パターン分析ポート (#13)
+pub trait AnalyticsPort: Send + Sync {
+    /// 連続して使用されるツールペアの統計（上位 limit 件）
+    fn tool_usage_sequences(&self, limit: usize) -> Result<Vec<ToolSequence>>;
+    /// セッション内でのモデル切り替えパターン
+    fn model_switching_patterns(&self) -> Result<Vec<ModelSwitch>>;
+    /// 時間帯別の効率指標
+    fn hourly_efficiency(&self) -> Result<Vec<HourlyEfficiency>>;
+}
+
+/// コスト最適化分析ポート (#14)
+pub trait OptimizationPort: Send + Sync {
+    /// 高コストモデルを使用したセッションのプロファイル
+    fn find_overprovisioned_sessions(
+        &self,
+        period_days: Option<u32>,
+    ) -> Result<Vec<SessionCostProfile>>;
+}
+
+/// チームベンチマークポート (#15)
+pub trait BenchmarkPort: Send + Sync {
+    /// ユーザー別効率メトリクス
+    fn user_efficiency_metrics(&self, period_days: Option<u32>) -> Result<Vec<UserBenchmark>>;
 }
 
 /// OTel 生データを保存するポート
