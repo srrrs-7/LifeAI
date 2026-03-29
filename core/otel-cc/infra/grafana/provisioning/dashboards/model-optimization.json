@@ -297,7 +297,7 @@
       },
       "targets": [
         {
-          "expr": "cc_tokens_total{type=\"output\"} / cc_tokens_total{type=\"input\"}",
+          "expr": "cc_tokens_total{type=\"output\"} / ignoring(type) cc_tokens_total{type=\"input\"}",
           "legendFormat": "",
           "refId": "A"
         }

@@ -153,7 +153,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "(cc_tokens_total{type=\"input\"} + cc_tokens_total{type=\"output\"}) / cc_sessions_total",
+          "expr": "(cc_tokens_total{type=\"input\"} + ignoring(type) cc_tokens_total{type=\"output\"}) / on() cc_sessions_total",
           "legendFormat": "Tokens/Session"
         }
       ]
@@ -277,7 +277,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "cc_tokens_total{type=\"output\"} / cc_tokens_total{type=\"input\"}",
+          "expr": "cc_tokens_total{type=\"output\"} / ignoring(type) cc_tokens_total{type=\"input\"}",
           "legendFormat": "Output/Input"
         }
       ]
@@ -339,7 +339,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "cc_cost_usd_total / (sum(cc_tool_calls_total))",
+          "expr": "cc_cost_usd_total / on() sum(cc_tool_calls_total)",
           "legendFormat": "Cost/ToolCall"
         }
       ]
@@ -775,7 +775,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "increase(cc_tokens_total{type=\"input\"}[1h]) + increase(cc_tokens_total{type=\"output\"}[1h])",
+          "expr": "increase(cc_tokens_total{type=\"input\"}[1h]) + ignoring(type) increase(cc_tokens_total{type=\"output\"}[1h])",
           "legendFormat": "Tokens/h"
         }
       ]

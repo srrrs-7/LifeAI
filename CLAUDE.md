@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Purpose
 
-LifeAI は、個人の活動のレコード（日報・振り返り・気づき等）を残していくための AI 対話フレームワークです。Claude Code のスキルシステムを活用し、対話を通じて個人のライフマネジメントを支援します。
+**解決する課題:** Claude Code を日常的に使う個人開発者の「活動記録が形に残らない」「使い方が効率的かどうかわからない」を解決する。
+
+- **スキルシステム**: 対話形式のヒアリングで日々の知的作業を構造化された成果物（日報・アイデアシート・ブログ記事）に変換する
+- **otel-cc モニタリング**: Claude Code のセッションログを自動解析し、コスト・効率・異常を Grafana ダッシュボードで可視化する
 
 ## Commands
 
@@ -119,7 +122,13 @@ prometheus.yml                          — スクレイプ設定（localhost:90
 grafana/provisioning/
   datasources/prometheus.yaml           — Prometheus データソース（localhost:9090）
   dashboards/dashboards.yaml            — ダッシュボードプロバイダー設定
-  dashboards/claude-code.json           — Claude Code Monitor ダッシュボード定義
+  dashboards/claude-code.json           — Claude Code Monitor（総合ダッシュボード）
+  dashboards/session-efficiency.json    — セッション効率分析（KPI, トレンド, リアルタイム）
+  dashboards/cost-management.json       — コスト管理（予算追跡, 移動平均, プロジェクト別）
+  dashboards/tool-analytics.json        — ツール分析（ランキング, エラー, アンチパターン）
+  dashboards/periodic-review.json       — 定期振り返り（期間比較, ローリング平均, 累積）
+  dashboards/model-optimization.json    — モデル最適化（分布, 効率比較, トークン効率）
+  dashboards/anomaly-detection.json     — 異常検知（±2σ バンド, スパイク検出）
 ```
 
 **docker/make コマンドはホスト側で実行:** dev コンテナ内には docker CLI がないため、`make restart-infra` や `make logs-*` はホスト側ターミナルから実行する
@@ -176,6 +185,21 @@ Clean Architecture の依存方向に従い、内側から外側へ実装する:
 5. **interface/** — axum ハンドラーからユースケースを呼び出す
 6. **main.rs** — 依存性を組み立て（コンポジションルート）
 
+## otel-cc コスト計算（domain/cost.rs）
+
+モデル名文字列からバージョンを判別し、USD 単価（per 1M tokens）を適用する:
+
+| モデル | input | output | cache_write | cache_read | マッチ条件 |
+|---|---|---|---|---|---|
+| Opus 4.5/4.6 | $5 | $25 | $6.25 | $0.50 | `contains("opus-4-5")` or `contains("opus-4-6")` |
+| Opus 4.0/4.1 (legacy) | $15 | $75 | $18.75 | $1.50 | `contains("opus")` かつ上記以外 |
+| Sonnet (全バージョン) | $3 | $15 | $3.75 | $0.30 | デフォルト（opus/haiku 以外） |
+| Haiku 4.5 | $1 | $5 | $1.25 | $0.10 | `contains("haiku")` かつ 3.5/3 以外 |
+| Haiku 3.5 | $0.80 | $4 | $1.00 | $0.08 | `contains("haiku-3-5")` |
+| Haiku 3 (deprecated) | $0.25 | $1.25 | $0.30 | $0.03 | `contains("haiku-3")` or `contains("haiku-20")` |
+
+cache_write = 1.25x input、cache_read = 0.1x input。新モデル追加時はレート定数とマッチ条件の両方を更新すること。
+
 ## TDD サイクルと テスト方針
 
 ### TDD サイクル（厳守）
@@ -193,7 +217,7 @@ Clean Architecture の依存方向に従い、内側から外側へ実装する:
 - **ライン カバレッジ 60% 以上** を常に維持する
 - `make coverage` でサマリー確認、`make coverage-html` で詳細 HTML レポートを確認
 - `make coverage-check` は 60% 未満で失敗（pre-push hook でも自動実行）
-- 現在のカバレッジ: **~89%**（`main.rs`, `config.rs`, `watcher/` は起動コードのため除外対象）
+- 現在のカバレッジ: **~90%**（127テスト。`main.rs`, `config.rs`, `watcher/` は起動コードのため除外対象）
 
 ### テスト記述規則
 
