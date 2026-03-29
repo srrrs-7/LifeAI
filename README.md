@@ -73,7 +73,15 @@ docker compose -f .devcontainer/compose.yaml up otel-cc prometheus grafana
 | `http://localhost:3000` | Grafana（7つのダッシュボードが自動プロビジョニング） |
 | `http://localhost:9091/metrics` | Prometheus メトリクス直接確認 |
 
-設定不要で `~/.claude/projects/` のローカルログを自動解析する。OTel リアルタイム受信を追加で有効にする場合は `~/.claude/settings.json` に以下を追記:
+設定不要で `~/.claude/projects/` のローカルログを自動解析する。
+
+#### 月次予算の設定
+
+Cost Management ダッシュボードの上部にある **"Monthly Budget ($)"** テキストボックスで月次予算を設定できる（デフォルト: $100）。Budget Remaining（残額）と Budget Consumption（消化率）が自動計算される。
+
+#### OTel リアルタイム受信（オプション）
+
+OTel リアルタイム受信を追加で有効にする場合は `~/.claude/settings.json` に以下を追記:
 
 ```json
 {
