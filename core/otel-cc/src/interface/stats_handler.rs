@@ -14,18 +14,24 @@ pub struct StatsParams {
     pub period: Option<u32>,
     /// 特定プロジェクトのみ絞り込み（省略時は全プロジェクト）
     pub project: Option<String>,
+    /// 特定ユーザーのみ絞り込み（省略時は全ユーザー）
+    pub user: Option<String>,
 }
 
 pub async fn handle(
     State(port): State<Arc<dyn StatsPort>>,
     Query(params): Query<StatsParams>,
 ) -> Result<Json<StatsResponse>, StatusCode> {
-    port.query_stats(params.period, params.project.as_deref())
-        .map(Json)
-        .map_err(|e| {
-            tracing::error!("stats query failed: {e}");
-            StatusCode::INTERNAL_SERVER_ERROR
-        })
+    port.query_stats(
+        params.period,
+        params.project.as_deref(),
+        params.user.as_deref(),
+    )
+    .map(Json)
+    .map_err(|e| {
+        tracing::error!("stats query failed: {e}");
+        StatusCode::INTERNAL_SERVER_ERROR
+    })
 }
 
 #[cfg(test)]

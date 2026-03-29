@@ -81,6 +81,7 @@ mod tests {
             repo.clone(),
             repo.clone(),
             repo.clone(),
+            "test-user".to_string(),
         ));
         OtlpState {
             use_case,

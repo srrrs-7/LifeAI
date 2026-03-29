@@ -10,8 +10,16 @@ pub struct TracesPayload {
 
 #[derive(Debug, Deserialize)]
 pub struct ResourceSpans {
+    #[serde(default)]
+    pub resource: Option<Resource>,
     #[serde(rename = "scopeSpans", default)]
     pub scope_spans: Vec<ScopeSpans>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Resource {
+    #[serde(default)]
+    pub attributes: Vec<KeyValue>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -105,6 +113,8 @@ pub struct ExtractedTokenEvent {
     pub session_id: Option<String>,
     /// claude_code.project または service.name から取得
     pub project: Option<String>,
+    /// resource attributes の user.name から取得
+    pub user: Option<String>,
 }
 
 pub struct ExtractedMetric {
@@ -120,6 +130,12 @@ pub fn extract_token_events(payload: &TracesPayload) -> Vec<ExtractedTokenEvent>
     let mut events = Vec::new();
 
     for rs in &payload.resource_spans {
+        // resource attributes からユーザー名を抽出
+        let resource_user = rs
+            .resource
+            .as_ref()
+            .and_then(|r| kv_attrs(&r.attributes).get("user.name").cloned());
+
         for ss in &rs.scope_spans {
             for span in &ss.spans {
                 let attrs = span_attrs(span);
@@ -154,6 +170,7 @@ pub fn extract_token_events(payload: &TracesPayload) -> Vec<ExtractedTokenEvent>
                         .get("claude_code.project")
                         .or_else(|| attrs.get("service.name"))
                         .cloned(),
+                    user: resource_user.clone(),
                 });
             }
         }
@@ -191,7 +208,11 @@ pub fn extract_metrics(payload: &MetricsPayload) -> Vec<ExtractedMetric> {
 }
 
 fn span_attrs(span: &Span) -> std::collections::HashMap<String, String> {
-    span.attributes
+    kv_attrs(&span.attributes)
+}
+
+fn kv_attrs(attrs: &[KeyValue]) -> std::collections::HashMap<String, String> {
+    attrs
         .iter()
         .filter_map(|kv| {
             let k = kv.key.clone()?;
@@ -300,5 +321,43 @@ mod tests {
         let payload: MetricsPayload = serde_json::from_str(json).unwrap();
         let metrics = extract_metrics(&payload);
         assert_eq!(metrics[0].name, "cc.sessions");
+    }
+
+    // ── user extraction from resource attributes ────────────────
+
+    fn traces_json_with_resource(resource_attrs: &str, span_attrs: &str) -> String {
+        format!(
+            r#"{{"resourceSpans":[{{"resource":{{"attributes":[{resource_attrs}]}},"scopeSpans":[{{"spans":[{{"traceId":"tid","spanId":"sid","name":"cc.req","attributes":[{span_attrs}]}}]}}]}}]}}"#
+        )
+    }
+
+    #[test]
+    fn extracts_user_from_resource_attributes() {
+        let json = traces_json_with_resource(
+            r#"{"key":"user.name","value":{"stringValue":"alice"}}"#,
+            r#"{"key":"claude_code.token.input","value":{"intValue":10}}"#,
+        );
+        let payload: TracesPayload = serde_json::from_str(&json).unwrap();
+        let events = extract_token_events(&payload);
+        assert_eq!(events[0].user.as_deref(), Some("alice"));
+    }
+
+    #[test]
+    fn user_is_none_when_no_resource() {
+        let json = traces_json(r#"{"key":"claude_code.token.input","value":{"intValue":10}}"#);
+        let payload: TracesPayload = serde_json::from_str(&json).unwrap();
+        let events = extract_token_events(&payload);
+        assert!(events[0].user.is_none());
+    }
+
+    #[test]
+    fn user_is_none_when_resource_has_no_user_name() {
+        let json = traces_json_with_resource(
+            r#"{"key":"service.name","value":{"stringValue":"my-svc"}}"#,
+            r#"{"key":"claude_code.token.input","value":{"intValue":10}}"#,
+        );
+        let payload: TracesPayload = serde_json::from_str(&json).unwrap();
+        let events = extract_token_events(&payload);
+        assert!(events[0].user.is_none());
     }
 }

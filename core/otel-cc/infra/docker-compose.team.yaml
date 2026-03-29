@@ -1,0 +1,64 @@
+# チーム共有モニタリング用 Docker Compose
+#
+# 使い方:
+#   docker compose -f core/otel-cc/infra/docker-compose.team.yaml up -d
+#
+# チームメンバーの設定 (~/.claude/settings.json):
+#   {
+#     "env": {
+#       "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+#       "OTEL_EXPORTER_OTLP_ENDPOINT": "http://<server-ip>:4318",
+#       "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
+#       "OTEL_RESOURCE_ATTRIBUTES": "user.name=<your-name>"
+#     }
+#   }
+
+services:
+  otel-cc:
+    build:
+      context: ../../..
+      dockerfile: core/otel-cc/Dockerfile
+    ports:
+      - "4318:4318"
+      - "9091:9091"
+    volumes:
+      - otel-cc-data:/data
+    environment:
+      - OTEL_CC_DB_PATH=/data/otel-cc.db
+      - OTEL_CC_CLAUDE_LOG_DIR=/data/empty-logs
+      - OTEL_CC_OTLP_PORT=4318
+      - OTEL_CC_METRICS_PORT=9091
+      - OTEL_CC_USER=server
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../infra/prometheus-team.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=90d"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/claude-code.json
+    volumes:
+      - ../infra/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../infra/grafana-team/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  otel-cc-data:
+  prometheus-data:
+  grafana-data:

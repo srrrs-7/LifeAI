@@ -4,6 +4,7 @@ use std::fmt;
 pub struct Session {
     pub session_id: String,
     pub project: String,
+    pub user: String,
     pub cwd: Option<String>,
     pub git_branch: Option<String>,
     pub model: Option<String>,
@@ -81,6 +82,8 @@ pub struct MetricsSummary {
     pub entrypoint_counts: Vec<(String, i64)>,
     /// モデル別集計
     pub model_counts: Vec<ModelSummary>,
+    /// ユーザー別集計
+    pub user_counts: Vec<UserSummary>,
 }
 
 #[derive(Debug, Clone)]
@@ -92,6 +95,16 @@ pub struct ModelSummary {
     pub cache_creation_tokens: i64,
     pub cache_read_tokens: i64,
     pub cost_usd: f64,
+}
+
+#[derive(Debug, Clone)]
+pub struct UserSummary {
+    pub user: String,
+    pub sessions: i64,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cost_usd: f64,
+    pub tool_calls: i64,
 }
 
 #[derive(Debug, Clone)]
@@ -153,6 +166,7 @@ pub struct StatsResponse {
     pub generated_at: String,
     pub overview: OverviewStats,
     pub projects: Vec<ProjectStats>,
+    pub users: Vec<UserStats>,
     pub daily: Vec<DailyStats>,
 }
 
@@ -173,6 +187,18 @@ pub struct OverviewStats {
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct ProjectStats {
     pub project: String,
+    pub sessions: i64,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub cache_creation_tokens: i64,
+    pub cache_read_tokens: i64,
+    pub cost_usd: f64,
+    pub tool_calls: i64,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct UserStats {
+    pub user: String,
     pub sessions: i64,
     pub input_tokens: i64,
     pub output_tokens: i64,

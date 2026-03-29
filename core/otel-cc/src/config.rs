@@ -16,6 +16,8 @@ pub struct Config {
     pub insight_interval_secs: u64,
     /// 同一インサイトの再送クールダウン（分）
     pub insight_cooldown_minutes: i64,
+    /// ユーザー識別名（チーム内で一意であること）
+    pub user: String,
 }
 
 impl Config {
@@ -48,6 +50,7 @@ impl Config {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(60),
+            user: std::env::var("OTEL_CC_USER").unwrap_or_else(|_| whoami::username()),
         }
     }
 }

@@ -15,6 +15,7 @@ use crate::infrastructure::log_reader::jsonl::{ContentBlock, LogRecord, UserCont
 pub fn scan_file(
     path: &Path,
     project: &str,
+    user: &str,
     session_port: &dyn SessionPort,
     event_port: &dyn EventPort,
 ) -> Result<()> {
@@ -63,6 +64,7 @@ pub fn scan_file(
         process_record(
             record,
             project,
+            user,
             &mut sessions,
             &mut pending_tool_calls,
             session_port,
@@ -109,6 +111,7 @@ fn get_mtime(path: &Path) -> String {
 fn process_record(
     record: LogRecord,
     project: &str,
+    user: &str,
     sessions: &mut HashMap<String, Session>,
     pending_tool_calls: &mut HashMap<String, (String, String, String)>,
     session_port: &dyn SessionPort,
@@ -126,6 +129,7 @@ fn process_record(
                 .or_insert_with(|| Session {
                     session_id: session_id.clone(),
                     project: project.to_string(),
+                    user: user.to_string(),
                     cwd: a.cwd.clone(),
                     git_branch: a.git_branch.clone(),
                     model: a.message.model.clone(),
@@ -189,6 +193,7 @@ fn process_record(
                 .or_insert_with(|| Session {
                     session_id: session_id.clone(),
                     project: project.to_string(),
+                    user: user.to_string(),
                     cwd: u.cwd.clone(),
                     git_branch: u.git_branch.clone(),
                     model: None,
@@ -289,7 +294,7 @@ mod tests {
         let path = dir.path().join("s.jsonl");
         std::fs::write(&path, format!("{}\n", assistant_line("sess-1", 100, 50))).unwrap();
 
-        scan_file(&path, "my-project", &r, &r).unwrap();
+        scan_file(&path, "my-project", "test-user", &r, &r).unwrap();
 
         let s = r.load_summary().unwrap();
         assert_eq!(s.total_sessions, 1);
@@ -310,7 +315,7 @@ mod tests {
         );
         std::fs::write(&path, content).unwrap();
 
-        scan_file(&path, "proj", &r, &r).unwrap();
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
 
         let s = r.load_summary().unwrap();
         assert_eq!(s.total_tool_calls, 1);
@@ -330,7 +335,7 @@ mod tests {
         );
         std::fs::write(&path, content).unwrap();
 
-        scan_file(&path, "proj", &r, &r).unwrap();
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
 
         let s = r.load_summary().unwrap();
         assert_eq!(s.total_tool_errors, 1);
@@ -345,7 +350,7 @@ mod tests {
         let path = dir.path().join("s.jsonl");
         std::fs::write(&path, format!("{}\n", assistant_line("s1", 10, 5))).unwrap();
 
-        scan_file(&path, "proj", &r, &r).unwrap();
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
 
         let state = r.get_scan_state(&path.to_string_lossy()).unwrap().unwrap();
         assert_eq!(state.lines_processed, 1);
@@ -358,8 +363,8 @@ mod tests {
         let path = dir.path().join("s.jsonl");
         std::fs::write(&path, format!("{}\n", assistant_line("s1", 100, 50))).unwrap();
 
-        scan_file(&path, "proj", &r, &r).unwrap(); // first scan
-        scan_file(&path, "proj", &r, &r).unwrap(); // mtime unchanged → skip
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap(); // first scan
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap(); // mtime unchanged → skip
 
         let s = r.load_summary().unwrap();
         assert_eq!(
@@ -378,7 +383,7 @@ mod tests {
         let line1 = assistant_line("s1", 100, 50);
         let line2 = assistant_line("s2", 200, 80);
         std::fs::write(&path, format!("{line1}\n{line2}\n")).unwrap();
-        scan_file(&path, "proj", &r, &r).unwrap();
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
 
         assert_eq!(r.load_summary().unwrap().total_input_tokens, 300);
 
@@ -392,7 +397,7 @@ mod tests {
         writeln!(f, "{line3}").unwrap();
         drop(f);
 
-        scan_file(&path, "proj", &r, &r).unwrap();
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
 
         let s = r.load_summary().unwrap();
         assert_eq!(s.total_sessions, 3);
@@ -413,7 +418,7 @@ mod tests {
         );
         std::fs::write(&path, content).unwrap();
 
-        scan_file(&path, "proj", &r, &r).unwrap();
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
 
         let s = r.load_summary().unwrap();
         assert_eq!(s.total_sessions, 2);
@@ -428,7 +433,7 @@ mod tests {
         let compression_line = r#"{"type":"system","sessionId":"sess-1","timestamp":"2026-03-26T10:00:00Z","subtype":"context_compression","summary":"Compressed 5000 tokens"}"#;
         std::fs::write(&path, format!("{compression_line}\n")).unwrap();
 
-        scan_file(&path, "proj", &r, &r).unwrap();
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
 
         let s = r.load_summary().unwrap();
         assert_eq!(s.total_compression_events, 1);

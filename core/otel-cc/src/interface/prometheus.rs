@@ -213,6 +213,47 @@ pub fn render(s: &MetricsSummary) -> String {
         );
     }
 
+    // ── ユーザー別メトリクス ────────────────────────────────────
+    let _ = writeln!(out, "# HELP cc_user_sessions Sessions per user");
+    let _ = writeln!(out, "# TYPE cc_user_sessions gauge");
+    let _ = writeln!(out, "# HELP cc_user_tokens_total Tokens per user by type");
+    let _ = writeln!(out, "# TYPE cc_user_tokens_total gauge");
+    let _ = writeln!(out, "# HELP cc_user_cost_usd Cost in USD per user");
+    let _ = writeln!(out, "# TYPE cc_user_cost_usd gauge");
+    let _ = writeln!(out, "# HELP cc_user_tool_calls_total Tool calls per user");
+    let _ = writeln!(out, "# TYPE cc_user_tool_calls_total gauge");
+    for u in &s.user_counts {
+        labeled(
+            &mut out,
+            "cc_user_sessions",
+            &[("user", &u.user)],
+            u.sessions,
+        );
+        labeled(
+            &mut out,
+            "cc_user_tokens_total",
+            &[("user", &u.user), ("type", "input")],
+            u.input_tokens,
+        );
+        labeled(
+            &mut out,
+            "cc_user_tokens_total",
+            &[("user", &u.user), ("type", "output")],
+            u.output_tokens,
+        );
+        let _ = writeln!(
+            out,
+            "cc_user_cost_usd{{user=\"{}\"}} {:.6}",
+            u.user, u.cost_usd
+        );
+        labeled(
+            &mut out,
+            "cc_user_tool_calls_total",
+            &[("user", &u.user)],
+            u.tool_calls,
+        );
+    }
+
     out
 }
 
@@ -249,7 +290,7 @@ fn label_str(labels: &[(&str, &str)]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::model::{MetricsSummary, ModelSummary, ProjectSummary};
+    use crate::domain::model::{MetricsSummary, ModelSummary, ProjectSummary, UserSummary};
 
     fn render_default() -> String {
         render(&MetricsSummary::default())
@@ -426,6 +467,50 @@ mod tests {
         assert!(
             !out.contains("cc_model_sessions{"),
             "no data lines expected when model_counts is empty"
+        );
+    }
+
+    // ── ユーザー別メトリクス ─────────────────────────────────────
+
+    #[test]
+    fn user_metrics_rendered_with_labels() {
+        let s = MetricsSummary {
+            user_counts: vec![
+                UserSummary {
+                    user: "alice".to_string(),
+                    sessions: 5,
+                    input_tokens: 1000,
+                    output_tokens: 500,
+                    cost_usd: 0.123456,
+                    tool_calls: 10,
+                },
+                UserSummary {
+                    user: "bob".to_string(),
+                    sessions: 3,
+                    input_tokens: 2000,
+                    output_tokens: 800,
+                    cost_usd: 0.654321,
+                    tool_calls: 7,
+                },
+            ],
+            ..Default::default()
+        };
+        let out = render(&s);
+        assert!(out.contains("cc_user_sessions{user=\"alice\"} 5"));
+        assert!(out.contains("cc_user_sessions{user=\"bob\"} 3"));
+        assert!(out.contains("cc_user_tokens_total{user=\"alice\",type=\"input\"} 1000"));
+        assert!(out.contains("cc_user_tokens_total{user=\"bob\",type=\"output\"} 800"));
+        assert!(out.contains("cc_user_cost_usd{user=\"alice\"} 0.123456"));
+        assert!(out.contains("cc_user_tool_calls_total{user=\"bob\"} 7"));
+    }
+
+    #[test]
+    fn user_metrics_not_rendered_when_empty() {
+        let out = render_default();
+        assert!(out.contains("# HELP cc_user_sessions"));
+        assert!(
+            !out.contains("cc_user_sessions{"),
+            "no data lines expected when user_counts is empty"
         );
     }
 }

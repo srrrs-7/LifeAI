@@ -29,8 +29,13 @@ pub trait EventPort: Send + Sync {
 pub trait StatsPort: Send + Sync {
     /// `period_days`: None = 全期間、Some(n) = 直近 n 日
     /// `project`: None = 全プロジェクト、Some("name") = 指定プロジェクトのみ
-    fn query_stats(&self, period_days: Option<u32>, project: Option<&str>)
-        -> Result<StatsResponse>;
+    /// `user`: None = 全ユーザー、Some("name") = 指定ユーザーのみ
+    fn query_stats(
+        &self,
+        period_days: Option<u32>,
+        project: Option<&str>,
+        user: Option<&str>,
+    ) -> Result<StatsResponse>;
 }
 
 /// インサイト送信状態の永続化ポート（クールダウン管理）
@@ -48,13 +53,22 @@ pub trait AnnotationPort: Send + Sync {
 /// トレンド分析用の日次集計データ取得ポート
 pub trait TrendDataPort: Send + Sync {
     /// 直近 N 日間の日次セッション単価
-    fn daily_cost_per_session(&self, lookback_days: u32) -> Result<Vec<DailyDataPoint>>;
+    fn daily_cost_per_session(
+        &self,
+        lookback_days: u32,
+        user: Option<&str>,
+    ) -> Result<Vec<DailyDataPoint>>;
     /// 直近 N 日間の日次キャッシュヒット率
-    fn daily_cache_hit_ratio(&self, lookback_days: u32) -> Result<Vec<DailyDataPoint>>;
+    fn daily_cache_hit_ratio(
+        &self,
+        lookback_days: u32,
+        user: Option<&str>,
+    ) -> Result<Vec<DailyDataPoint>>;
     /// 直近 N 日間のツール別日次エラー率。戻り値: Vec<(tool_name, Vec<DailyDataPoint>)>
     fn daily_tool_error_rates(
         &self,
         lookback_days: u32,
+        user: Option<&str>,
     ) -> Result<Vec<(String, Vec<DailyDataPoint>)>>;
 }
 

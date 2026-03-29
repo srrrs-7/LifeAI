@@ -93,6 +93,7 @@ interface/      — axum HTTP ハンドラー: /metrics（Prometheus）、/healt
 | `OTEL_CC_GRAFANA_URL` | `http://localhost:3000` | Grafana ベース URL（アノテーション送信先） |
 | `OTEL_CC_INSIGHT_INTERVAL` | `300` | インサイト分析実行間隔（秒） |
 | `OTEL_CC_INSIGHT_COOLDOWN_MIN` | `60` | 同一インサイトの再送クールダウン（分） |
+| `OTEL_CC_USER` | OS ユーザー名 | ユーザー識別名（チーム内で一意にする） |
 
 **Docker Compose インフラ (.devcontainer/compose.yaml):**
 - `otel-cc` — volume: `otel-cc-data` (SQLite)

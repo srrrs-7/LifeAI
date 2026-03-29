@@ -93,6 +93,43 @@ OTel リアルタイム受信を追加で有効にする場合は `~/.claude/set
 }
 ```
 
+### チームモニタリング
+
+チームで Prometheus/Grafana を共有し、各メンバーの Claude Code 使用状況を一元可視化できる。
+
+#### サーバー側のセットアップ
+
+```bash
+# チーム用サーバーで実行
+docker compose -f core/otel-cc/infra/docker-compose.team.yaml up -d
+```
+
+| URL | 用途 |
+|---|---|
+| `http://<server>:3000` | Grafana（チーム全体 + 個人別ダッシュボード） |
+| `http://<server>:4318` | OTLP 受信エンドポイント |
+
+#### チームメンバーの設定
+
+各メンバーが `~/.claude/settings.json` に以下を追記:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://<server-ip>:4318",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
+    "OTEL_RESOURCE_ATTRIBUTES": "user.name=<your-name>"
+  }
+}
+```
+
+`user.name` はチーム内で一意になるようにする。Grafana の `$user` 変数でフィルタリングすることで、個人の統計とチーム全体の統計を切り替えられる。
+
+#### ローカルモニタリングでのユーザー名設定
+
+ローカルで otel-cc を使う場合、環境変数 `OTEL_CC_USER` でユーザー名を設定できる（デフォルト: OS ユーザー名）。
+
 ### ログ収集の仕組み
 
 3段構えでログを収集し、取りこぼしを防ぐ:

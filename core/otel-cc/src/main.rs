@@ -31,6 +31,7 @@ async fn main() -> Result<()> {
     let config = Config::from_env();
     info!("DB: {}", config.db_path.display());
     info!("Claude logs: {}", config.claude_log_dir.display());
+    info!("User: {}", config.user);
 
     // ── 依存性の組み立て ─────────────────────────────────────────
     let repo = Arc::new(SqliteRepository::open(&config.db_path)?);
@@ -40,12 +41,14 @@ async fn main() -> Result<()> {
         repo.clone() as Arc<dyn domain::port::SessionPort>,
         repo.clone() as Arc<dyn domain::port::EventPort>,
         config.claude_log_dir.clone(),
+        config.user.clone(),
     ));
 
     let otlp_uc = Arc::new(IngestOtlpUseCase::new(
         repo.clone() as Arc<dyn domain::port::SessionPort>,
         repo.clone() as Arc<dyn domain::port::EventPort>,
         repo.clone() as Arc<dyn domain::port::OtlpPort>,
+        config.user.clone(),
     ));
 
     let grafana_client = Arc::new(GrafanaAnnotationClient::new(&config.grafana_url));

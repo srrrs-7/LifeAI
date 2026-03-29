@@ -6,6 +6,7 @@ use crate::domain::{
     model::{
         DailyDataPoint, DailyStats, InsightState, MetricsSummary, ModelSummary, OverviewStats,
         ProjectStats, ProjectSummary, ScanState, Session, StatsResponse, TokenEvent, ToolCall,
+        UserStats, UserSummary,
     },
     port::{EventPort, InsightStatePort, OtlpPort, SessionPort, StatsPort, TrendDataPort},
 };
@@ -119,6 +120,20 @@ impl SqliteRepository {
             CREATE INDEX IF NOT EXISTS idx_tool_calls_name      ON tool_calls(tool_name);
         ",
         )?;
+
+        // マイグレーション: sessions に user カラムを追加（既存 DB 対応）
+        let has_user_col: bool = conn
+            .prepare("PRAGMA table_info(sessions)")?
+            .query_map([], |row| row.get::<_, String>(1))?
+            .flatten()
+            .any(|name| name == "user");
+        if !has_user_col {
+            conn.execute_batch(
+                "ALTER TABLE sessions ADD COLUMN user TEXT DEFAULT 'local';
+                 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user);",
+            )?;
+        }
+
         Ok(())
     }
 }
@@ -128,14 +143,14 @@ impl SessionPort for SqliteRepository {
         let conn = self.conn.lock().unwrap();
         conn.execute(
             "INSERT INTO sessions
-                (session_id, project, cwd, git_branch, model, entrypoint, version, started_at, last_seen_at, is_active)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+                (session_id, project, user, cwd, git_branch, model, entrypoint, version, started_at, last_seen_at, is_active)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)
              ON CONFLICT(session_id) DO UPDATE SET
                 model        = excluded.model,
                 last_seen_at = excluded.last_seen_at,
                 is_active    = excluded.is_active",
             params![
-                s.session_id, s.project, s.cwd, s.git_branch,
+                s.session_id, s.project, s.user, s.cwd, s.git_branch,
                 s.model, s.entrypoint, s.version,
                 s.started_at, s.last_seen_at, s.is_active as i32,
             ],
@@ -335,6 +350,47 @@ impl SessionPort for SqliteRepository {
             .flatten()
             .collect();
 
+        // ユーザー別集計
+        let mut stmt = conn.prepare(
+            "SELECT COALESCE(s.user, 'local'),
+                    COUNT(DISTINCT s.session_id),
+                    COALESCE(SUM(t.input_tokens), 0),
+                    COALESCE(SUM(t.output_tokens), 0),
+                    COALESCE(SUM(t.cost_usd), 0.0)
+             FROM sessions s
+             LEFT JOIN token_events t ON s.session_id = t.session_id
+             GROUP BY COALESCE(s.user, 'local')
+             ORDER BY SUM(t.cost_usd) DESC NULLS LAST",
+        )?;
+        let mut user_counts: Vec<UserSummary> = stmt
+            .query_map([], |r| {
+                Ok(UserSummary {
+                    user: r.get(0)?,
+                    sessions: r.get(1)?,
+                    input_tokens: r.get(2)?,
+                    output_tokens: r.get(3)?,
+                    cost_usd: r.get(4)?,
+                    tool_calls: 0,
+                })
+            })?
+            .flatten()
+            .collect();
+
+        // ユーザー別ツール数
+        let mut stmt = conn.prepare(
+            "SELECT COALESCE(s.user, 'local'), COUNT(tc.id)
+             FROM sessions s
+             LEFT JOIN tool_calls tc ON s.session_id = tc.session_id
+             GROUP BY COALESCE(s.user, 'local')",
+        )?;
+        let tc_by_user: std::collections::HashMap<String, i64> = stmt
+            .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?)))?
+            .flatten()
+            .collect();
+        for u in &mut user_counts {
+            u.tool_calls = *tc_by_user.get(&u.user).unwrap_or(&0);
+        }
+
         Ok(MetricsSummary {
             total_sessions,
             active_sessions,
@@ -350,6 +406,7 @@ impl SessionPort for SqliteRepository {
             projects,
             entrypoint_counts,
             model_counts,
+            user_counts,
         })
     }
 }
@@ -401,6 +458,7 @@ impl StatsPort for SqliteRepository {
         &self,
         period_days: Option<u32>,
         project: Option<&str>,
+        user: Option<&str>,
     ) -> Result<StatsResponse> {
         let conn = self.conn.lock().unwrap();
         let generated_at = chrono::Utc::now().to_rfc3339();
@@ -410,94 +468,100 @@ impl StatsPort for SqliteRepository {
             .map(|d| (chrono::Utc::now() - chrono::Duration::days(d as i64)).to_rfc3339())
             .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string());
 
+        // ── 動的フィルタ構築 ──────────────────────────────────────
+        let mut session_where = vec!["last_seen_at >= ?1".to_string()];
+        let mut event_where = vec!["te.timestamp >= ?1".to_string()];
+        let mut tc_where = vec!["tc.timestamp >= ?1".to_string()];
+        let mut bind_values: Vec<String> = vec![cutoff.clone()];
+
+        if let Some(proj) = project {
+            let idx = bind_values.len() + 1;
+            session_where.push(format!("project = ?{idx}"));
+            event_where.push(format!("s.project = ?{idx}"));
+            tc_where.push(format!("s.project = ?{idx}"));
+            bind_values.push(proj.to_string());
+        }
+        if let Some(u) = user {
+            let idx = bind_values.len() + 1;
+            session_where.push(format!("user = ?{idx}"));
+            event_where.push(format!("s.user = ?{idx}"));
+            tc_where.push(format!("s.user = ?{idx}"));
+            bind_values.push(u.to_string());
+        }
+
+        let session_filter = session_where.join(" AND ");
+        let event_filter = event_where.join(" AND ");
+        let tc_filter = tc_where.join(" AND ");
+
         // ── セッション数 ─────────────────────────────────────────
-        let (total_sessions, active_sessions): (i64, i64) = match project {
-            Some(proj) => (
-                conn.query_row(
-                    "SELECT COUNT(*) FROM sessions WHERE project = ?1 AND last_seen_at >= ?2",
-                    params![proj, cutoff],
-                    |r| r.get(0),
-                )
-                .unwrap_or(0),
-                conn.query_row(
-                    "SELECT COUNT(*) FROM sessions WHERE project = ?1 AND is_active = 1 AND last_seen_at >= ?2",
-                    params![proj, cutoff],
-                    |r| r.get(0),
-                )
-                .unwrap_or(0),
-            ),
-            None => (
-                conn.query_row(
-                    "SELECT COUNT(*) FROM sessions WHERE last_seen_at >= ?1",
-                    params![cutoff],
-                    |r| r.get(0),
-                )
-                .unwrap_or(0),
-                conn.query_row(
-                    "SELECT COUNT(*) FROM sessions WHERE is_active = 1 AND last_seen_at >= ?1",
-                    params![cutoff],
-                    |r| r.get(0),
-                )
-                .unwrap_or(0),
-            ),
+        let total_sessions: i64 = {
+            let sql = format!("SELECT COUNT(*) FROM sessions WHERE {session_filter}");
+            let mut stmt = conn.prepare(&sql)?;
+            let params_ref: Vec<&dyn rusqlite::types::ToSql> = bind_values
+                .iter()
+                .map(|v| v as &dyn rusqlite::types::ToSql)
+                .collect();
+            stmt.query_row(params_ref.as_slice(), |r| r.get(0))
+                .unwrap_or(0)
+        };
+        let active_sessions: i64 = {
+            let sql =
+                format!("SELECT COUNT(*) FROM sessions WHERE is_active = 1 AND {session_filter}");
+            let mut stmt = conn.prepare(&sql)?;
+            let params_ref: Vec<&dyn rusqlite::types::ToSql> = bind_values
+                .iter()
+                .map(|v| v as &dyn rusqlite::types::ToSql)
+                .collect();
+            stmt.query_row(params_ref.as_slice(), |r| r.get(0))
+                .unwrap_or(0)
         };
 
         // ── トークン集計 ─────────────────────────────────────────
-        let (input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens, cost_usd): (
-            i64,
-            i64,
-            i64,
-            i64,
-            f64,
-        ) = match project {
-            Some(proj) => conn
-                .query_row(
-                    "SELECT COALESCE(SUM(te.input_tokens),0),
-                            COALESCE(SUM(te.output_tokens),0),
-                            COALESCE(SUM(te.cache_creation_tokens),0),
-                            COALESCE(SUM(te.cache_read_tokens),0),
-                            COALESCE(SUM(te.cost_usd),0.0)
-                     FROM token_events te
-                     JOIN sessions s ON te.session_id = s.session_id
-                     WHERE s.project = ?1 AND te.timestamp >= ?2",
-                    params![proj, cutoff],
-                    |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
-                )
-                .unwrap_or((0, 0, 0, 0, 0.0)),
-            None => conn
-                .query_row(
-                    "SELECT COALESCE(SUM(input_tokens),0),
-                            COALESCE(SUM(output_tokens),0),
-                            COALESCE(SUM(cache_creation_tokens),0),
-                            COALESCE(SUM(cache_read_tokens),0),
-                            COALESCE(SUM(cost_usd),0.0)
-                     FROM token_events WHERE timestamp >= ?1",
-                    params![cutoff],
-                    |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?)),
-                )
-                .unwrap_or((0, 0, 0, 0, 0.0)),
+        let (input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens, cost_usd) = {
+            let sql = format!(
+                "SELECT COALESCE(SUM(te.input_tokens),0),
+                        COALESCE(SUM(te.output_tokens),0),
+                        COALESCE(SUM(te.cache_creation_tokens),0),
+                        COALESCE(SUM(te.cache_read_tokens),0),
+                        COALESCE(SUM(te.cost_usd),0.0)
+                 FROM token_events te
+                 JOIN sessions s ON te.session_id = s.session_id
+                 WHERE {event_filter}"
+            );
+            let mut stmt = conn.prepare(&sql)?;
+            let params_ref: Vec<&dyn rusqlite::types::ToSql> = bind_values
+                .iter()
+                .map(|v| v as &dyn rusqlite::types::ToSql)
+                .collect();
+            stmt.query_row(params_ref.as_slice(), |r| {
+                Ok((
+                    r.get::<_, i64>(0)?,
+                    r.get::<_, i64>(1)?,
+                    r.get::<_, i64>(2)?,
+                    r.get::<_, i64>(3)?,
+                    r.get::<_, f64>(4)?,
+                ))
+            })
+            .unwrap_or((0, 0, 0, 0, 0.0))
         };
 
         // ── ツールコール ─────────────────────────────────────────
-        let (tool_calls, tool_errors): (i64, i64) = match project {
-            Some(proj) => conn
-                .query_row(
-                    "SELECT COUNT(*), COALESCE(SUM(tc.is_error),0)
-                     FROM tool_calls tc
-                     JOIN sessions s ON tc.session_id = s.session_id
-                     WHERE s.project = ?1 AND tc.timestamp >= ?2",
-                    params![proj, cutoff],
-                    |r| Ok((r.get(0)?, r.get(1)?)),
-                )
-                .unwrap_or((0, 0)),
-            None => conn
-                .query_row(
-                    "SELECT COUNT(*), COALESCE(SUM(is_error),0)
-                     FROM tool_calls WHERE timestamp >= ?1",
-                    params![cutoff],
-                    |r| Ok((r.get(0)?, r.get(1)?)),
-                )
-                .unwrap_or((0, 0)),
+        let (tool_calls, tool_errors) = {
+            let sql = format!(
+                "SELECT COUNT(*), COALESCE(SUM(tc.is_error),0)
+                 FROM tool_calls tc
+                 JOIN sessions s ON tc.session_id = s.session_id
+                 WHERE {tc_filter}"
+            );
+            let mut stmt = conn.prepare(&sql)?;
+            let params_ref: Vec<&dyn rusqlite::types::ToSql> = bind_values
+                .iter()
+                .map(|v| v as &dyn rusqlite::types::ToSql)
+                .collect();
+            stmt.query_row(params_ref.as_slice(), |r| {
+                Ok((r.get::<_, i64>(0)?, r.get::<_, i64>(1)?))
+            })
+            .unwrap_or((0, 0))
         };
 
         let total_with_cache = input_tokens + cache_read_tokens;
@@ -521,134 +585,181 @@ impl StatsPort for SqliteRepository {
         };
 
         // ── プロジェクト別内訳 ────────────────────────────────────
-        let projects: Vec<ProjectStats> = match project {
-            Some(proj) => {
-                // 単一プロジェクト指定時は overview の値をそのまま使う
-                vec![ProjectStats {
-                    project: proj.to_string(),
-                    sessions: total_sessions,
-                    input_tokens,
-                    output_tokens,
-                    cache_creation_tokens,
-                    cache_read_tokens,
-                    cost_usd,
-                    tool_calls,
-                }]
+        let projects: Vec<ProjectStats> = if let Some(proj) = project {
+            // 単一プロジェクト指定時は overview の値をそのまま使う
+            vec![ProjectStats {
+                project: proj.to_string(),
+                sessions: total_sessions,
+                input_tokens,
+                output_tokens,
+                cache_creation_tokens,
+                cache_read_tokens,
+                cost_usd,
+                tool_calls,
+            }]
+        } else {
+            // ユーザーフィルタ用の条件を構築（project=None の else 分岐なので idx=2）
+            let user_cond = if user.is_some() {
+                " AND s.user = ?2".to_string()
+            } else {
+                String::new()
+            };
+            let sql = format!(
+                "SELECT s.project,
+                        COUNT(DISTINCT s.session_id),
+                        COALESCE(SUM(te.input_tokens),0),
+                        COALESCE(SUM(te.output_tokens),0),
+                        COALESCE(SUM(te.cache_creation_tokens),0),
+                        COALESCE(SUM(te.cache_read_tokens),0),
+                        COALESCE(SUM(te.cost_usd),0.0)
+                 FROM sessions s
+                 LEFT JOIN token_events te ON s.session_id = te.session_id
+                   AND te.timestamp >= ?1
+                 WHERE s.last_seen_at >= ?1{user_cond}
+                 GROUP BY s.project
+                 ORDER BY SUM(te.cost_usd) DESC NULLS LAST"
+            );
+            let mut stmt = conn.prepare(&sql)?;
+            let mut bind_proj: Vec<String> = vec![cutoff.clone()];
+            if let Some(u) = user {
+                bind_proj.push(u.to_string());
             }
-            None => {
-                // トークン集計
-                let mut stmt = conn.prepare(
-                    "SELECT s.project,
-                            COUNT(DISTINCT s.session_id),
-                            COALESCE(SUM(te.input_tokens),0),
-                            COALESCE(SUM(te.output_tokens),0),
-                            COALESCE(SUM(te.cache_creation_tokens),0),
-                            COALESCE(SUM(te.cache_read_tokens),0),
-                            COALESCE(SUM(te.cost_usd),0.0)
-                     FROM sessions s
-                     LEFT JOIN token_events te ON s.session_id = te.session_id
-                       AND te.timestamp >= ?1
-                     WHERE s.last_seen_at >= ?1
-                     GROUP BY s.project
-                     ORDER BY SUM(te.cost_usd) DESC NULLS LAST",
-                )?;
-                let mut rows: Vec<ProjectStats> = stmt
-                    .query_map(params![cutoff], |r| {
-                        Ok(ProjectStats {
-                            project: r.get(0)?,
-                            sessions: r.get(1)?,
-                            input_tokens: r.get(2)?,
-                            output_tokens: r.get(3)?,
-                            cache_creation_tokens: r.get(4)?,
-                            cache_read_tokens: r.get(5)?,
-                            cost_usd: r.get(6)?,
-                            tool_calls: 0,
-                        })
-                    })?
-                    .flatten()
-                    .collect();
+            let params_ref: Vec<&dyn rusqlite::types::ToSql> = bind_proj
+                .iter()
+                .map(|v| v as &dyn rusqlite::types::ToSql)
+                .collect();
+            let mut rows: Vec<ProjectStats> = stmt
+                .query_map(params_ref.as_slice(), |r| {
+                    Ok(ProjectStats {
+                        project: r.get(0)?,
+                        sessions: r.get(1)?,
+                        input_tokens: r.get(2)?,
+                        output_tokens: r.get(3)?,
+                        cache_creation_tokens: r.get(4)?,
+                        cache_read_tokens: r.get(5)?,
+                        cost_usd: r.get(6)?,
+                        tool_calls: 0,
+                    })
+                })?
+                .flatten()
+                .collect();
 
-                // ツール数を別クエリで補完
-                let mut stmt = conn.prepare(
-                    "SELECT s.project, COUNT(tc.id)
-                     FROM sessions s
-                     LEFT JOIN tool_calls tc ON s.session_id = tc.session_id
-                       AND tc.timestamp >= ?1
-                     WHERE s.last_seen_at >= ?1
-                     GROUP BY s.project",
-                )?;
-                let tc_map: std::collections::HashMap<String, i64> = stmt
-                    .query_map(params![cutoff], |r| {
-                        Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?))
-                    })?
-                    .flatten()
-                    .collect();
-                for p in &mut rows {
-                    p.tool_calls = *tc_map.get(&p.project).unwrap_or(&0);
-                }
-                rows
+            // ツール数を別クエリで補完
+            let sql2 = format!(
+                "SELECT s.project, COUNT(tc.id)
+                 FROM sessions s
+                 LEFT JOIN tool_calls tc ON s.session_id = tc.session_id
+                   AND tc.timestamp >= ?1
+                 WHERE s.last_seen_at >= ?1{user_cond}
+                 GROUP BY s.project"
+            );
+            let mut stmt2 = conn.prepare(&sql2)?;
+            let tc_map: std::collections::HashMap<String, i64> = stmt2
+                .query_map(params_ref.as_slice(), |r| {
+                    Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?))
+                })?
+                .flatten()
+                .collect();
+            for p in &mut rows {
+                p.tool_calls = *tc_map.get(&p.project).unwrap_or(&0);
             }
+            rows
         };
 
         // ── 日別内訳 ─────────────────────────────────────────────
-        let daily: Vec<DailyStats> = match project {
-            Some(proj) => {
-                let mut stmt = conn.prepare(
-                    "SELECT DATE(te.timestamp),
-                            COALESCE(SUM(te.input_tokens),0),
-                            COALESCE(SUM(te.output_tokens),0),
-                            COALESCE(SUM(te.cache_creation_tokens),0),
-                            COALESCE(SUM(te.cache_read_tokens),0),
-                            COALESCE(SUM(te.cost_usd),0.0)
-                     FROM token_events te
-                     JOIN sessions s ON te.session_id = s.session_id
-                     WHERE s.project = ?1 AND te.timestamp >= ?2
-                     GROUP BY DATE(te.timestamp)
-                     ORDER BY DATE(te.timestamp)",
-                )?;
-                let rows: Vec<DailyStats> = stmt
-                    .query_map(params![proj, cutoff], |r| {
-                        Ok(DailyStats {
-                            date: r.get(0)?,
-                            input_tokens: r.get(1)?,
-                            output_tokens: r.get(2)?,
-                            cache_creation_tokens: r.get(3)?,
-                            cache_read_tokens: r.get(4)?,
-                            cost_usd: r.get(5)?,
-                        })
-                    })?
-                    .flatten()
-                    .collect();
-                rows
+        let daily: Vec<DailyStats> = {
+            let sql = format!(
+                "SELECT DATE(te.timestamp),
+                        COALESCE(SUM(te.input_tokens),0),
+                        COALESCE(SUM(te.output_tokens),0),
+                        COALESCE(SUM(te.cache_creation_tokens),0),
+                        COALESCE(SUM(te.cache_read_tokens),0),
+                        COALESCE(SUM(te.cost_usd),0.0)
+                 FROM token_events te
+                 JOIN sessions s ON te.session_id = s.session_id
+                 WHERE {event_filter}
+                 GROUP BY DATE(te.timestamp)
+                 ORDER BY DATE(te.timestamp)"
+            );
+            let mut stmt = conn.prepare(&sql)?;
+            let params_ref: Vec<&dyn rusqlite::types::ToSql> = bind_values
+                .iter()
+                .map(|v| v as &dyn rusqlite::types::ToSql)
+                .collect();
+            let rows: Vec<DailyStats> = stmt
+                .query_map(params_ref.as_slice(), |r| {
+                    Ok(DailyStats {
+                        date: r.get(0)?,
+                        input_tokens: r.get(1)?,
+                        output_tokens: r.get(2)?,
+                        cache_creation_tokens: r.get(3)?,
+                        cache_read_tokens: r.get(4)?,
+                        cost_usd: r.get(5)?,
+                    })
+                })?
+                .flatten()
+                .collect();
+            rows
+        };
+
+        // ── ユーザー別内訳 ────────────────────────────────────────
+        let users: Vec<UserStats> = {
+            let sql = format!(
+                "SELECT COALESCE(s.user, 'local'),
+                        COUNT(DISTINCT s.session_id),
+                        COALESCE(SUM(te.input_tokens),0),
+                        COALESCE(SUM(te.output_tokens),0),
+                        COALESCE(SUM(te.cache_creation_tokens),0),
+                        COALESCE(SUM(te.cache_read_tokens),0),
+                        COALESCE(SUM(te.cost_usd),0.0)
+                 FROM sessions s
+                 LEFT JOIN token_events te ON s.session_id = te.session_id
+                   AND te.timestamp >= ?1
+                 WHERE {session_filter}
+                 GROUP BY COALESCE(s.user, 'local')
+                 ORDER BY SUM(te.cost_usd) DESC NULLS LAST"
+            );
+            let mut stmt = conn.prepare(&sql)?;
+            let params_ref: Vec<&dyn rusqlite::types::ToSql> = bind_values
+                .iter()
+                .map(|v| v as &dyn rusqlite::types::ToSql)
+                .collect();
+            let mut rows: Vec<UserStats> = stmt
+                .query_map(params_ref.as_slice(), |r| {
+                    Ok(UserStats {
+                        user: r.get(0)?,
+                        sessions: r.get(1)?,
+                        input_tokens: r.get(2)?,
+                        output_tokens: r.get(3)?,
+                        cache_creation_tokens: r.get(4)?,
+                        cache_read_tokens: r.get(5)?,
+                        cost_usd: r.get(6)?,
+                        tool_calls: 0,
+                    })
+                })?
+                .flatten()
+                .collect();
+
+            // ツール数を別クエリで補完
+            let sql2 = format!(
+                "SELECT COALESCE(s.user, 'local'), COUNT(tc.id)
+                 FROM sessions s
+                 LEFT JOIN tool_calls tc ON s.session_id = tc.session_id
+                   AND tc.timestamp >= ?1
+                 WHERE {session_filter}
+                 GROUP BY COALESCE(s.user, 'local')"
+            );
+            let mut stmt2 = conn.prepare(&sql2)?;
+            let tc_map: std::collections::HashMap<String, i64> = stmt2
+                .query_map(params_ref.as_slice(), |r| {
+                    Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?))
+                })?
+                .flatten()
+                .collect();
+            for u in &mut rows {
+                u.tool_calls = *tc_map.get(&u.user).unwrap_or(&0);
             }
-            None => {
-                let mut stmt = conn.prepare(
-                    "SELECT DATE(timestamp),
-                            COALESCE(SUM(input_tokens),0),
-                            COALESCE(SUM(output_tokens),0),
-                            COALESCE(SUM(cache_creation_tokens),0),
-                            COALESCE(SUM(cache_read_tokens),0),
-                            COALESCE(SUM(cost_usd),0.0)
-                     FROM token_events
-                     WHERE timestamp >= ?1
-                     GROUP BY DATE(timestamp)
-                     ORDER BY DATE(timestamp)",
-                )?;
-                let rows: Vec<DailyStats> = stmt
-                    .query_map(params![cutoff], |r| {
-                        Ok(DailyStats {
-                            date: r.get(0)?,
-                            input_tokens: r.get(1)?,
-                            output_tokens: r.get(2)?,
-                            cache_creation_tokens: r.get(3)?,
-                            cache_read_tokens: r.get(4)?,
-                            cost_usd: r.get(5)?,
-                        })
-                    })?
-                    .flatten()
-                    .collect();
-                rows
-            }
+            rows
         };
 
         Ok(StatsResponse {
@@ -656,6 +767,7 @@ impl StatsPort for SqliteRepository {
             generated_at,
             overview,
             projects,
+            users,
             daily,
         })
     }
@@ -734,78 +846,147 @@ impl InsightStatePort for SqliteRepository {
 }
 
 impl TrendDataPort for SqliteRepository {
-    fn daily_cost_per_session(&self, lookback_days: u32) -> Result<Vec<DailyDataPoint>> {
+    fn daily_cost_per_session(
+        &self,
+        lookback_days: u32,
+        user: Option<&str>,
+    ) -> Result<Vec<DailyDataPoint>> {
         let conn = self.conn.lock().unwrap();
         let cutoff =
             (chrono::Utc::now() - chrono::Duration::days(lookback_days as i64)).to_rfc3339();
-        let mut stmt = conn.prepare(
+        let user_join = if user.is_some() {
+            " JOIN sessions s ON te.session_id = s.session_id"
+        } else {
+            ""
+        };
+        let user_cond = if user.is_some() {
+            " AND s.user = ?2"
+        } else {
+            ""
+        };
+        let sql = format!(
             "SELECT DATE(te.timestamp) AS day,
                     COALESCE(SUM(te.cost_usd), 0.0) / MAX(1, COUNT(DISTINCT te.session_id))
-             FROM token_events te
-             WHERE te.timestamp >= ?1
+             FROM token_events te{user_join}
+             WHERE te.timestamp >= ?1{user_cond}
              GROUP BY DATE(te.timestamp)
-             ORDER BY day",
-        )?;
-        let rows = stmt
-            .query_map(params![cutoff], |r| {
+             ORDER BY day"
+        );
+        let mut stmt = conn.prepare(&sql)?;
+        let rows: Vec<DailyDataPoint> = if let Some(u) = user {
+            stmt.query_map(params![cutoff, u], |r| {
                 Ok(DailyDataPoint {
                     date: r.get(0)?,
                     value: r.get(1)?,
                 })
             })?
             .flatten()
-            .collect();
+            .collect()
+        } else {
+            stmt.query_map(params![cutoff], |r| {
+                Ok(DailyDataPoint {
+                    date: r.get(0)?,
+                    value: r.get(1)?,
+                })
+            })?
+            .flatten()
+            .collect()
+        };
         Ok(rows)
     }
 
-    fn daily_cache_hit_ratio(&self, lookback_days: u32) -> Result<Vec<DailyDataPoint>> {
+    fn daily_cache_hit_ratio(
+        &self,
+        lookback_days: u32,
+        user: Option<&str>,
+    ) -> Result<Vec<DailyDataPoint>> {
         let conn = self.conn.lock().unwrap();
         let cutoff =
             (chrono::Utc::now() - chrono::Duration::days(lookback_days as i64)).to_rfc3339();
-        let mut stmt = conn.prepare(
+        let user_join = if user.is_some() {
+            " JOIN sessions s ON te.session_id = s.session_id"
+        } else {
+            ""
+        };
+        let user_cond = if user.is_some() {
+            " AND s.user = ?2"
+        } else {
+            ""
+        };
+        let sql = format!(
             "SELECT DATE(te.timestamp) AS day,
                     CAST(COALESCE(SUM(te.cache_read_tokens), 0) AS REAL) /
                       MAX(1, COALESCE(SUM(te.input_tokens), 0) + COALESCE(SUM(te.cache_read_tokens), 0))
-             FROM token_events te
-             WHERE te.timestamp >= ?1
+             FROM token_events te{user_join}
+             WHERE te.timestamp >= ?1{user_cond}
              GROUP BY DATE(te.timestamp)
-             ORDER BY day",
-        )?;
-        let rows = stmt
-            .query_map(params![cutoff], |r| {
+             ORDER BY day"
+        );
+        let mut stmt = conn.prepare(&sql)?;
+        let rows: Vec<DailyDataPoint> = if let Some(u) = user {
+            stmt.query_map(params![cutoff, u], |r| {
                 Ok(DailyDataPoint {
                     date: r.get(0)?,
                     value: r.get(1)?,
                 })
             })?
             .flatten()
-            .collect();
+            .collect()
+        } else {
+            stmt.query_map(params![cutoff], |r| {
+                Ok(DailyDataPoint {
+                    date: r.get(0)?,
+                    value: r.get(1)?,
+                })
+            })?
+            .flatten()
+            .collect()
+        };
         Ok(rows)
     }
 
     fn daily_tool_error_rates(
         &self,
         lookback_days: u32,
+        user: Option<&str>,
     ) -> Result<Vec<(String, Vec<DailyDataPoint>)>> {
         let conn = self.conn.lock().unwrap();
         let cutoff =
             (chrono::Utc::now() - chrono::Duration::days(lookback_days as i64)).to_rfc3339();
-        let mut stmt = conn.prepare(
+        let user_join = if user.is_some() {
+            " JOIN sessions s ON tc.session_id = s.session_id"
+        } else {
+            ""
+        };
+        let user_cond = if user.is_some() {
+            " AND s.user = ?2"
+        } else {
+            ""
+        };
+        let sql = format!(
             "SELECT DATE(tc.timestamp) AS day,
                     tc.tool_name,
                     COUNT(*) AS total_calls,
                     SUM(tc.is_error) AS error_calls
-             FROM tool_calls tc
-             WHERE tc.timestamp >= ?1
+             FROM tool_calls tc{user_join}
+             WHERE tc.timestamp >= ?1{user_cond}
              GROUP BY DATE(tc.timestamp), tc.tool_name
-             ORDER BY tc.tool_name, day",
-        )?;
-        let rows: Vec<(String, String, i64, i64)> = stmt
-            .query_map(params![cutoff], |r| {
+             ORDER BY tc.tool_name, day"
+        );
+        let mut stmt = conn.prepare(&sql)?;
+        let rows: Vec<(String, String, i64, i64)> = if let Some(u) = user {
+            stmt.query_map(params![cutoff, u], |r| {
                 Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))
             })?
             .flatten()
-            .collect();
+            .collect()
+        } else {
+            stmt.query_map(params![cutoff], |r| {
+                Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?))
+            })?
+            .flatten()
+            .collect()
+        };
 
         // ツール名でグルーピング
         let mut map: std::collections::BTreeMap<String, Vec<DailyDataPoint>> =
@@ -861,6 +1042,7 @@ mod tests {
         Session {
             session_id: id.to_string(),
             project: project.to_string(),
+            user: "test-user".to_string(),
             cwd: None,
             git_branch: None,
             model: Some("claude-sonnet-4-6".to_string()),
@@ -1108,7 +1290,7 @@ mod tests {
                 .unwrap();
             r.insert_tool_call(&tool_call("s1", "Bash", false)).unwrap();
 
-            let stats = r.query_stats(None, None).unwrap();
+            let stats = r.query_stats(None, None, None).unwrap();
             assert_eq!(stats.overview.total_sessions, 1);
             assert_eq!(stats.overview.input_tokens, 100);
             assert_eq!(stats.overview.output_tokens, 50);
@@ -1134,7 +1316,7 @@ mod tests {
             r.insert_token_event(&token_ev_at("s2", 999, 999, 0, 9.999, old()))
                 .unwrap();
 
-            let stats = r.query_stats(Some(7), None).unwrap();
+            let stats = r.query_stats(Some(7), None, None).unwrap();
             assert_eq!(
                 stats.overview.total_sessions, 1,
                 "old session should be excluded"
@@ -1158,7 +1340,7 @@ mod tests {
             r.insert_token_event(&token_ev("s2", 999, 999, 9.999))
                 .unwrap();
 
-            let stats = r.query_stats(None, Some("alpha")).unwrap();
+            let stats = r.query_stats(None, Some("alpha"), None).unwrap();
             assert_eq!(
                 stats.overview.input_tokens, 100,
                 "beta tokens must not appear"
@@ -1177,7 +1359,7 @@ mod tests {
             r.insert_token_event(&token_ev_at("s1", 100, 0, 100, 0.0, "2026-01-01T00:00:00Z"))
                 .unwrap();
 
-            let stats = r.query_stats(None, None).unwrap();
+            let stats = r.query_stats(None, None, None).unwrap();
             assert!(
                 (stats.overview.cache_hit_ratio - 0.5).abs() < 1e-9,
                 "expected 0.5, got {}",
@@ -1198,7 +1380,7 @@ mod tests {
             r.insert_token_event(&token_ev_at("s1", 50, 0, 0, 0.0015, "2026-03-26T08:00:00Z"))
                 .unwrap();
 
-            let stats = r.query_stats(None, None).unwrap();
+            let stats = r.query_stats(None, None, None).unwrap();
             let daily = &stats.daily;
             assert_eq!(daily.len(), 2, "should have 2 distinct dates");
 
@@ -1222,7 +1404,7 @@ mod tests {
             r.insert_tool_call(&tool_call_at("s1", "Read", true, old()))
                 .unwrap(); // 古いエラー（除外されるべき）
 
-            let stats = r.query_stats(Some(7), None).unwrap();
+            let stats = r.query_stats(Some(7), None, None).unwrap();
             assert_eq!(
                 stats.overview.tool_calls, 1,
                 "old tool call should be excluded"
@@ -1375,7 +1557,7 @@ mod tests {
             r.insert_token_event(&token_ev_at("s1", 100, 50, 0, 4.0, "2026-03-28T10:00:00Z"))
                 .unwrap();
 
-            let points = r.daily_cost_per_session(30).unwrap();
+            let points = r.daily_cost_per_session(30, None).unwrap();
             assert_eq!(points.len(), 3);
             // day1: $5 / 1 session = $5
             assert!((points[0].value - 5.0).abs() < 1e-9);
@@ -1390,7 +1572,7 @@ mod tests {
     fn daily_cost_per_session_empty_when_no_events() {
         let r = repo();
         r.with_rollback(|r| {
-            let points = r.daily_cost_per_session(30).unwrap();
+            let points = r.daily_cost_per_session(30, None).unwrap();
             assert!(points.is_empty());
         });
     }
@@ -1421,7 +1603,7 @@ mod tests {
             ))
             .unwrap();
 
-            let points = r.daily_cache_hit_ratio(30).unwrap();
+            let points = r.daily_cache_hit_ratio(30, None).unwrap();
             assert_eq!(points.len(), 2);
             assert!((points[0].value - 0.9).abs() < 1e-9);
             assert!((points[1].value - 0.5).abs() < 1e-9);
@@ -1449,7 +1631,7 @@ mod tests {
             r.insert_tool_call(&tool_call_at("s1", "Grep", true, "2026-03-28T10:00:00Z"))
                 .unwrap();
 
-            let result = r.daily_tool_error_rates(30).unwrap();
+            let result = r.daily_tool_error_rates(30, None).unwrap();
             assert_eq!(result.len(), 1);
             assert_eq!(result[0].0, "Grep");
             assert_eq!(result[0].1.len(), 2);

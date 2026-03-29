@@ -13,6 +13,7 @@ pub struct ScanLogsUseCase {
     session_port: Arc<dyn SessionPort>,
     event_port: Arc<dyn EventPort>,
     log_dir: PathBuf,
+    user: String,
 }
 
 impl ScanLogsUseCase {
@@ -20,11 +21,13 @@ impl ScanLogsUseCase {
         session_port: Arc<dyn SessionPort>,
         event_port: Arc<dyn EventPort>,
         log_dir: PathBuf,
+        user: String,
     ) -> Self {
         Self {
             session_port,
             event_port,
             log_dir,
+            user,
         }
     }
 
@@ -56,6 +59,7 @@ impl ScanLogsUseCase {
                 if let Err(e) = scan_file(
                     &file_path,
                     &project_name,
+                    &self.user,
                     self.session_port.as_ref(),
                     self.event_port.as_ref(),
                 ) {
@@ -86,7 +90,12 @@ mod tests {
 
     fn use_case(dir: &std::path::Path) -> (Arc<SqliteRepository>, ScanLogsUseCase) {
         let r = repo();
-        let uc = ScanLogsUseCase::new(r.clone(), r.clone(), dir.to_path_buf());
+        let uc = ScanLogsUseCase::new(
+            r.clone(),
+            r.clone(),
+            dir.to_path_buf(),
+            "test-user".to_string(),
+        );
         (r, uc)
     }
 

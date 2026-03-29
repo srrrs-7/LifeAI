@@ -214,7 +214,7 @@ impl InsightAnalysisUseCase {
         // P1: セッション単価の上昇トレンド
         let cost_points = self
             .trend_port
-            .daily_cost_per_session(TREND_LOOKBACK_DAYS)?;
+            .daily_cost_per_session(TREND_LOOKBACK_DAYS, None)?;
         if let Some(t) = trend::linear_regression(&cost_points) {
             // Warn: 7日以内に $10 超え予測
             if let Some(days) =
@@ -259,7 +259,9 @@ impl InsightAnalysisUseCase {
         }
 
         // P2: キャッシュヒット率の低下トレンド
-        let cache_points = self.trend_port.daily_cache_hit_ratio(TREND_LOOKBACK_DAYS)?;
+        let cache_points = self
+            .trend_port
+            .daily_cache_hit_ratio(TREND_LOOKBACK_DAYS, None)?;
         if let Some(t) = trend::linear_regression(&cache_points) {
             // Warn: 7日以内に 90% 割れ予測
             if let Some(days) =
@@ -306,7 +308,7 @@ impl InsightAnalysisUseCase {
         // P3: ツール別エラー率の上昇トレンド
         let tool_rates = self
             .trend_port
-            .daily_tool_error_rates(TREND_LOOKBACK_DAYS)?;
+            .daily_tool_error_rates(TREND_LOOKBACK_DAYS, None)?;
         for (tool_name, points) in &tool_rates {
             if let Some(t) = trend::linear_regression(points) {
                 // Warn: 7日以内に 5% 超え予測
@@ -446,13 +448,25 @@ mod tests {
     }
 
     impl TrendDataPort for MockTrendData {
-        fn daily_cost_per_session(&self, _: u32) -> Result<Vec<DailyDataPoint>> {
+        fn daily_cost_per_session(
+            &self,
+            _: u32,
+            _user: Option<&str>,
+        ) -> Result<Vec<DailyDataPoint>> {
             Ok(self.cost.clone())
         }
-        fn daily_cache_hit_ratio(&self, _: u32) -> Result<Vec<DailyDataPoint>> {
+        fn daily_cache_hit_ratio(
+            &self,
+            _: u32,
+            _user: Option<&str>,
+        ) -> Result<Vec<DailyDataPoint>> {
             Ok(self.cache.clone())
         }
-        fn daily_tool_error_rates(&self, _: u32) -> Result<Vec<(String, Vec<DailyDataPoint>)>> {
+        fn daily_tool_error_rates(
+            &self,
+            _: u32,
+            _user: Option<&str>,
+        ) -> Result<Vec<(String, Vec<DailyDataPoint>)>> {
             Ok(self.tools.clone())
         }
     }

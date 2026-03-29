@@ -15,6 +15,7 @@ pub struct IngestOtlpUseCase {
     session_port: Arc<dyn SessionPort>,
     event_port: Arc<dyn EventPort>,
     otlp_port: Arc<dyn OtlpPort>,
+    default_user: String,
 }
 
 impl IngestOtlpUseCase {
@@ -22,11 +23,13 @@ impl IngestOtlpUseCase {
         session_port: Arc<dyn SessionPort>,
         event_port: Arc<dyn EventPort>,
         otlp_port: Arc<dyn OtlpPort>,
+        default_user: String,
     ) -> Self {
         Self {
             session_port,
             event_port,
             otlp_port,
+            default_user,
         }
     }
 
@@ -58,9 +61,12 @@ impl IngestOtlpUseCase {
             // セッションを仮登録（ログ解析結果があれば上書きされる）
             // project は OTLP 属性から取得、なければ "otlp" にフォールバック
             let project = ev.project.clone().unwrap_or_else(|| "otlp".to_string());
+            // user は resource attributes の user.name、なければ default_user
+            let user = ev.user.clone().unwrap_or_else(|| self.default_user.clone());
             let _ = self.session_port.upsert_session(&Session {
                 session_id: session_id.clone(),
                 project,
+                user,
                 cwd: None,
                 git_branch: None,
                 model: ev.model.clone(),
