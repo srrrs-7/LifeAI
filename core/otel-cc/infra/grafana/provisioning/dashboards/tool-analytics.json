@@ -359,7 +359,7 @@
     {
       "id": 8,
       "title": "Tool Error Rate Ranking",
-      "description": "Error rate per tool. >10% on a frequently-used tool is an anti-pattern.",
+      "description": "Error rate per tool (≥10 calls only). >10% on a frequently-used tool is an anti-pattern.",
       "type": "bargauge",
       "datasource": {
         "type": "prometheus",
@@ -412,7 +412,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sort_desc(cc_tool_errors_total / cc_tool_calls_total)",
+          "expr": "sort_desc((cc_tool_errors_total / cc_tool_calls_total) and (cc_tool_calls_total >= 10))",
           "legendFormat": "{{tool}}"
         }
       ]
