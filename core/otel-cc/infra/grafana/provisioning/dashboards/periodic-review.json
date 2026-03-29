@@ -957,10 +957,38 @@
   "annotations": {
     "list": []
   },
-  "links": [],
+  "links": [
+    {
+      "title": "Claude Code Monitor",
+      "type": "link",
+      "url": "/d/claude-code-monitor",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "apps"
+    },
+    {
+      "title": "Cost Management",
+      "type": "link",
+      "url": "/d/cc-cost-management",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "bolt"
+    },
+    {
+      "title": "Anomaly Detection",
+      "type": "link",
+      "url": "/d/cc-anomaly-detection",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "bell"
+    }
+  ],
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "liveNow": false,
-  "tags": []
+  "tags": [
+    "metrics",
+    "review"
+  ]
 }

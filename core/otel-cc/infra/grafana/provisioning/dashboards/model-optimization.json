@@ -295,7 +295,7 @@
               },
               {
                 "color": "yellow",
-                "value": 0.80
+                "value": 0.8
               },
               {
                 "color": "green",
@@ -638,8 +638,36 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "links": [],
+  "links": [
+    {
+      "title": "Claude Code Monitor",
+      "type": "link",
+      "url": "/d/claude-code-monitor",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "apps"
+    },
+    {
+      "title": "Cost Management",
+      "type": "link",
+      "url": "/d/cc-cost-management",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "bolt"
+    },
+    {
+      "title": "Periodic Review",
+      "type": "link",
+      "url": "/d/cc-periodic-review",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "calendar-alt"
+    }
+  ],
   "liveNow": false,
-  "tags": [],
+  "tags": [
+    "metrics",
+    "model"
+  ],
   "timezone": ""
 }

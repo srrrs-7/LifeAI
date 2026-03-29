@@ -374,7 +374,7 @@
     },
     {
       "id": 10,
-      "title": "Trends",
+      "title": "Metrics: Cost & Token Trends",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -617,6 +617,18 @@
       ]
     },
     {
+      "id": 15,
+      "title": "Metrics: Efficiency Indicators",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
       "id": 13,
       "title": "Efficiency: Cache Rate vs Compression Frequency",
       "description": "Left axis: cache hit rate (higher = better). Right axis: context compression count per hour (lower = better). An inverse correlation between the two is a healthy sign.",
@@ -627,7 +639,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 24,
+        "y": 25,
         "w": 12,
         "h": 14
       },
@@ -757,7 +769,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 24,
+        "y": 25,
         "w": 12,
         "h": 14
       },
@@ -817,12 +829,12 @@
     },
     {
       "id": 20,
-      "title": "Tool Details",
+      "title": "Logs: Tool Activity",
       "type": "row",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 38,
+        "y": 39,
         "w": 24,
         "h": 1
       }
@@ -838,7 +850,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 39,
+        "y": 40,
         "w": 14,
         "h": 14
       },
@@ -930,7 +942,7 @@
       },
       "gridPos": {
         "x": 14,
-        "y": 39,
+        "y": 40,
         "w": 10,
         "h": 14
       },
@@ -984,277 +996,15 @@
     },
     {
       "id": 30,
-      "title": "Project Details",
+      "title": "Metrics: Project Summary",
       "type": "row",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 53,
+        "y": 54,
         "w": 24,
         "h": 1
       }
-    },
-    {
-      "id": 31,
-      "title": "Cost by Project (USD)",
-      "type": "bargauge",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 54,
-        "w": 8,
-        "h": 14
-      },
-      "options": {
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "displayMode": "gradient",
-        "showUnfilled": true
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyUSD",
-          "decimals": 4,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 2
-              },
-              {
-                "color": "red",
-                "value": 10
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sort_desc(cc_project_cost_usd)",
-          "legendFormat": "{{project}}"
-        }
-      ],
-      "description": "Total accumulated cost per project."
-    },
-    {
-      "id": 32,
-      "title": "Cost per Session (USD/session)",
-      "description": "Total cost divided by number of sessions per project. High values may indicate inefficient task design or excessive trial-and-error within sessions.",
-      "type": "bargauge",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 8,
-        "y": 54,
-        "w": 8,
-        "h": 14
-      },
-      "options": {
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "displayMode": "gradient",
-        "showUnfilled": true
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyUSD",
-          "decimals": 4,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.5
-              },
-              {
-                "color": "red",
-                "value": 2
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_project_cost_usd / (cc_project_sessions_total > 0)",
-          "legendFormat": "{{project}}"
-        }
-      ]
-    },
-    {
-      "id": 33,
-      "title": "Token Composition (Overall)",
-      "description": "Breakdown of input / output / cache_read / cache_create tokens. A larger cache_read share indicates better cost efficiency through cache reuse.",
-      "type": "piechart",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 16,
-        "y": 54,
-        "w": 8,
-        "h": 14
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "pieType": "donut",
-        "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "values": [
-            "percent"
-          ]
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Input"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "blue"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Output"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "green"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Cache Read"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "purple"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Cache Create"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "light-purple"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_tokens_total{type=\"input\"}",
-          "legendFormat": "Input"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_tokens_total{type=\"output\"}",
-          "legendFormat": "Output"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_tokens_total{type=\"cache_read\"}",
-          "legendFormat": "Cache Read"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_tokens_total{type=\"cache_create\"}",
-          "legendFormat": "Cache Create"
-        }
-      ]
     },
     {
       "id": 34,
@@ -1267,7 +1017,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 55,
         "w": 24,
         "h": 10
       },
@@ -1417,947 +1167,13 @@
       ]
     },
     {
-      "id": 40,
-      "title": "Rankings",
-      "type": "row",
-      "collapsed": false,
-      "gridPos": {
-        "x": 0,
-        "y": 78,
-        "w": 24,
-        "h": 1
-      }
-    },
-    {
-      "id": 41,
-      "title": "Top 15 Tool Usage",
-      "description": "Most-called tools by cumulative count. Reveals tool overuse patterns such as heavy Bash/Read reliance or unexpectedly frequent Agent calls.",
-      "type": "bargauge",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 79,
-        "w": 12,
-        "h": 14
-      },
-      "options": {
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "displayMode": "gradient",
-        "showUnfilled": true
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 10
-              },
-              {
-                "color": "yellow",
-                "value": 100
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "topk(15, cc_tool_calls_total)",
-          "legendFormat": "{{tool}}"
-        }
-      ]
-    },
-    {
-      "id": 42,
-      "title": "Tool Usage by Project",
-      "description": "Cumulative tool calls per project. Use this to compare workload and tool-usage patterns across projects.",
-      "type": "bargauge",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 79,
-        "w": 12,
-        "h": 14
-      },
-      "options": {
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "displayMode": "gradient",
-        "showUnfilled": true
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 50
-              },
-              {
-                "color": "yellow",
-                "value": 500
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sort_desc(cc_project_tool_calls_total)",
-          "legendFormat": "{{project}}"
-        }
-      ]
-    },
-    {
-      "id": 43,
-      "title": "Sessions by Entrypoint",
-      "description": "'cli' = direct launch; slash command names = skill-based entry. Shows which skills drive the most sessions.",
-      "type": "bargauge",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 93,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "displayMode": "gradient",
-        "showUnfilled": true
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 5
-              },
-              {
-                "color": "yellow",
-                "value": 20
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sort_desc(cc_entrypoint_sessions_total)",
-          "legendFormat": "{{entrypoint}}"
-        }
-      ]
-    },
-    {
-      "id": 50,
-      "type": "row",
-      "title": "Insights",
-      "collapsed": false,
-      "gridPos": {
-        "x": 0,
-        "y": 107,
-        "w": 24,
-        "h": 1
-      }
-    },
-    {
-      "id": 51,
-      "type": "stat",
-      "title": "Cost per Session",
-      "gridPos": {
-        "x": 0,
-        "y": 108,
-        "w": 8,
-        "h": 8
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyUSD",
-          "decimals": 2,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 8
-              },
-              {
-                "color": "red",
-                "value": 15
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_cost_usd_total / clamp_min(cc_sessions_total, 1)",
-          "legendFormat": "$/session"
-        }
-      ],
-      "description": "Total cost divided by session count. Reflects overall session efficiency. Good: <$8 | Warning: $8–$15 | Alert: >$15."
-    },
-    {
-      "id": 52,
-      "type": "gauge",
-      "title": "Cache Efficiency",
-      "gridPos": {
-        "x": 8,
-        "y": 108,
-        "w": 8,
-        "h": 8
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 1,
-          "min": 0,
-          "max": 100,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 80
-              },
-              {
-                "color": "green",
-                "value": 95
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_cache_hit_ratio * 100",
-          "legendFormat": "cache hit %"
-        }
-      ],
-      "description": "Cache hit ratio as a percentage. Low values mean the prompt cache is being rebuilt each session — use --continue/--resume to reuse it. Good: ≥95% | Warning: 80–95% | Alert: <80%."
-    },
-    {
-      "id": 53,
-      "type": "stat",
-      "title": "Output/Input Token Ratio",
-      "gridPos": {
-        "x": 16,
-        "y": 108,
-        "w": 8,
-        "h": 8
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 2,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 5
-              },
-              {
-                "color": "red",
-                "value": 10
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_tokens_total{type=\"output\"} / ignoring(type) clamp_min(cc_tokens_total{type=\"input\"}, 1)",
-          "legendFormat": "output/input"
-        }
-      ],
-      "description": "Ratio of output tokens to input tokens. A high ratio means Claude is generating very verbose responses. Good: <5 | Warning: 5–10 | Alert: >10."
-    },
-    {
-      "id": 54,
-      "type": "table",
-      "title": "Error Rate by Tool",
-      "gridPos": {
-        "x": 0,
-        "y": 116,
-        "w": 24,
-        "h": 10
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "showHeader": true,
-        "sortBy": [
-          {
-            "displayName": "エラー率 (%)",
-            "desc": true
-          }
-        ],
-        "footer": {
-          "show": false
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 1,
-          "custom": {
-            "align": "auto",
-            "displayMode": "color-background",
-            "inspect": false
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 5
-              },
-              {
-                "color": "red",
-                "value": 10
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "tool"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "ツール名"
-              },
-              {
-                "id": "custom.width",
-                "value": 200
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "auto"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "エラー率 (%)"
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-background"
-              }
-            ]
-          }
-        ]
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sort_desc(cc_tool_errors_total / clamp_min(cc_tool_calls_total, 1) * 100)",
-          "legendFormat": "{{tool}}",
-          "format": "table"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "filterFieldsByName",
-          "options": {
-            "include": {
-              "names": [
-                "tool",
-                "Value"
-              ]
-            }
-          }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": [
-              {
-                "displayName": "Value",
-                "desc": true
-              }
-            ]
-          }
-        }
-      ],
-      "description": "Error rate per tool. Consistently high error rates on a specific tool indicate repeated failed exploration — delegate to an Explore agent after 2–3 failures. Good: <5% | Warning: 5–10% | Alert: >10%."
-    },
-    {
-      "id": 60,
-      "type": "row",
-      "title": "Session Efficiency Analysis",
-      "collapsed": false,
-      "gridPos": {
-        "x": 0,
-        "y": 126,
-        "w": 24,
-        "h": 1
-      }
-    },
-    {
-      "id": 61,
-      "type": "stat",
-      "title": "Context Compression / Session",
-      "description": "Average number of context compression events per session. High values indicate sessions with long trial-and-error chains that exceeded the context window. Good: <0.2.",
-      "gridPos": {
-        "x": 0,
-        "y": 127,
-        "w": 6,
-        "h": 8
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "auto"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 2,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.2
-              },
-              {
-                "color": "red",
-                "value": 0.5
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_compression_events_total / clamp_min(cc_sessions_total, 1)",
-          "legendFormat": "圧縮/セッション"
-        }
-      ]
-    },
-    {
-      "id": 62,
-      "type": "stat",
-      "title": "Cost / Tool Call",
-      "description": "Average cost per tool invocation. High values indicate that each operation is generating large amounts of output. Good: <$0.05 | Caution: $0.05–$0.20 | Alert: >$0.20.",
-      "gridPos": {
-        "x": 6,
-        "y": 127,
-        "w": 6,
-        "h": 8
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "auto"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyUSD",
-          "decimals": 4,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.05
-              },
-              {
-                "color": "red",
-                "value": 0.2
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_cost_usd_total / on() clamp_min(sum(cc_tool_calls_total), 1)",
-          "legendFormat": "$/ツール呼び出し"
-        }
-      ]
-    },
-    {
-      "id": 63,
-      "type": "stat",
-      "title": "Overall Tool Error Rate",
-      "description": "Percentage of all tool calls that resulted in errors. A high value indicates Claude is repeatedly attempting incorrect approaches. Good: <5%.",
-      "gridPos": {
-        "x": 12,
-        "y": 127,
-        "w": 6,
-        "h": 8
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "auto"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "decimals": 1,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.05
-              },
-              {
-                "color": "red",
-                "value": 0.1
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_tool_error_rate",
-          "legendFormat": "エラー率"
-        }
-      ]
-    },
-    {
-      "id": 64,
-      "type": "stat",
-      "title": "Total Compression Events",
-      "description": "Cumulative number of context window compression events. Each event represents a context truncation, meaning earlier conversation history was discarded.",
-      "gridPos": {
-        "x": 18,
-        "y": 127,
-        "w": 6,
-        "h": 8
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "auto"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 3
-              },
-              {
-                "color": "red",
-                "value": 10
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "cc_compression_events_total",
-          "legendFormat": "圧縮イベント"
-        }
-      ]
-    },
-    {
-      "id": 65,
-      "type": "bargauge",
-      "title": "Cost per Session by Project",
-      "description": "Cost per session for each project, sorted descending. Projects with high values may have more intent mismatches, poor upfront planning, or excessive trial-and-error. Good: <$8.",
-      "gridPos": {
-        "x": 0,
-        "y": 135,
-        "w": 12,
-        "h": 14
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "horizontal",
-        "displayMode": "gradient",
-        "valueMode": "color",
-        "showUnfilled": true
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyUSD",
-          "decimals": 2,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 8
-              },
-              {
-                "color": "red",
-                "value": 15
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sort_desc(cc_project_cost_usd / clamp_min(cc_project_sessions_total, 1))",
-          "legendFormat": "{{project}}"
-        }
-      ]
-    },
-    {
-      "id": 66,
-      "type": "bargauge",
-      "title": "Cost per Tool Call by Project",
-      "description": "Cost per tool invocation for each project. High values often result from large code generation outputs or overly verbose responses per call. Good: <$0.05.",
-      "gridPos": {
-        "x": 12,
-        "y": 135,
-        "w": 12,
-        "h": 14
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "horizontal",
-        "displayMode": "gradient",
-        "valueMode": "color",
-        "showUnfilled": true
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "currencyUSD",
-          "decimals": 4,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.05
-              },
-              {
-                "color": "red",
-                "value": 0.2
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sort_desc(cc_project_cost_usd / clamp_min(cc_project_tool_calls_total, 1))",
-          "legendFormat": "{{project}}"
-        }
-      ]
-    },
-    {
       "id": 67,
-      "title": "Team Overview",
+      "title": "Metrics: Team Overview",
       "type": "row",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 149,
+        "y": 65,
         "w": 24,
         "h": 1
       }
@@ -2372,7 +1188,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 150,
+        "y": 66,
         "w": 6,
         "h": 8
       },
@@ -2396,7 +1212,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -2426,7 +1244,7 @@
       },
       "gridPos": {
         "x": 6,
-        "y": 150,
+        "y": 66,
         "w": 6,
         "h": 8
       },
@@ -2470,7 +1288,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 150,
+        "y": 66,
         "w": 6,
         "h": 8
       },
@@ -2493,7 +1311,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -2522,7 +1342,7 @@
       },
       "gridPos": {
         "x": 18,
-        "y": 150,
+        "y": 66,
         "w": 6,
         "h": 8
       },
@@ -2562,6 +1382,59 @@
           "legendFormat": "{{user}}"
         }
       ]
+    }
+  ],
+  "tags": [
+    "overview"
+  ],
+  "links": [
+    {
+      "title": "Cost Management",
+      "type": "link",
+      "url": "/d/cc-cost-management",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "bolt"
+    },
+    {
+      "title": "Session Efficiency",
+      "type": "link",
+      "url": "/d/cc-session-efficiency",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "dashboard"
+    },
+    {
+      "title": "Tool Analytics",
+      "type": "link",
+      "url": "/d/cc-tool-analytics",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "cog"
+    },
+    {
+      "title": "Model Optimization",
+      "type": "link",
+      "url": "/d/cc-model-optimization",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "graph-bar"
+    },
+    {
+      "title": "Periodic Review",
+      "type": "link",
+      "url": "/d/cc-periodic-review",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "calendar-alt"
+    },
+    {
+      "title": "Anomaly Detection",
+      "type": "link",
+      "url": "/d/cc-anomaly-detection",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "bell"
     }
   ]
 }

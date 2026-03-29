@@ -351,7 +351,7 @@
               },
               {
                 "color": "red",
-                "value": 0.20
+                "value": 0.2
               }
             ]
           },
@@ -409,7 +409,7 @@
               },
               {
                 "color": "yellow",
-                "value": 0.80
+                "value": 0.8
               },
               {
                 "color": "green",
@@ -867,6 +867,36 @@
           "legendFormat": "Compressions/h"
         }
       ]
+    }
+  ],
+  "tags": [
+    "metrics",
+    "efficiency"
+  ],
+  "links": [
+    {
+      "title": "Claude Code Monitor",
+      "type": "link",
+      "url": "/d/claude-code-monitor",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "apps"
+    },
+    {
+      "title": "Cost Management",
+      "type": "link",
+      "url": "/d/cc-cost-management",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "bolt"
+    },
+    {
+      "title": "Tool Analytics",
+      "type": "link",
+      "url": "/d/cc-tool-analytics",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "cog"
     }
   ]
 }

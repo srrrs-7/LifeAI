@@ -221,7 +221,7 @@
               },
               {
                 "color": "red",
-                "value": 0.10
+                "value": 0.1
               }
             ]
           }
@@ -400,7 +400,7 @@
               },
               {
                 "color": "red",
-                "value": 0.10
+                "value": 0.1
               }
             ]
           }
@@ -651,8 +651,36 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "links": [],
+  "links": [
+    {
+      "title": "Claude Code Monitor",
+      "type": "link",
+      "url": "/d/claude-code-monitor",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "apps"
+    },
+    {
+      "title": "Session Efficiency",
+      "type": "link",
+      "url": "/d/cc-session-efficiency",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "dashboard"
+    },
+    {
+      "title": "Anomaly Detection",
+      "type": "link",
+      "url": "/d/cc-anomaly-detection",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "bell"
+    }
+  ],
   "liveNow": false,
-  "tags": [],
+  "tags": [
+    "logs",
+    "tools"
+  ],
   "style": "dark"
 }

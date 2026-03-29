@@ -393,7 +393,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [10, 5]
+                  "dash": [
+                    10,
+                    5
+                  ]
                 }
               },
               {
@@ -419,7 +422,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [5, 5]
+                  "dash": [
+                    5,
+                    5
+                  ]
                 }
               },
               {
@@ -445,7 +451,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [5, 5]
+                  "dash": [
+                    5,
+                    5
+                  ]
                 }
               },
               {
@@ -571,7 +580,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [10, 5]
+                  "dash": [
+                    10,
+                    5
+                  ]
                 }
               },
               {
@@ -593,7 +605,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [5, 5]
+                  "dash": [
+                    5,
+                    5
+                  ]
                 }
               },
               {
@@ -701,7 +716,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [10, 5]
+                  "dash": [
+                    10,
+                    5
+                  ]
                 }
               },
               {
@@ -723,7 +741,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [5, 5]
+                  "dash": [
+                    5,
+                    5
+                  ]
                 }
               },
               {
@@ -841,7 +862,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [5, 5]
+                  "dash": [
+                    5,
+                    5
+                  ]
                 }
               },
               {
@@ -939,7 +963,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [5, 5]
+                  "dash": [
+                    5,
+                    5
+                  ]
                 }
               },
               {
@@ -961,7 +988,10 @@
                 "id": "custom.lineStyle",
                 "value": {
                   "fill": "dash",
-                  "dash": [5, 5]
+                  "dash": [
+                    5,
+                    5
+                  ]
                 }
               },
               {
@@ -1001,6 +1031,37 @@
           "legendFormat": "Alert"
         }
       ]
+    }
+  ],
+  "tags": [
+    "metrics",
+    "logs",
+    "anomaly"
+  ],
+  "links": [
+    {
+      "title": "Claude Code Monitor",
+      "type": "link",
+      "url": "/d/claude-code-monitor",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "apps"
+    },
+    {
+      "title": "Tool Analytics",
+      "type": "link",
+      "url": "/d/cc-tool-analytics",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "cog"
+    },
+    {
+      "title": "Session Efficiency",
+      "type": "link",
+      "url": "/d/cc-session-efficiency",
+      "targetBlank": false,
+      "tags": [],
+      "icon": "dashboard"
     }
   ]
 }
