@@ -13,21 +13,19 @@ ultrathink
 
 otel-cc の `/api/stats` API から取得した統計データを分析し、Claude Code の使い方に関する KPI 評価・トレンド分析・改善提案をターミナル上に Markdown レポートとして出力する。
 
-## Live Context
-
-- 対象期間: !`echo "${ARGUMENTS:-3}"` 日間
-- データ取得元: `http://localhost:9091/api/stats`
-- 統計データ: !`curl -s "http://localhost:9091/api/stats?period=${ARGUMENTS:-3}" 2>&1 || echo "ERROR: otel-cc に接続できません"`
-
 ## Steps
 
-### Step 1: 引数パース
+### Step 1: 引数パースとデータ取得
 
-`<user-argument>` から期間（日数）を取得する。未指定の場合はデフォルト 3 日とする。
+1. `<user-argument>` から期間（日数）を取得する。未指定の場合はデフォルト 3 日とする
+2. Bash ツールで以下を実行してデータを取得する:
+   ```
+   curl -s "http://localhost:9091/api/stats?period=<期間>"
+   ```
 
-### Step 2: データ取得と検証
+### Step 2: データ検証
 
-Live Context セクションに注入された統計データを確認する。
+取得した JSON データを確認する。
 
 **データ取得に失敗した場合:**
 以下のエラーメッセージを出力して終了する:
