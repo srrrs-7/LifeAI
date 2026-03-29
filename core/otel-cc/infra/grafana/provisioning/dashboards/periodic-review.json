@@ -224,7 +224,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "increase(cc_tokens_total{type=\"input\"}[$__range]) + increase(cc_tokens_total{type=\"output\"}[$__range])",
+          "expr": "increase(cc_tokens_total{type=\"input\"}[$__range]) + ignoring(type) increase(cc_tokens_total{type=\"output\"}[$__range])",
           "legendFormat": "__auto"
         }
       ]

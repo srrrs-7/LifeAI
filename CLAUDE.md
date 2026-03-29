@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Purpose
 
-**解決する課題:** Claude Code を日常的に使う個人開発者の「活動記録が形に残らない」「使い方が効率的かどうかわからない」を解決する。
+**解決する課題:** Claude Code を日常的に使う開発者・チームの「活動記録が形に残らない」「使い方が効率的かどうかわからない」を解決する。
 
 - **スキルシステム**: 対話形式のヒアリングで日々の知的作業を構造化された成果物（日報・アイデアシート・ブログ記事）に変換する
-- **otel-cc モニタリング**: Claude Code のセッションログを自動解析し、コスト・効率・異常を Grafana ダッシュボードで可視化する
+- **otel-cc モニタリング**: Claude Code のセッションログを自動解析し、コスト・効率・異常を Grafana ダッシュボードで可視化する（個人・チーム両対応）
 
 ## Commands
 
@@ -95,16 +95,18 @@ interface/      — axum HTTP ハンドラー: /metrics（Prometheus）、/healt
 | `OTEL_CC_INSIGHT_COOLDOWN_MIN` | `60` | 同一インサイトの再送クールダウン（分） |
 | `OTEL_CC_USER` | OS ユーザー名 | ユーザー識別名（チーム内で一意にする） |
 
-**Docker Compose インフラ (.devcontainer/compose.yaml):**
-- `otel-cc` — volume: `otel-cc-data` (SQLite)
-- `prometheus` — volume: `prometheus-data` (90日保持)、`:9090`
-- `grafana` — volume: `grafana-data`、`:3000`（認証なし）
-- infra 設定: `core/otel-cc/infra/`（prometheus.yml + Grafana provisioning）
+**Docker Compose インフラ:**
+
+| 構成 | ファイル | ネットワーク | サービス間通信 |
+|---|---|---|---|
+| 開発（Dev Container） | `.devcontainer/compose.yaml` | `network_mode: "service:dev"` | **`localhost`** 経由 |
+| チーム共有 | `core/otel-cc/infra/docker-compose.team.yaml` | 標準 bridge | **サービス名** DNS（`otel-cc:9091` 等） |
+
+開発環境: `otel-cc` + `prometheus` + `grafana`（volume で SQLite / Prometheus / Grafana データを永続化）
 
 **ネットワーク構成（重要）:**
-- 全 infra サービスは `network_mode: "service:dev"` で dev コンテナのネットワーク名前空間を共有
-- サービス間通信はすべて **`localhost`** 経由（Docker 内部 DNS によるサービス名解決は不可）
-- 設定ファイルで他サービスを参照する際は `http://localhost:<port>` を使用すること
+- **開発環境**: `network_mode: "service:dev"` により全サービスが dev コンテナのネットワーク名前空間を共有。設定ファイルでは `http://localhost:<port>` を使用
+- **チーム環境**: 標準 bridge ネットワークのため、設定ファイルではサービス名（`http://prometheus:9090` 等）を使用。開発環境とは設定が異なるため、`prometheus-team.yml` と `grafana-team/` に分離している
 
 **HTTP エンドポイント一覧:**
 
@@ -112,25 +114,32 @@ interface/      — axum HTTP ハンドラー: /metrics（Prometheus）、/healt
 |---|---|
 | `GET /metrics` | Prometheus テキスト形式 |
 | `GET /health` | ヘルスチェック |
-| `GET /api/stats` | JSON 統計（`period=N` で直近 N 日、`project=名前` でプロジェクト絞り込み） |
+| `GET /api/stats` | JSON 統計（`period=N` で直近 N 日、`project=名前` / `user=名前` でフィルタ） |
 | `POST /v1/traces` `/v1/metrics` `/v1/logs` | OTLP/HTTP 受信 |
 
-`/api/stats` レスポンス構造: `{ overview, projects[], daily[], generated_at }` — insight-report スキルなどがこの API を使って統計を取得する。
+`/api/stats` レスポンス構造: `{ overview, projects[], users[], daily[], generated_at }` — insight-report スキルなどがこの API を使って統計を取得する。
+
+**Prometheus メトリクス体系:**
+- **既存メトリクス** (`cc_sessions`, `cc_cost_usd`, `cc_tokens_total` 等): チーム全体の集約値。後方互換
+- **ユーザー別メトリクス** (`cc_user_sessions{user="alice"}`, `cc_user_cost_usd{user="alice"}` 等): `user` ラベル付きで個人別内訳を提供
 
 **infra 設定ファイル (`core/otel-cc/infra/`):**
 ```
-prometheus.yml                          — スクレイプ設定（localhost:9091/metrics, 15秒間隔）
-grafana/provisioning/
-  datasources/prometheus.yaml           — Prometheus データソース（localhost:9090）
-  dashboards/dashboards.yaml            — ダッシュボードプロバイダー設定
-  dashboards/claude-code.json           — Claude Code Monitor（総合ダッシュボード）
-  dashboards/session-efficiency.json    — セッション効率分析（KPI, トレンド, リアルタイム）
+prometheus.yml                          — 開発用スクレイプ設定（localhost:9091/metrics, 15秒間隔）
+prometheus-team.yml                     — チーム用スクレイプ設定（otel-cc:9091）
+docker-compose.team.yaml                — チーム共有デプロイ構成
+grafana/provisioning/                   — 開発用 Grafana（localhost ベース）
+grafana-team/provisioning/              — チーム用 Grafana（サービス名ベース）
+  dashboards/claude-code.json           — Claude Code Monitor（総合 + Team Overview 行）
+  dashboards/session-efficiency.json    — セッション効率分析
   dashboards/cost-management.json       — コスト管理（予算追跡, 移動平均, プロジェクト別）
   dashboards/tool-analytics.json        — ツール分析（ランキング, エラー, アンチパターン）
   dashboards/periodic-review.json       — 定期振り返り（期間比較, ローリング平均, 累積）
   dashboards/model-optimization.json    — モデル最適化（分布, 効率比較, トークン効率）
   dashboards/anomaly-detection.json     — 異常検知（±2σ バンド, スパイク検出）
 ```
+
+全ダッシュボードに `$user` テンプレート変数あり（`label_values(cc_user_sessions, user)`、includeAll: true）。
 
 **docker/make コマンドはホスト側で実行:** dev コンテナ内には docker CLI がないため、`make restart-infra` や `make logs-*` はホスト側ターミナルから実行する
 
@@ -218,7 +227,7 @@ cache_write = 1.25x input、cache_read = 0.1x input。新モデル追加時は�
 - **ライン カバレッジ 60% 以上** を常に維持する
 - `make coverage` でサマリー確認、`make coverage-html` で詳細 HTML レポートを確認
 - `make coverage-check` は 60% 未満で失敗（pre-push hook でも自動実行）
-- 現在のカバレッジ: **~90%**（127テスト。`main.rs`, `config.rs`, `watcher/` は起動コードのため除外対象）
+- 現在のカバレッジ: **~90%**（132テスト。`main.rs`, `config.rs`, `watcher/` は起動コードのため除外対象）
 
 ### テスト記述規則
 
