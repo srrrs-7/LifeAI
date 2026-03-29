@@ -382,7 +382,9 @@
             "matcher": { "id": "byName", "options": "Hourly Cost" },
             "properties": [
               { "id": "color", "value": { "fixedColor": "light-blue", "mode": "fixed" } },
-              { "id": "custom.fillOpacity", "value": 20 }
+              { "id": "custom.drawStyle", "value": "bars" },
+              { "id": "custom.fillOpacity", "value": 60 },
+              { "id": "custom.lineWidth", "value": 0 }
             ]
           },
           {
@@ -396,6 +398,7 @@
       },
       "gridPos": { "h": 12, "w": 24, "x": 0, "y": 17 },
       "id": 11,
+      "maxDataPoints": 168,
       "options": {
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
         "tooltip": { "mode": "single", "sort": "none" }
@@ -404,12 +407,14 @@
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "increase(cc_cost_usd_total[1h])",
+          "interval": "1h",
           "legendFormat": "Hourly Cost",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "avg_over_time(increase(cc_cost_usd_total[1h])[24h:1h])",
+          "interval": "1h",
           "legendFormat": "24h Moving Average",
           "refId": "B"
         }
@@ -455,17 +460,17 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "orientation": "horizontal",
+        "orientation": "vertical",
         "showValue": "auto",
         "stacking": "none",
         "tooltip": { "mode": "single", "sort": "none" },
-        "xTickLabelRotation": 0
+        "xTickLabelRotation": -45
       },
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "cc_project_cost_usd",
-          "legendFormat": "__auto",
+          "expr": "round(cc_project_cost_usd, 1)",
+          "legendFormat": "{{project}}",
           "refId": "A"
         }
       ],
@@ -503,17 +508,17 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "orientation": "horizontal",
+        "orientation": "vertical",
         "showValue": "auto",
         "stacking": "none",
         "tooltip": { "mode": "single", "sort": "none" },
-        "xTickLabelRotation": 0
+        "xTickLabelRotation": -45
       },
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "cc_project_cost_usd / cc_project_sessions_total",
-          "legendFormat": "__auto",
+          "expr": "round(cc_project_cost_usd / cc_project_sessions_total, 1)",
+          "legendFormat": "{{project}}",
           "refId": "A"
         }
       ],
