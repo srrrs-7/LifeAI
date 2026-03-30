@@ -15,6 +15,8 @@
 | `daily-report` | `/daily-report` | 日報を書く負荷が高く、続かない | Markdown + SVG インフォグラフィック |
 | `idea` | `/idea` | アイデアが構造化される前に忘れる | 10問ヒアリング → アイデアシート |
 | `blog` | `/blog` | 技術記事を書き始められない | ヒアリング → ブログ記事 |
+| `commit` | `/commit` | コミットメッセージを考える手間を省く | Conventional Commits 形式の自動コミット |
+| `grafana-report` | `/grafana-report` | Claude Code 使用状況の定量把握が面倒 | KPI 分析・改善提案の Markdown レポート |
 | `gen-skill` | `/gen-skill` | 新しいスキルの雛形を手で作るのが面倒 | スキル一式のスキャフォールド |
 
 ### 2. Claude Code の使い方が効率的かどうかわからない
@@ -72,6 +74,10 @@ docker compose -f .devcontainer/compose.yaml up otel-cc prometheus grafana
 |---|---|
 | `http://localhost:3000` | Grafana（7つのダッシュボードが自動プロビジョニング） |
 | `http://localhost:9091/metrics` | Prometheus メトリクス直接確認 |
+| `http://localhost:9091/api/stats` | JSON 統計 API（`?period=7&project=名前&user=名前`） |
+| `http://localhost:9091/api/analytics` | ツール使用・セッション効率分析 |
+| `http://localhost:9091/api/optimization` | コスト最適化提案 |
+| `http://localhost:9091/api/benchmarks` | ベンチマーク比較データ |
 
 設定不要で `~/.claude/projects/` のローカルログを自動解析する。
 

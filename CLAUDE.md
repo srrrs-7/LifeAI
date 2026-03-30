@@ -67,14 +67,14 @@ OTLP/HTTP :4318            ──→ infrastructure/otlp_reader  ─┘
 ```
 domain/         — エンティティ（Session, TokenEvent, ToolCall 等）、コスト計算（cost.rs）、トレンド分析（trend.rs）、Port トレイト（リポジトリ境界）
 infrastructure/ — Port 実装: sqlite/（SqliteRepository）、log_reader/（JSONL パース・差分スキャン）、otlp_reader/（OTLP パース）、watcher/（notify クレートによるファイル監視）、grafana/（GrafanaAnnotationClient）
-application/    — ユースケース: ScanLogsUseCase, IngestOtlpUseCase, InsightAnalysisUseCase, MetricsCache
-interface/      — axum HTTP ハンドラー: /metrics（Prometheus）、/health、/api/stats（JSON 統計）、/v1/{traces,metrics,logs}（OTLP）
+application/    — ユースケース: ScanLogsUseCase, IngestOtlpUseCase, InsightAnalysisUseCase, MetricsCache, AnalyticsUseCase, BenchmarkUseCase, CostOptimizationUseCase
+interface/      — axum HTTP ハンドラー: /metrics、/health、/api/stats、/api/analytics、/api/optimization、/api/benchmarks、/v1/{traces,metrics,logs}（OTLP）
 ```
 
 依存方向: `interface → application → domain ← infrastructure`（domain は外部に依存しない）
 
 **依存性注入 (main.rs がコンポジションルート):**
-- `SqliteRepository` を `Arc<dyn SessionPort>` / `Arc<dyn EventPort>` / `Arc<dyn OtlpPort>` / `Arc<dyn StatsPort>` / `Arc<dyn InsightStatePort>` / `Arc<dyn TrendDataPort>` として各ユースケースに注入
+- `SqliteRepository` を `Arc<dyn SessionPort>` / `Arc<dyn EventPort>` / `Arc<dyn OtlpPort>` / `Arc<dyn StatsPort>` / `Arc<dyn InsightStatePort>` / `Arc<dyn TrendDataPort>` / `Arc<dyn AnalyticsPort>` / `Arc<dyn BenchmarkPort>` として各ユースケースに注入
 - `GrafanaAnnotationClient` を `Arc<dyn AnnotationPort>` として `InsightAnalysisUseCase` に注入
 - SQLite は `std::sync::Mutex<Connection>` で保護（`Sync` を実現するため tokio Mutex は不使用）
 
@@ -115,6 +115,9 @@ interface/      — axum HTTP ハンドラー: /metrics（Prometheus）、/healt
 | `GET /metrics` | Prometheus テキスト形式 |
 | `GET /health` | ヘルスチェック |
 | `GET /api/stats` | JSON 統計（`period=N` で直近 N 日、`project=名前` / `user=名前` でフィルタ） |
+| `GET /api/analytics` | 分析データ（ツール使用分析、セッション効率等） |
+| `GET /api/optimization` | コスト最適化提案 |
+| `GET /api/benchmarks` | ベンチマーク比較データ |
 | `POST /v1/traces` `/v1/metrics` `/v1/logs` | OTLP/HTTP 受信 |
 
 `/api/stats` レスポンス構造: `{ overview, projects[], users[], daily[], generated_at }` — insight-report スキルなどがこの API を使って統計を取得する。
@@ -156,6 +159,8 @@ grafana-team/provisioning/              — チーム用 Grafana（サービス�
 - `daily-report/` — 対話型日報作成（テキスト + SVG インフォグラフィック）。成果物: `assets/<yyyy-mm-dd>/`
 - `idea/` — アイデアブレスト＆構造化（10問ヒアリング → アイデアシート）。成果物: `assets/<theme-name>/`
 - `blog/` — 対話型ブログ記事作成（ヒアリング → Markdown 記事）
+- `commit/` — Git コミット自動化（差分から Conventional Commits 形式のメッセージを自動生成）
+- `grafana-report/` — otel-cc `/api/stats` API から統計取得し KPI 分析・改善提案を Markdown 出力
 - `insight-report/` — Claude 使用状況ログ解析（並列サブエージェント4本で分析）
 - `gen-skill/` — 対話型スキルスキャフォールド生成。新スキル作成時はこれを使う
 
@@ -227,7 +232,7 @@ cache_write = 1.25x input、cache_read = 0.1x input。新モデル追加時は�
 - **ライン カバレッジ 60% 以上** を常に維持する
 - `make coverage` でサマリー確認、`make coverage-html` で詳細 HTML レポートを確認
 - `make coverage-check` は 60% 未満で失敗（pre-push hook でも自動実行）
-- 現在のカバレッジ: **~90%**（132テスト。`main.rs`, `config.rs`, `watcher/` は起動コードのため除外対象）
+- 現在のカバレッジ: **~90%**（152テスト。`main.rs`, `config.rs`, `watcher/` は起動コードのため除外対象）
 
 ### テスト記述規則
 
