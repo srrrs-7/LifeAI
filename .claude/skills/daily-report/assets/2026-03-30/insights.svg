@@ -1,0 +1,259 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1076" viewBox="0 0 1200 1076" font-family="'SF Pro Display', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a0a1a" />
+      <stop offset="100%" stop-color="#1a237e" />
+    </linearGradient>
+    <linearGradient id="peakGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1a237e" />
+      <stop offset="100%" stop-color="#4A148C" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#536DFE" />
+      <stop offset="100%" stop-color="#7C4DFF" />
+    </linearGradient>
+    <linearGradient id="warmGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FF6D00" />
+      <stop offset="100%" stop-color="#FF1744" />
+    </linearGradient>
+    <linearGradient id="sunGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FF6D00" />
+      <stop offset="100%" stop-color="#FFAB00" />
+    </linearGradient>
+    <linearGradient id="tealGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00B0FF" />
+      <stop offset="100%" stop-color="#00E5FF" />
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00C853" />
+      <stop offset="100%" stop-color="#69F0AE" />
+    </linearGradient>
+    <linearGradient id="dangerGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FF1744" />
+      <stop offset="100%" stop-color="#FF5252" />
+    </linearGradient>
+    <linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#536DFE" />
+      <stop offset="50%" stop-color="#00E5FF" />
+      <stop offset="100%" stop-color="#69F0AE" />
+    </linearGradient>
+    <linearGradient id="keyInsightBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF3E0" />
+      <stop offset="100%" stop-color="#FFE0B2" />
+    </linearGradient>
+    <filter id="elevation1" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="rgba(0,0,0,0.07)" />
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.05)" />
+    </filter>
+    <filter id="elevation2" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="rgba(0,0,0,0.10)" />
+      <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="rgba(0,0,0,0.08)" />
+    </filter>
+    <clipPath id="heroClip">
+      <rect width="1200" height="100" />
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1076" fill="#f5f5f7" />
+
+  <!-- ============ HERO HEADER (y=0, h=100) ============ -->
+  <g clip-path="url(#heroClip)">
+    <rect width="1200" height="100" fill="url(#heroGrad)" />
+    <circle cx="1100" cy="20" r="120" fill="#536DFE" opacity="0.07" />
+    <circle cx="1140" cy="80" r="70" fill="#7C4DFF" opacity="0.05" />
+    <circle cx="50" cy="80" r="40" fill="#00E5FF" opacity="0.04" />
+  </g>
+
+  <!-- Date chip -->
+  <rect x="40" y="12" width="200" height="24" rx="12" fill="rgba(255,255,255,0.1)" />
+  <text x="56" y="29" font-size="12" font-weight="500" fill="rgba(255,255,255,0.8)">2026-03-30 Monday</text>
+
+  <!-- Title + subtitle -->
+  <text x="40" y="52" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">Daily Insights</text>
+  <text x="40" y="74" font-size="13" font-weight="400" fill="rgba(255,255,255,0.6)">Production release &amp; backup strategy design</text>
+
+  <!-- Stats badges -->
+  <g transform="translate(860, 68)">
+    <rect width="84" height="22" rx="11" fill="url(#accentGrad)" opacity="0.9" />
+    <text x="12" y="16" font-size="13" font-weight="800" fill="#FFFFFF">4</text>
+    <text x="28" y="15" font-size="10" font-weight="500" fill="rgba(255,255,255,0.85)">TASKS</text>
+    <rect x="92" width="108" height="22" rx="11" fill="url(#sunGrad)" opacity="0.9" />
+    <text x="104" y="16" font-size="13" font-weight="800" fill="#FFFFFF">2</text>
+    <text x="120" y="15" font-size="10" font-weight="500" fill="rgba(255,255,255,0.9)">INSIGHTS</text>
+  </g>
+
+  <!-- ============ ROW 1: ACTIVITIES + INSIGHTS (y=124, h=284) ============ -->
+
+  <!-- ACTIVITIES card (left) -->
+  <rect x="24" y="124" width="564" height="284" rx="16" fill="#FFFFFF" filter="url(#elevation1)" />
+  <rect x="24" y="124" width="564" height="4" rx="2" fill="url(#accentGrad)" />
+  <text x="48" y="160" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">ACTIVITIES</text>
+  <text x="48" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">実施事項</text>
+  <text x="564" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#536DFE">x4</text>
+
+  <g transform="translate(48, 200)">
+    <!-- Activity 1 -->
+    <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6" />
+    <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+    <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">バックアップ戦略の設計</text>
+
+    <!-- Activity 2 -->
+    <rect x="0" y="48" width="520" height="40" rx="10" fill="#EDE7F6" />
+    <rect x="12" y="60" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+    <text x="38" y="74" font-size="14" font-weight="600" fill="#0a0a1a">本番リリース作業を完遂</text>
+
+    <!-- Activity 3 -->
+    <rect x="0" y="96" width="520" height="40" rx="10" fill="#EDE7F6" />
+    <rect x="12" y="108" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+    <text x="38" y="122" font-size="14" font-weight="600" fill="#0a0a1a">パッチリリースPR作成</text>
+
+    <!-- Activity 4 -->
+    <rect x="0" y="144" width="520" height="40" rx="10" fill="#EDE7F6" />
+    <rect x="12" y="156" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+    <text x="38" y="170" font-size="14" font-weight="600" fill="#0a0a1a">微修正PRの作成・提出</text>
+  </g>
+
+  <!-- INSIGHTS card (right) -->
+  <rect x="612" y="124" width="564" height="284" rx="16" fill="#FFFFFF" filter="url(#elevation1)" />
+  <rect x="612" y="124" width="564" height="4" rx="2" fill="url(#sunGrad)" />
+  <text x="636" y="160" font-size="11" font-weight="800" fill="#FF6D00" letter-spacing="1.5">INSIGHTS</text>
+  <text x="636" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">気づき・学び</text>
+  <text x="1152" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#FF6D00">x2</text>
+
+  <g transform="translate(636, 200)">
+    <!-- Insight 1: KEY INSIGHT (Von Restorff) -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="516" height="88" rx="12" fill="url(#keyInsightBg)" filter="url(#elevation1)" />
+      <rect x="0" y="0" width="6" height="88" rx="3" fill="url(#warmGrad)" />
+      <text x="16" y="24" font-size="14" font-weight="800" fill="#BF360C">20代で走り切る覚悟</text>
+      <text x="16" y="44" font-size="12" font-weight="500" fill="#4E342E">体力と吸収力がある時期に</text>
+      <text x="16" y="62" font-size="12" font-weight="500" fill="#4E342E">最大限のインプットを重ねる</text>
+      <rect x="16" y="72" width="80" height="12" rx="6" fill="url(#warmGrad)" />
+      <text x="56" y="82" text-anchor="middle" font-size="8" font-weight="800" fill="#FFFFFF">KEY INSIGHT</text>
+    </g>
+
+    <!-- Insight 2 -->
+    <g transform="translate(0, 100)">
+      <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0" />
+      <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)" />
+      <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">外部からの視線への気づき</text>
+      <text x="16" y="44" font-size="12" fill="#5D4037">バーンアウトを心配される</text>
+      <text x="16" y="62" font-size="12" fill="#5D4037">客観視で働き方を再確認</text>
+      <rect x="16" y="72" width="64" height="12" rx="6" fill="#FF6D00" />
+      <text x="48" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">MINDSET</text>
+    </g>
+  </g>
+
+  <!-- ============ ROW 2: CHALLENGES + NEXT STEPS (y=432, h=220) ============ -->
+
+  <!-- CHALLENGES card (left) -->
+  <rect x="24" y="432" width="564" height="220" rx="16" fill="#FFFFFF" filter="url(#elevation1)" />
+  <rect x="24" y="432" width="564" height="4" rx="2" fill="url(#dangerGrad)" />
+  <text x="48" y="468" font-size="11" font-weight="800" fill="#FF1744" letter-spacing="1.5">CHALLENGES</text>
+  <text x="48" y="490" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">課題・ブロッカー</text>
+  <text x="564" y="490" text-anchor="end" font-size="12" font-weight="600" fill="#FF1744">x2</text>
+
+  <g transform="translate(48, 508)">
+    <!-- Challenge 1 -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE" />
+      <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744" />
+      <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">6月までのall cert目標</text>
+      <rect x="420" y="12" width="80" height="22" rx="11" fill="#536DFE" />
+      <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">対応中</text>
+    </g>
+
+    <!-- Challenge 2 -->
+    <g transform="translate(0, 54)">
+      <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE" />
+      <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744" />
+      <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">Claude Azure学習の並行推進</text>
+      <rect x="420" y="12" width="80" height="22" rx="11" fill="#FF1744" />
+      <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">未着手</text>
+    </g>
+  </g>
+
+  <!-- NEXT STEPS card (right) -->
+  <rect x="612" y="432" width="564" height="220" rx="16" fill="#FFFFFF" filter="url(#elevation1)" />
+  <rect x="612" y="432" width="564" height="4" rx="2" fill="url(#greenGrad)" />
+  <text x="636" y="468" font-size="11" font-weight="800" fill="#00C853" letter-spacing="1.5">NEXT STEPS</text>
+  <text x="636" y="490" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">次の一手</text>
+  <text x="1152" y="490" text-anchor="end" font-size="12" font-weight="600" fill="#00C853">x3</text>
+
+  <g transform="translate(636, 508)">
+    <!-- Next Step 1: P1 -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFEBEE" />
+      <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF1744" />
+      <text x="26" y="14" font-size="11" font-weight="800" fill="#FF1744">P1</text>
+      <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">ペースを上げて加速する</text>
+    </g>
+
+    <!-- Next Step 2: P2 -->
+    <g transform="translate(0, 44)">
+      <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFF3E0" />
+      <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF6D00" />
+      <text x="26" y="14" font-size="11" font-weight="800" fill="#FF6D00">P2</text>
+      <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">6月all cert学習計画を具体化</text>
+    </g>
+
+    <!-- Next Step 3: P2 -->
+    <g transform="translate(0, 88)">
+      <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFF3E0" />
+      <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF6D00" />
+      <text x="26" y="14" font-size="11" font-weight="800" fill="#FF6D00">P2</text>
+      <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">Claude Azure学習を開始</text>
+    </g>
+  </g>
+
+  <!-- ============ KEY THEME BANNER (y=676, h=120) ============ -->
+  <rect x="24" y="676" width="1152" height="120" rx="20" fill="url(#peakGrad)" filter="url(#elevation2)" />
+  <circle cx="1100" cy="712" r="60" fill="#7C4DFF" opacity="0.12" />
+  <circle cx="1060" cy="752" r="40" fill="#536DFE" opacity="0.08" />
+  <text x="56" y="710" font-size="11" font-weight="800" fill="rgba(255,255,255,0.5)" letter-spacing="2.5">TODAY'S KEY THEME</text>
+  <text x="56" y="740" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">走れるうちに、全力で走る</text>
+  <text x="56" y="768" font-size="13" font-weight="400" fill="rgba(255,255,255,0.6)">本番リリースを確実に完遂しつつ、6月all certという新目標に向けてギアを上げる</text>
+
+  <!-- ============ GROWTH PATH (y=820, h=192) ============ -->
+  <rect x="24" y="820" width="1152" height="192" rx="20" fill="#FFFFFF" filter="url(#elevation2)" />
+  <text x="56" y="856" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">GROWTH PATH</text>
+  <text x="56" y="878" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">6月 All Cert ロードマップ</text>
+
+  <!-- Progress bar -->
+  <g transform="translate(56, 896)">
+    <rect x="0" y="16" width="1100" height="10" rx="5" fill="#E8EAF6" />
+    <rect x="0" y="16" width="220" height="10" rx="5" fill="url(#progressGrad)" />
+    <!-- Achieved: AWS -->
+    <circle cx="110" cy="21" r="16" fill="url(#accentGrad)" />
+    <text x="110" y="25" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">AWS</text>
+    <!-- Current: Release -->
+    <circle cx="220" cy="21" r="16" fill="url(#sunGrad)" />
+    <text x="220" y="25" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">Release</text>
+    <!-- Target: Claude Azure -->
+    <circle cx="480" cy="21" r="16" fill="#FFFFFF" stroke="url(#greenGrad)" stroke-width="3" stroke-dasharray="5,3" />
+    <text x="480" y="25" text-anchor="middle" font-size="8" font-weight="700" fill="#00C853">Azure</text>
+    <!-- Target: All Cert -->
+    <circle cx="740" cy="21" r="16" fill="#FFFFFF" stroke="url(#greenGrad)" stroke-width="3" stroke-dasharray="5,3" />
+    <text x="740" y="25" text-anchor="middle" font-size="8" font-weight="700" fill="#00C853">Certs</text>
+    <!-- Target: Blog -->
+    <circle cx="1000" cy="21" r="16" fill="#FFFFFF" stroke="url(#greenGrad)" stroke-width="3" stroke-dasharray="5,3" />
+    <text x="1000" y="25" text-anchor="middle" font-size="8" font-weight="700" fill="#00C853">Blog</text>
+  </g>
+
+  <!-- Lever tags -->
+  <g transform="translate(56, 988)">
+    <text x="0" y="14" font-size="12" font-weight="600" fill="#78909C">Levers:</text>
+    <rect x="64" y="0" width="80" height="26" rx="13" fill="url(#accentGrad)" />
+    <text x="104" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Claude</text>
+    <rect x="152" y="0" width="72" height="26" rx="13" fill="url(#sunGrad)" />
+    <text x="188" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Azure</text>
+    <rect x="232" y="0" width="64" height="26" rx="13" fill="url(#tealGrad)" />
+    <text x="264" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">AWS</text>
+    <rect x="304" y="0" width="88" height="26" rx="13" fill="url(#greenGrad)" />
+    <text x="348" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">All Cert</text>
+  </g>
+
+  <!-- ============ FOOTER ============ -->
+  <text x="600" y="1052" text-anchor="middle" font-size="11" font-weight="400" fill="#B0BEC5" letter-spacing="0.5">LifeAI Daily Insights -- 2026-03-30</text>
+</svg>
