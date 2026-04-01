@@ -60,3 +60,9 @@ For skills that need Opus-level generation:
 - Japanese comments and descriptions where appropriate
 - Clean, consistent formatting
 - Follow best practices from the skill documentation
+
+## Output Constraints
+
+- 生成したファイルのパスのみを返す。説明・前置き・要約は不要
+- SKILL.md のサブエージェント委譲セクションには必ず「結果のみ返す。説明・前置き・要約は不要」制約を含めること
+- 生成物以外のテキスト出力は最小限にする

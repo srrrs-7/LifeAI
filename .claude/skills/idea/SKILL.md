@@ -127,6 +127,7 @@ Agent ツールで `idea-writer` エージェントを起動し、以下をプ�
    - Next Step（次の一手）: Q10 の回答
 4. **過去のアイデアコンテキスト**: Step 0 で収集した関連情報
 5. **ファイル参照**: エージェントに `${CLAUDE_SKILL_DIR}/templates/idea-template.md` を読むよう指示
+6. **出力制約**: 生成したファイルパスのみ返す。説明・前置き・要約は不要
 
 ## Step 3: Finalize
 

@@ -122,6 +122,7 @@ Agent ツールで `blog-writer` エージェントを起動し、以下の情�
 6. **出力先ディレクトリ**: `${CLAUDE_SKILL_DIR}/assets/<slug>/`
 7. **テンプレート参照**: `${CLAUDE_SKILL_DIR}/templates/blog-post.md` を読むよう指示
 8. **今日の日付**: フロントマターの date に使用
+9. **出力制約**: 生成したファイルパスのみ返す。説明・前置き・要約は不要
 
 ## Step 3: Finalize
 

@@ -59,6 +59,7 @@ Use the Agent tool to launch the agent with a prompt that includes:
 3. **Context**: Any past data or references gathered in Step 0
 4. **File references**: Tell the agent to read templates/guides from `${CLAUDE_SKILL_DIR}/templates/`
 5. **Instructions**: What files to generate and where
+6. **Output constraint**: Return only the generated file paths. No explanation, preamble, or summary
 
 ## Step 3: Finalize
 

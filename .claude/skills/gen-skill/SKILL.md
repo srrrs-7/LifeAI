@@ -108,6 +108,7 @@ Use the Agent tool to launch the `skill-writer` agent with a prompt that include
    - `${CLAUDE_SKILL_DIR}/references/frontmatter-fields.md`
    - `${CLAUDE_SKILL_DIR}/references/allowed-tools-list.md`
    - `${CLAUDE_SKILL_DIR}/references/agent-types.md`
+5. **出力制約**: 生成したファイルパスのみ返す。説明・前置き・要約は不要
 
 ### Key principles (include in the agent prompt)
 

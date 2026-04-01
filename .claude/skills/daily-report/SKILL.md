@@ -98,6 +98,7 @@ Use the Agent tool to launch the `daily-report-writer` agent with a prompt that 
    - `${CLAUDE_SKILL_DIR}/templates/daily-template.md`
    - `${CLAUDE_SKILL_DIR}/templates/svg-design-guide.md`
 6. **Instructions**: Generate both `daily.md` and `insights.svg` in the output directory
+7. **Output constraint**: Return only the generated file paths. No explanation, preamble, or summary
 
 ## Step 3: Finalize
 
