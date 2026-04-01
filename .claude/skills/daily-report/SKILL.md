@@ -22,7 +22,7 @@ ultrathink
 
 Before starting the conversation, silently read past daily reports for context:
 
-1. Use Glob to find existing reports: `${CLAUDE_SKILL_DIR}/assets/*/daily.md`
+1. Use Glob to find existing reports: `${CLAUDE_SKILL_DIR}/assets/**/daily.md`
 2. Read the **most recent 3 reports** (if they exist)
 3. Take note of:
    - Previous "次の一手" items (to check progress)
@@ -33,6 +33,8 @@ Before starting the conversation, silently read past daily reports for context:
 ## Step 1: Hearing — 5 Interactive Questions
 
 Ask questions **one at a time**. Wait for the user's response before asking the next question. Use a warm, polite tone (ですます調). Adapt follow-up phrasing based on previous answers.
+
+**重要: 前の回答への感想・要約コメントは不要。質問のみを出力すること。** 出力トークンを節約するため、各質問の前に「〇〇が伝わってきます」等の共感コメントを挿入しない。
 
 If past reports exist and the previous report had "次の一手" items, weave a gentle follow-up into Q2 (e.g., "前回〇〇を予定されていましたが、そちらの進捗はいかがでしたか？").
 

@@ -8,7 +8,9 @@
       "Bash(python3 *)",
       "Bash(ls *)",
       "Bash(chmod *)",
-      "Bash(mkdir *)"
+      "Bash(mkdir *)",
+      "Bash(bun *)",
+      "Bash(curl *)"
     ]
   },
   "enableAllProjectMcpServers": true,

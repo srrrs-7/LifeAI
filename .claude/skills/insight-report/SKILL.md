@@ -1,6 +1,7 @@
 ---
 name: insight-report
 description: Claudeの使用状況ログを解析し、トークン使用量・ツール利用頻度・エラーパターン等を調査。対話ログからプロジェクト知識を抽出しCLAUDE.mdに反映。Use when analyzing Claude Code usage, optimizing workflow, reducing token costs, or extracting project knowledge from conversation logs.
+argument-hint: "[no arguments needed]"
 disable-model-invocation: true
 allowed-tools: Read, Grep, Glob, Edit, Write, Bash, Agent
 ---
