@@ -93,6 +93,9 @@ interface/      — axum HTTP ハンドラー: /metrics、/health、/api/stats�
 | `OTEL_CC_GRAFANA_URL` | `http://localhost:3000` | Grafana ベース URL（アノテーション送信先） |
 | `OTEL_CC_INSIGHT_INTERVAL` | `300` | インサイト分析実行間隔（秒） |
 | `OTEL_CC_INSIGHT_COOLDOWN_MIN` | `60` | 同一インサイトの再送クールダウン（分） |
+| `OTEL_CC_INSIGHT_DAILY_COST_ALERT` | `10.0` | 日次コストアラート閾値（USD）。超過で Grafana アノテーション送信 |
+| `OTEL_CC_INSIGHT_COST_WARN` | `3.0` | セッションあたりコスト Warning 閾値（USD） |
+| `OTEL_CC_INSIGHT_COST_ALERT` | `8.0` | セッションあたりコスト Alert 閾値（USD） |
 | `OTEL_CC_USER` | OS ユーザー名 | ユーザー識別名（チーム内で一意にする） |
 
 **Docker Compose インフラ:**
@@ -131,15 +134,15 @@ interface/      — axum HTTP ハンドラー: /metrics、/health、/api/stats�
 prometheus.yml                          — 開発用スクレイプ設定（localhost:9091/metrics, 15秒間隔）
 prometheus-team.yml                     — チーム用スクレイプ設定（otel-cc:9091）
 docker-compose.team.yaml                — チーム共有デプロイ構成
-grafana/provisioning/                   — 開発用 Grafana（localhost ベース）
-grafana-team/provisioning/              — チーム用 Grafana（サービス名ベース）
+grafana/provisioning/                   — 開発用・チーム共通ダッシュボード（localhost ベース）
   dashboards/claude-code.json           — Claude Code Monitor（総合 + Team Overview 行）
   dashboards/session-efficiency.json    — セッション効率分析
-  dashboards/cost-management.json       — コスト管理（予算追跡, 移動平均, プロジェクト別）
+  dashboards/cost-management.json       — コスト管理（Today's Snapshot, 日別トレンド, モデル別, 予算追跡）
   dashboards/tool-analytics.json        — ツール分析（ランキング, エラー, アンチパターン）
   dashboards/periodic-review.json       — 定期振り返り（期間比較, ローリング平均, 累積）
   dashboards/model-optimization.json    — モデル最適化（分布, 効率比較, トークン効率）
   dashboards/anomaly-detection.json     — 異常検知（±2σ バンド, スパイク検出）
+grafana-team/provisioning/              — チーム用 Grafana（サービス名ベース、datasource設定のみ異なる）
 ```
 
 全ダッシュボードに `$user` テンプレート変数あり（`label_values(cc_user_sessions, user)`、includeAll: true）。
@@ -232,7 +235,7 @@ cache_write = 1.25x input、cache_read = 0.1x input。新モデル追加時は�
 - **ライン カバレッジ 60% 以上** を常に維持する
 - `make coverage` でサマリー確認、`make coverage-html` で詳細 HTML レポートを確認
 - `make coverage-check` は 60% 未満で失敗（pre-push hook でも自動実行）
-- 現在のカバレッジ: **~90%**（152テスト。`main.rs`, `config.rs`, `watcher/` は起動コードのため除外対象）
+- 現在のカバレッジ: **~90%**（158テスト。`main.rs`, `config.rs`, `watcher/` は起動コードのため除外対象）
 
 ### テスト記述規則
 
@@ -260,9 +263,12 @@ cache_write = 1.25x input、cache_read = 0.1x input。新モデル追加時は�
 
 ### 指標の良否判断基準
 
+> **予算前提:** 月上限 $200（日次目標 $6.67、日次アラート $10）
+
 | 指標 | 良好 | 要注意 | 問題 |
 |---|---|---|---|
-| セッションあたりコスト | < $8 | $8–$15 | > $15 |
+| 日次コスト | < $7 | $7–$10 | > $10 |
+| セッションあたりコスト | < $3 | $3–$8 | > $8 |
 | キャッシュヒット率 | ≥ 95% | 80–95% | < 80% |
 | 出力/入力トークン比 | < 5 | 5–10 | > 10 |
 | ツールエラー率（任意のツール） | < 5% | 5–10% | > 10% |
@@ -296,8 +302,28 @@ cache_write = 1.25x input、cache_read = 0.1x input。新モデル追加時は�
 
 **3ファイル以上の変更が見込まれるタスク**は、実装前に必ず Plan エージェントで設計を固める。worktree に限らず、メインブランチでの作業にも適用する。設計なしで直接実装に入ると試行錯誤による無駄なツール呼び出しが増え、コストと時間の両方が膨らむ。
 
+### モデル使い分け（必須）
+
+**Plan は Opus、実装は Sonnet** でモデルを分離すること。Opus の高い推論能力を設計に集中させ、実装の大量トークン消費を Sonnet のコスト効率で抑える。
+
 ```
-Agent(Plan) → 実装方針確定 → 実装開始（worktree or main）
+Agent(Plan, model=opus) → 実装方針確定 → Agent(実装, model=sonnet)
+```
+
+| フェーズ | モデル | 理由 |
+|---|---|---|
+| 設計・Plan | **Opus** | 複雑な依存関係の分析、アーキテクチャ判断、エッジケース洗い出しに高い推論力が必要 |
+| 実装・コーディング | **Sonnet** | 計画が明確なら Sonnet で十分。出力トークン単価が Opus の 60% で済む |
+| コードレビュー・リファクタ | **Sonnet** | 既存コードの改善は定型的な判断が多い |
+| 探索・調査 | **Sonnet** または **Haiku** | 単純な検索・ファイル読み取りに Opus は過剰 |
+
+**実装例:**
+```
+// 設計（Opus）
+Agent(subagent_type=Plan, model=opus, prompt="...")
+
+// 実装（Sonnet）
+Agent(model=sonnet, prompt="計画に基づいて実装: ...")
 ```
 
 設計フェーズで確認すべき項目:

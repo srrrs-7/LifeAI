@@ -5,7 +5,7 @@ use tracing::warn;
 use crate::config::InsightThresholds;
 use crate::domain::{
     model::{InsightAnnotation, InsightSeverity, MetricsSummary},
-    port::{AnnotationPort, InsightStatePort, SessionPort, TrendDataPort},
+    port::{AnnotationPort, InsightStatePort, SessionPort, StatsPort, TrendDataPort},
     trend::{self, CrossingDirection},
 };
 
@@ -14,6 +14,7 @@ pub struct InsightAnalysisUseCase {
     annotation_port: Arc<dyn AnnotationPort>,
     state_port: Arc<dyn InsightStatePort>,
     trend_port: Arc<dyn TrendDataPort>,
+    stats_port: Arc<dyn StatsPort>,
     /// 同一キーを再送しない冷却期間（分）
     cooldown_minutes: i64,
     /// 外部設定可能な閾値
@@ -26,6 +27,7 @@ impl InsightAnalysisUseCase {
         annotation_port: Arc<dyn AnnotationPort>,
         state_port: Arc<dyn InsightStatePort>,
         trend_port: Arc<dyn TrendDataPort>,
+        stats_port: Arc<dyn StatsPort>,
         cooldown_minutes: i64,
         thresholds: InsightThresholds,
     ) -> Self {
@@ -34,6 +36,7 @@ impl InsightAnalysisUseCase {
             annotation_port,
             state_port,
             trend_port,
+            stats_port,
             cooldown_minutes,
             thresholds,
         }
@@ -47,6 +50,13 @@ impl InsightAnalysisUseCase {
         match self.analyze_trends() {
             Ok(trend_anns) => annotations.extend(trend_anns),
             Err(e) => warn!("Trend analysis failed: {e}"),
+        }
+
+        // 日次コスト予算チェック（失敗しても他のインサイトは継続）
+        match self.analyze_daily_budget() {
+            Ok(Some(ann)) => annotations.push(ann),
+            Ok(None) => {}
+            Err(e) => warn!("Daily budget check failed: {e}"),
         }
 
         for ann in annotations {
@@ -360,6 +370,28 @@ impl InsightAnalysisUseCase {
 
         Ok(out)
     }
+
+    /// 直近24時間のコストが日次上限を超えているか確認し、超過時にアノテーションを返す
+    fn analyze_daily_budget(&self) -> Result<Option<PendingAnnotation>> {
+        let stats = self.stats_port.query_stats(Some(1), None, None)?;
+        let daily_cost = stats.overview.cost_usd;
+        if daily_cost >= self.thresholds.daily_cost_usd_alert {
+            Ok(Some(PendingAnnotation {
+                annotation: InsightAnnotation {
+                    key: "daily_cost_budget".into(),
+                    severity: InsightSeverity::Alert,
+                    text: format!(
+                        "本日のコストが ${daily_cost:.2} に達しました（上限: ${:.2}）",
+                        self.thresholds.daily_cost_usd_alert
+                    ),
+                    tags: vec!["otel-cc".into(), "cost".into(), "budget".into()],
+                },
+                count_snapshot: 0,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 /// analyze() の内部型（アノテーション + 状態保存用カウント）
@@ -374,9 +406,10 @@ mod tests {
     use super::*;
     use crate::domain::{
         model::{
-            DailyDataPoint, InsightAnnotation, InsightState, MetricsSummary, ScanState, Session,
+            DailyDataPoint, InsightAnnotation, InsightState, MetricsSummary, OverviewStats,
+            ScanState, Session, StatsResponse,
         },
-        port::{AnnotationPort, InsightStatePort, SessionPort, TrendDataPort},
+        port::{AnnotationPort, InsightStatePort, SessionPort, StatsPort, TrendDataPort},
     };
     use async_trait::async_trait;
     use std::sync::{Arc, Mutex};
@@ -442,6 +475,27 @@ mod tests {
         }
     }
 
+    // ── Mock: StatsPort ──────────────────────────────────────────────
+
+    struct MockStats(f64); // 直近24時間のコスト (USD)
+
+    impl StatsPort for MockStats {
+        fn query_stats(
+            &self,
+            _period: Option<u32>,
+            _project: Option<&str>,
+            _user: Option<&str>,
+        ) -> Result<StatsResponse> {
+            Ok(StatsResponse {
+                overview: OverviewStats {
+                    cost_usd: self.0,
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+        }
+    }
+
     // ── Mock: TrendDataPort ─────────────────────────────────────────
 
     #[derive(Default)]
@@ -484,6 +538,7 @@ mod tests {
             cache_hit_ratio_alert: 0.50,
             cost_per_session_warn: 10.0,
             cost_per_session_alert: 15.0,
+            daily_cost_usd_alert: 10.0,
             trend_lookback_days: 14,
             trend_prediction_horizon_days: 7.0,
         }
@@ -516,6 +571,7 @@ mod tests {
             annotation,
             state,
             Arc::new(trend_data),
+            Arc::new(MockStats(0.0)),
             cooldown,
             default_thresholds(),
         )
@@ -972,5 +1028,68 @@ mod tests {
         uc.run().await.unwrap();
         let sent = ann.sent.lock().unwrap();
         assert!(!sent.iter().any(|a| a.key.starts_with("predict:")));
+    }
+
+    // ── 日次コスト予算アラート ──────────────────────────────────────
+
+    #[tokio::test]
+    async fn daily_cost_above_alert_triggers_annotation() {
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = InsightAnalysisUseCase::new(
+            Arc::new(MockSession(MetricsSummary::default())),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            Arc::new(MockTrendData::default()),
+            Arc::new(MockStats(12.5)), // $12.50 > $10 上限
+            60,
+            default_thresholds(),
+        );
+        uc.run().await.unwrap();
+        let sent = ann.sent.lock().unwrap();
+        let budget_ann = sent.iter().find(|a| a.key == "daily_cost_budget");
+        assert!(budget_ann.is_some());
+        assert_eq!(budget_ann.unwrap().severity, InsightSeverity::Alert);
+    }
+
+    #[tokio::test]
+    async fn daily_cost_below_alert_no_annotation() {
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = InsightAnalysisUseCase::new(
+            Arc::new(MockSession(MetricsSummary::default())),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            Arc::new(MockTrendData::default()),
+            Arc::new(MockStats(8.0)), // $8.00 < $10 上限
+            60,
+            default_thresholds(),
+        );
+        uc.run().await.unwrap();
+        assert!(!ann
+            .sent
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|a| a.key == "daily_cost_budget"));
+    }
+
+    #[tokio::test]
+    async fn daily_cost_exactly_at_threshold_triggers_annotation() {
+        let ann = Arc::new(MockAnnotation::default());
+        let uc = InsightAnalysisUseCase::new(
+            Arc::new(MockSession(MetricsSummary::default())),
+            ann.clone(),
+            Arc::new(MockInsightState::default()),
+            Arc::new(MockTrendData::default()),
+            Arc::new(MockStats(10.0)), // ちょうど上限 = アラート対象
+            60,
+            default_thresholds(),
+        );
+        uc.run().await.unwrap();
+        assert!(ann
+            .sent
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|a| a.key == "daily_cost_budget"));
     }
 }

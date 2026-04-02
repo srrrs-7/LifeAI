@@ -44,6 +44,7 @@ pub struct AssistantRecord {
 
 #[derive(Debug, Deserialize)]
 pub struct AssistantMessage {
+    pub id: Option<String>,
     pub model: Option<String>,
     pub usage: Option<Usage>,
     pub content: Option<Vec<ContentBlock>>,

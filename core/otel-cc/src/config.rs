@@ -32,6 +32,8 @@ pub struct InsightThresholds {
     pub cache_hit_ratio_alert: f64,
     pub cost_per_session_warn: f64,
     pub cost_per_session_alert: f64,
+    /// 日次コスト上限（USD）。超過でアラートを送信
+    pub daily_cost_usd_alert: f64,
     pub trend_lookback_days: u32,
     pub trend_prediction_horizon_days: f64,
 }
@@ -62,11 +64,15 @@ impl InsightThresholds {
             cost_per_session_warn: std::env::var("OTEL_CC_INSIGHT_COST_WARN")
                 .ok()
                 .and_then(|v| v.parse().ok())
-                .unwrap_or(10.0),
+                .unwrap_or(3.0),
             cost_per_session_alert: std::env::var("OTEL_CC_INSIGHT_COST_ALERT")
                 .ok()
                 .and_then(|v| v.parse().ok())
-                .unwrap_or(15.0),
+                .unwrap_or(8.0),
+            daily_cost_usd_alert: std::env::var("OTEL_CC_INSIGHT_DAILY_COST_ALERT")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(10.0),
             trend_lookback_days: std::env::var("OTEL_CC_INSIGHT_TREND_LOOKBACK")
                 .ok()
                 .and_then(|v| v.parse().ok())

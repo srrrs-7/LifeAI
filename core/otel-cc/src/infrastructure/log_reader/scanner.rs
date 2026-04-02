@@ -53,6 +53,8 @@ pub fn scan_file(
     // tool_use_id → (session_id, tool_name, timestamp) のペンディングマップ
     // ※ スキャン境界をまたぐケースは is_error=false として扱う
     let mut pending_tool_calls: HashMap<String, (String, String, String)> = HashMap::new();
+    // message.id → TokenEvent のバッファ（同一 message.id は last-wins で上書き）
+    let mut pending_token_events: HashMap<String, TokenEvent> = HashMap::new();
     let mut lines_processed = skip_lines;
 
     for line in reader.lines().skip(skip_lines).map_while(Result::ok) {
@@ -67,9 +69,15 @@ pub fn scan_file(
             user,
             &mut sessions,
             &mut pending_tool_calls,
+            &mut pending_token_events,
             session_port,
             event_port,
         );
+    }
+
+    // pending_token_events を drain して DB に挿入
+    for (_, token_event) in pending_token_events {
+        let _ = event_port.insert_token_event(&token_event);
     }
 
     // スキャン後も pending のままのツールコール = アクティブセッションの未完了ツール
@@ -108,12 +116,14 @@ fn get_mtime(path: &Path) -> String {
         .unwrap_or_default()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn process_record(
     record: LogRecord,
     project: &str,
     user: &str,
     sessions: &mut HashMap<String, Session>,
     pending_tool_calls: &mut HashMap<String, (String, String, String)>,
+    pending_token_events: &mut HashMap<String, TokenEvent>,
     session_port: &dyn SessionPort,
     event_port: &dyn EventPort,
 ) {
@@ -155,7 +165,7 @@ fn process_record(
                 let cache_read = usage.cache_read_input_tokens.unwrap_or(0);
                 let model_str = a.message.model.as_deref().unwrap_or("claude-sonnet-4-6");
 
-                let _ = event_port.insert_token_event(&TokenEvent {
+                let token_event = TokenEvent {
                     session_id: session_id.clone(),
                     timestamp: ts.clone(),
                     model: a.message.model.clone(),
@@ -165,7 +175,15 @@ fn process_record(
                     cache_read_tokens: cache_read,
                     cost_usd: cost::calculate(model_str, input, output, cache_create, cache_read),
                     source: EventSource::Log,
-                });
+                };
+
+                if let Some(msg_id) = &a.message.id {
+                    // message.id がある場合はバッファに積む（last-wins）
+                    pending_token_events.insert(msg_id.clone(), token_event);
+                } else {
+                    // message.id がない場合は即座に挿入（後方互換）
+                    let _ = event_port.insert_token_event(&token_event);
+                }
             }
 
             // tool_use → ペンディングに積む
@@ -437,5 +455,98 @@ mod tests {
 
         let s = r.load_summary().unwrap();
         assert_eq!(s.total_compression_events, 1);
+    }
+
+    // ── assistant メッセージ重複排除 ─────────────────────────────────
+
+    /// 同じ message.id で3行書き込まれたとき、最後の値のみカウントされる
+    fn assistant_line_with_msg_id(
+        session_id: &str,
+        msg_id: &str,
+        input: i64,
+        output: i64,
+    ) -> String {
+        format!(
+            r#"{{"type":"assistant","sessionId":"{session_id}","timestamp":"2026-03-26T10:00:00Z","cwd":"/workspace/proj","gitBranch":"main","entrypoint":"cli","version":"1.0.0","message":{{"id":"{msg_id}","model":"claude-sonnet-4-6","usage":{{"input_tokens":{input},"output_tokens":{output},"cache_creation_input_tokens":0,"cache_read_input_tokens":0}},"content":[]}}}}"#
+        )
+    }
+
+    #[test]
+    fn duplicate_assistant_message_counted_once() {
+        let r = repo();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("s.jsonl");
+        // 同じ message.id で3行: output_tokens 50 → 75 → 100
+        let content = format!(
+            "{}\n{}\n{}\n",
+            assistant_line_with_msg_id("sess-1", "msg-abc", 100, 50),
+            assistant_line_with_msg_id("sess-1", "msg-abc", 100, 75),
+            assistant_line_with_msg_id("sess-1", "msg-abc", 100, 100),
+        );
+        std::fs::write(&path, content).unwrap();
+
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
+
+        let s = r.load_summary().unwrap();
+        // 最後の行 (output=100) のみカウントされるべき
+        assert_eq!(
+            s.total_output_tokens, 100,
+            "重複 message.id は最後の値のみカウントされるべき"
+        );
+        assert_eq!(
+            s.total_input_tokens, 100,
+            "入力トークンも最後の値のみカウントされるべき"
+        );
+    }
+
+    #[test]
+    fn duplicate_assistant_without_message_id_falls_back() {
+        let r = repo();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("s.jsonl");
+        // message.id なし の2行 → 両方カウント（後方互換）
+        let content = format!(
+            "{}\n{}\n",
+            assistant_line("sess-1", 100, 50),
+            assistant_line("sess-1", 200, 80),
+        );
+        std::fs::write(&path, content).unwrap();
+
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
+
+        let s = r.load_summary().unwrap();
+        assert_eq!(
+            s.total_output_tokens, 130,
+            "message.id なしは両方カウントされるべき（後方互換）"
+        );
+        assert_eq!(s.total_input_tokens, 300);
+    }
+
+    #[test]
+    fn tool_use_in_duplicate_message_not_duplicated() {
+        let r = repo();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("s.jsonl");
+        // 同じ message.id の2行に同じ tool_use ブロック
+        let tool_use_with_id = |msg_id: &str| {
+            format!(
+                r#"{{"type":"assistant","sessionId":"sess-1","timestamp":"2026-03-26T10:00:00Z","cwd":"/w","gitBranch":"main","message":{{"id":"{msg_id}","model":"claude-sonnet-4-6","usage":{{"input_tokens":10,"output_tokens":5,"cache_creation_input_tokens":0,"cache_read_input_tokens":0}},"content":[{{"type":"tool_use","id":"toolu_01","name":"Bash","input":{{}}}}]}}}}"#
+            )
+        };
+        let content = format!(
+            "{}\n{}\n{}\n",
+            tool_use_with_id("msg-xyz"),
+            tool_use_with_id("msg-xyz"),
+            tool_result_line("sess-1", "toolu_01", false),
+        );
+        std::fs::write(&path, content).unwrap();
+
+        scan_file(&path, "proj", "test-user", &r, &r).unwrap();
+
+        let s = r.load_summary().unwrap();
+        assert_eq!(
+            s.total_tool_calls, 1,
+            "重複 message.id の tool_use は1回のみカウントされるべき"
+        );
     }
 }

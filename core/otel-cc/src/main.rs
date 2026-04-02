@@ -60,6 +60,7 @@ async fn main() -> Result<()> {
         grafana_client,
         repo.clone() as Arc<dyn domain::port::InsightStatePort>,
         repo.clone() as Arc<dyn domain::port::TrendDataPort>,
+        repo.clone() as Arc<dyn domain::port::StatsPort>,
         config.insight_cooldown_minutes,
         config.insight_thresholds,
     ));
