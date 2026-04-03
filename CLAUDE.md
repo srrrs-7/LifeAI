@@ -96,6 +96,13 @@ interface/      — axum HTTP ハンドラー: /metrics、/health、/api/stats�
 | `OTEL_CC_INSIGHT_DAILY_COST_ALERT` | `10.0` | 日次コストアラート閾値（USD）。超過で Grafana アノテーション送信 |
 | `OTEL_CC_INSIGHT_COST_WARN` | `3.0` | セッションあたりコスト Warning 閾値（USD） |
 | `OTEL_CC_INSIGHT_COST_ALERT` | `8.0` | セッションあたりコスト Alert 閾値（USD） |
+| `OTEL_CC_INSIGHT_TOOL_ERROR_WARN` | `0.05` | ツールエラー率 Warning 閾値 |
+| `OTEL_CC_INSIGHT_TOOL_ERROR_ALERT` | `0.10` | ツールエラー率 Alert 閾値 |
+| `OTEL_CC_INSIGHT_TOOL_MIN_CALLS` | `5` | ツールエラー率を計算する最小呼び出し数 |
+| `OTEL_CC_INSIGHT_CACHE_WARN` | `0.90` | キャッシュヒット率 Warning 閾値（この値を下回ると警告） |
+| `OTEL_CC_INSIGHT_CACHE_ALERT` | `0.50` | キャッシュヒット率 Alert 閾値 |
+| `OTEL_CC_INSIGHT_TREND_LOOKBACK` | `14` | トレンド分析の過去参照日数 |
+| `OTEL_CC_INSIGHT_TREND_HORIZON` | `7.0` | トレンド予測の対象日数 |
 | `OTEL_CC_USER` | OS ユーザー名 | ユーザー識別名（チーム内で一意にする） |
 
 **Docker Compose インフラ:**
