@@ -1,0 +1,57 @@
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -1,4 +1,4 @@
+ # CLAUDE.md
+ 
+ This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+ 
+```
+```diff
+@@ -末尾付近（Dev Container セクションの後） @@
++
++## Known Issues & Workarounds
++
++### Docker クロスプラットフォームビルド（arm64 ホスト → linux/amd64）
++
++`docker build --platform linux/amd64` は legacy Docker builder ではクロスコンパイル不可（`image does not provide the specified platform` エラー）。`docker buildx` も古いバージョンでは `--name` フラグ非対応の場合がある。
++
++**回避策: ACR サーバーサイドビルドを使用**
++```bash
++az acr build --registry <ACR_NAME> --image <image>:<tag> --target <target> --platform linux/amd64 .
++```
++ソースコードを ACR に送信してクラウド側でビルドするため、ローカルアーキテクチャに依存しない。
++
++### Playwright OS 依存ライブラリ
++
++`bun install` では Playwright の OS 依存ライブラリ（libglib, libnss3 等）は入らない。Dev Container 初期化時は以下が必要:
++```bash
++bunx playwright install          # ブラウザバイナリ
++sudo npx playwright install-deps # OS 依存ライブラリ（apt-get 相当）
++```
++
++### E2E 認証セットアップ（ロール単位の再実行）
++
++`bun run e2e-auth-setup` は各ロールの認証を `.auth/{role}.json` に独立保存する。特定ロールのみ失敗した場合は再実行し、失敗したロールの認証情報のみ再入力すればよい（他ロールの `.json` は上書きされない）。認証タイムアウト時のデバッグ: `apps/e2e/test-results/.../error-context.md` を確認。
+```
+```diff
+@@ Architecture セクション内（または末尾） @@
++
++### メール送信アーキテクチャ（ACS Email）
++
++**採用方針**: トランザクショナルメール（招待・通知）は ACS Email を使用。Managed Identity 認証で API Key 管理不要、Bicep で IaC 完結。
++
++**SendGrid との使い分け**:
++- 現在: ACS Email のみ（トランザクショナルメール）
++- 将来マーケティングメール要件が確定した場合: SendGrid を追加（SPF レコードに `include:sendgrid.net` を追加するだけで ACS と共存可能）
++- Worker の送信部分を差し替えるだけで移行可能（Queue・DB・テンプレートは流用）
++
++**ACS Email レート制限**:
++- デフォルト: 30通/時（月1万通 ≈ 14通/時 → 申請不要）
++- 一斉送信バースト対策: Worker 側でレート制限を実装して吸収する
++- 将来的に量が増えた段階で Azure サポートへ引き上げ申請
++
++**バックアップアーカイブ設計**:
++- 既存バッチを変更せず、独立した `csv-archiver` ジョブ（Container App Job）で Fileshare → Blob Storage コピー
++- Blob Lifecycle Policy の `prefixMatch` は `コンテナ名/プレフィックス` 形式（例: `crimo-csv-archive/`）
++- 削除はフォルダ単位ではなく **Blob ごとの作成日時** 基準（`daysAfterCreationGreaterThan`）
++- archiver ジョブのスケジュールは File Remover より前に設定（例: 22:00 JST 実行）
