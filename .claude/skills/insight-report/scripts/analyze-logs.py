@@ -9,6 +9,7 @@ Reads JSONL session files and outputs a structured JSON report with:
 - Model usage breakdown
 """
 
+import argparse
 import json
 import sys
 import os
@@ -17,12 +18,39 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 
-def find_session_logs():
-    """Find all JSONL session logs in ~/.claude/projects/."""
+def get_project_log_dir():
+    """Derive the current project's Claude Code log directory from CWD.
+
+    Claude Code stores logs in ~/.claude/projects/<path-with-slashes-replaced>/
+    e.g., /workspace/main/lifeai -> ~/.claude/projects/-workspace-main-lifeai/
+    Returns None if the directory cannot be located.
+    """
+    project_root = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    sanitized = str(project_root).replace("/", "-")
+    candidate = Path.home() / ".claude" / "projects" / sanitized
+    return candidate if candidate.exists() else None
+
+
+def find_session_logs(all_projects=False):
+    """Find JSONL session logs.
+
+    By default, scans only the current project's log directory to avoid
+    cross-project contamination. Pass all_projects=True for legacy behavior.
+    """
     base = Path.home() / ".claude" / "projects"
     if not base.exists():
         return []
-    return sorted(base.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+    if all_projects:
+        return sorted(base.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+    project_dir = get_project_log_dir()
+    if project_dir is None:
+        print(
+            "[warn] Could not locate current project log directory; "
+            "falling back to all projects. Pass --all-projects to silence.",
+            file=sys.stderr,
+        )
+        return sorted(base.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return sorted(project_dir.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
 
 
 def analyze_session(filepath):
@@ -108,9 +136,9 @@ def analyze_session(filepath):
     return stats
 
 
-def analyze_all():
+def analyze_all(all_projects=False):
     """Analyze all session logs and produce aggregate report."""
-    logs = find_session_logs()
+    logs = find_session_logs(all_projects=all_projects)
 
     if not logs:
         return {"error": "No session logs found", "sessions": []}
@@ -171,5 +199,15 @@ def analyze_all():
 
 
 if __name__ == "__main__":
-    report = analyze_all()
+    parser = argparse.ArgumentParser(
+        description="Analyze Claude Code session logs for the current project"
+    )
+    parser.add_argument(
+        "--all-projects",
+        action="store_true",
+        help="Scan all projects under ~/.claude/projects/ (legacy behavior). "
+        "By default, only the current project's logs are scanned.",
+    )
+    args = parser.parse_args()
+    report = analyze_all(all_projects=args.all_projects)
     print(json.dumps(report, indent=2, ensure_ascii=False))

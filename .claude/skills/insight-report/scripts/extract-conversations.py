@@ -10,6 +10,7 @@ Output: JSON with conversation pairs suitable for semantic knowledge extraction.
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -19,13 +20,44 @@ MIN_ASSISTANT_TEXT_LENGTH = 80
 MIN_USER_TEXT_LENGTH = 10
 
 
-def find_session_logs():
-    """Find all JSONL session logs in ~/.claude/projects/."""
+def get_project_log_dir():
+    """Derive the current project's Claude Code log directory from CWD.
+
+    Claude Code stores logs in ~/.claude/projects/<path-with-slashes-replaced>/
+    e.g., /workspace/main/lifeai -> ~/.claude/projects/-workspace-main-lifeai/
+    Returns None if the directory cannot be located.
+    """
+    project_root = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    sanitized = str(project_root).replace("/", "-")
+    candidate = Path.home() / ".claude" / "projects" / sanitized
+    return candidate if candidate.exists() else None
+
+
+def find_session_logs(all_projects=False):
+    """Find JSONL session logs.
+
+    By default, scans only the current project's log directory to avoid
+    cross-project contamination. Pass all_projects=True for legacy behavior.
+    """
     base = Path.home() / ".claude" / "projects"
     if not base.exists():
         return []
+    if all_projects:
+        return sorted(
+            base.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True
+        )
+    project_dir = get_project_log_dir()
+    if project_dir is None:
+        print(
+            "[warn] Could not locate current project log directory; "
+            "falling back to all projects. Pass --all-projects to silence.",
+            file=sys.stderr,
+        )
+        return sorted(
+            base.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True
+        )
     return sorted(
-        base.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True
+        project_dir.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True
     )
 
 
@@ -187,9 +219,9 @@ def extract_conversations_from_session(filepath, since_dt=None):
     return conversations
 
 
-def extract_all(since_days=None):
+def extract_all(since_days=None, all_projects=False):
     """Extract conversations from all session logs."""
-    logs = find_session_logs()
+    logs = find_session_logs(all_projects=all_projects)
     if not logs:
         return {"error": "No session logs found", "conversations": []}
 
@@ -230,9 +262,15 @@ def main():
         metavar="N",
         help="Limit output to N most recent conversations",
     )
+    parser.add_argument(
+        "--all-projects",
+        action="store_true",
+        help="Scan all projects under ~/.claude/projects/ (legacy behavior). "
+        "By default, only the current project's logs are scanned.",
+    )
     args = parser.parse_args()
 
-    result = extract_all(since_days=args.since)
+    result = extract_all(since_days=args.since, all_projects=args.all_projects)
 
     if args.limit and result.get("conversations"):
         result["conversations"] = result["conversations"][: args.limit]

@@ -342,7 +342,7 @@ Agent(model=sonnet, prompt="計画に基づいて実装: ...")
 
 - 応答は日本語で行うこと
 - 既存ファイルの修正には Edit ツールを優先し、Write は新規作成時のみ使用
-- ファイル検索には Grep / Glob を使用し、Bash で grep/find/cat を直接実行しない
+- ファイル検索・リスト表示には Grep / Glob を使用し、Bash で grep/find/ls を直接実行しない
 - 同じ系統のファイル探索・コード探索を 2〜3 回繰り返しても目的を達成できない場合、または広範囲にわたる探索が必要な場合は Agent(subagent_type=Explore) に委ねること
 - Edit ツールを使う前に、`old_string` がファイル内で一意であることを Grep で確認する。一致が複数ある場合はより広いコンテキストを含めて一意にしてから Edit を実行する
 - コードを読む際は Read ツールを使用し、Bash で cat/head/tail を使わない

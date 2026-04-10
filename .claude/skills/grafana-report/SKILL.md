@@ -1,6 +1,6 @@
 ---
 name: grafana-report
-description: Grafana/Prometheus の統計データから Claude Code の使い方を分析し、改善提案をレポート出力する。コスト最適化、キャッシュ効率、ツールエラー率、セッション効率などの KPI を閾値判定し、具体的な改善アクションを提示。Use when reviewing Claude Code usage stats, optimizing costs, checking efficiency, analyzing tool errors, or generating usage reports.
+description: otel-cc の /api/stats API からリアルタイム KPI を取得し、閾値判定と改善提案を Markdown レポート出力。コスト・キャッシュ効率・ツールエラー率・セッション効率を数値評価する（JSONL ログの深掘りには insight-report を使う）。Use when reviewing real-time Claude Code KPI via otel-cc API, checking daily/weekly numerical stats, or generating threshold-based reports.
 argument-hint: "[days]"
 disable-model-invocation: true
 ---
