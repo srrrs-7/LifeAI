@@ -1,0 +1,253 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1204" viewBox="0 0 1200 1204" font-family="'SF Pro Display', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a1a" />
+      <stop offset="100%" stop-color="#1a237e" />
+    </linearGradient>
+    <linearGradient id="peakGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a237e" />
+      <stop offset="100%" stop-color="#4A148C" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#536DFE" />
+      <stop offset="100%" stop-color="#7C4DFF" />
+    </linearGradient>
+    <linearGradient id="warmGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FF6D00" />
+      <stop offset="100%" stop-color="#FF1744" />
+    </linearGradient>
+    <linearGradient id="sunGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FF6D00" />
+      <stop offset="100%" stop-color="#FFAB00" />
+    </linearGradient>
+    <linearGradient id="tealGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00B0FF" />
+      <stop offset="100%" stop-color="#00E5FF" />
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00C853" />
+      <stop offset="100%" stop-color="#69F0AE" />
+    </linearGradient>
+    <linearGradient id="dangerGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FF1744" />
+      <stop offset="100%" stop-color="#FF5252" />
+    </linearGradient>
+    <linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#536DFE" />
+      <stop offset="50%" stop-color="#00E5FF" />
+      <stop offset="100%" stop-color="#69F0AE" />
+    </linearGradient>
+    <linearGradient id="keyInsightBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF3E0" />
+      <stop offset="100%" stop-color="#FFE0B2" />
+    </linearGradient>
+    <filter id="elevation1" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="rgba(0,0,0,0.07)" />
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.05)" />
+    </filter>
+    <filter id="elevation2" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="rgba(0,0,0,0.10)" />
+      <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="rgba(0,0,0,0.08)" />
+    </filter>
+    <clipPath id="heroClip">
+      <rect width="1200" height="100" />
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1204" fill="#f5f5f7" />
+
+  <!-- Hero Header -->
+  <g clip-path="url(#heroClip)">
+    <rect width="1200" height="100" fill="url(#heroGrad)" />
+    <circle cx="1100" cy="20" r="120" fill="#536DFE" opacity="0.07" />
+    <circle cx="1140" cy="80" r="70" fill="#7C4DFF" opacity="0.05" />
+    <circle cx="50" cy="80" r="40" fill="#00E5FF" opacity="0.04" />
+  </g>
+  <rect x="40" y="12" width="220" height="24" rx="12" fill="rgba(255,255,255,0.1)" />
+  <text x="56" y="29" font-size="12" font-weight="500" fill="rgba(255,255,255,0.85)">2026-04-15 (Wed)</text>
+  <text x="40" y="58" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">縦×横の視点拡張と、心身への投資</text>
+  <text x="40" y="80" font-size="13" font-weight="400" fill="rgba(255,255,255,0.65)">リファインメント運営 × Entra MFA × Defender スキル化</text>
+  <g transform="translate(860, 68)">
+    <rect width="84" height="22" rx="11" fill="url(#accentGrad)" opacity="0.9" />
+    <text x="12" y="16" font-size="13" font-weight="800" fill="#FFFFFF">6</text>
+    <text x="28" y="15" font-size="10" font-weight="500" fill="rgba(255,255,255,0.9)">TASKS</text>
+    <rect x="92" width="108" height="22" rx="11" fill="url(#sunGrad)" opacity="0.9" />
+    <text x="104" y="16" font-size="13" font-weight="800" fill="#FFFFFF">3</text>
+    <text x="120" y="15" font-size="10" font-weight="500" fill="rgba(255,255,255,0.9)">INSIGHTS</text>
+  </g>
+
+  <!-- ROW 1 -->
+  <!-- Activities card (left) -->
+  <rect x="24" y="124" width="564" height="384" rx="16" fill="#FFFFFF" filter="url(#elevation1)" />
+  <rect x="24" y="124" width="564" height="4" rx="2" fill="url(#accentGrad)" />
+  <text x="48" y="160" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">ACTIVITIES</text>
+  <text x="48" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">実施事項</text>
+  <text x="564" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#536DFE">x6</text>
+  <g transform="translate(48, 200)">
+    <g>
+      <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6" />
+      <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+      <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">リファインメント運営・PBI 深掘り</text>
+    </g>
+    <g transform="translate(0, 48)">
+      <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6" />
+      <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+      <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">Entra MFA 状態による表示出し分け実装</text>
+    </g>
+    <g transform="translate(0, 96)">
+      <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6" />
+      <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+      <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">Azure Defender 向け Claude スキル作成</text>
+    </g>
+    <g transform="translate(0, 144)">
+      <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6" />
+      <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+      <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">PR レビュー（設計・セキュリティ観点）</text>
+    </g>
+    <g transform="translate(0, 192)">
+      <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6" />
+      <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+      <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">依存ライブラリのアップデート適用</text>
+    </g>
+    <g transform="translate(0, 240)">
+      <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6" />
+      <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)" />
+      <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">セキュリティ検出事項の優先度判断・対処</text>
+    </g>
+  </g>
+
+  <!-- Insights card (right) -->
+  <rect x="612" y="124" width="564" height="384" rx="16" fill="#FFFFFF" filter="url(#elevation1)" />
+  <rect x="612" y="124" width="564" height="4" rx="2" fill="url(#sunGrad)" />
+  <text x="636" y="160" font-size="11" font-weight="800" fill="#FF6D00" letter-spacing="1.5">INSIGHTS</text>
+  <text x="636" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">気づき・学び</text>
+  <text x="1152" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#FF6D00">x3</text>
+  <g transform="translate(636, 200)">
+    <!-- KEY INSIGHT -->
+    <g>
+      <rect x="0" y="0" width="516" height="88" rx="12" fill="url(#keyInsightBg)" filter="url(#elevation1)" />
+      <rect x="0" y="0" width="6" height="88" rx="3" fill="url(#warmGrad)" />
+      <text x="16" y="24" font-size="14" font-weight="800" fill="#BF360C">縦に加え、横の視点拡張が必要</text>
+      <text x="16" y="44" font-size="12" font-weight="500" fill="#4E342E">抽象⇄具体の往復だけでは足りない</text>
+      <text x="16" y="62" font-size="12" font-weight="500" fill="#4E342E">同抽象度の他事例と比較し最善案を導く</text>
+      <rect x="16" y="72" width="80" height="12" rx="6" fill="url(#warmGrad)" />
+      <text x="56" y="82" text-anchor="middle" font-size="8" font-weight="800" fill="#FFFFFF">KEY INSIGHT</text>
+    </g>
+    <g transform="translate(0, 100)">
+      <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0" />
+      <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)" />
+      <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">権威あるパターンを分野ごとに持つ</text>
+      <text x="16" y="44" font-size="12" fill="#5D4037">GitHub など参照例を深く押さえる</text>
+      <text x="16" y="62" font-size="12" fill="#5D4037">側面別ベンチマークを定点観測する</text>
+      <rect x="16" y="72" width="72" height="12" rx="6" fill="#FF6D00" />
+      <text x="52" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">BENCHMARK</text>
+    </g>
+    <g transform="translate(0, 200)">
+      <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0" />
+      <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)" />
+      <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">心身コントロールは費用対効果が高い</text>
+      <text x="16" y="44" font-size="12" fill="#5D4037">中長期の真のボトルネックはここ</text>
+      <text x="16" y="62" font-size="12" fill="#5D4037">最投資効率の領域としてリソース配分</text>
+      <rect x="16" y="72" width="64" height="12" rx="6" fill="#FF6D00" />
+      <text x="48" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">STRATEGY</text>
+    </g>
+  </g>
+
+  <!-- ROW 2 -->
+  <!-- Challenges (left) -->
+  <rect x="24" y="532" width="564" height="248" rx="16" fill="#FFFFFF" filter="url(#elevation1)" />
+  <rect x="24" y="532" width="564" height="4" rx="2" fill="url(#dangerGrad)" />
+  <text x="48" y="568" font-size="11" font-weight="800" fill="#FF1744" letter-spacing="1.5">CHALLENGES</text>
+  <text x="48" y="590" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">課題・ブロッカー</text>
+  <text x="564" y="590" text-anchor="end" font-size="12" font-weight="600" fill="#FF1744">x3</text>
+  <g transform="translate(48, 608)">
+    <g>
+      <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE" />
+      <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744" />
+      <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">具体と抽象の最善案導出プロセス</text>
+      <rect x="420" y="12" width="80" height="22" rx="11" fill="#536DFE" />
+      <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">対応中</text>
+    </g>
+    <g transform="translate(0, 54)">
+      <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE" />
+      <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744" />
+      <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">各領域のベンチマーク対象が未整備</text>
+      <rect x="420" y="12" width="80" height="22" rx="11" fill="#FF6D00" />
+      <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">調査中</text>
+    </g>
+    <g transform="translate(0, 108)">
+      <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE" />
+      <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744" />
+      <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">将来的な心身パフォーマンス低下リスク</text>
+      <rect x="420" y="12" width="80" height="22" rx="11" fill="#FF6D00" />
+      <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">調査中</text>
+    </g>
+  </g>
+
+  <!-- Next Steps (right) -->
+  <rect x="612" y="532" width="564" height="248" rx="16" fill="#FFFFFF" filter="url(#elevation1)" />
+  <rect x="612" y="532" width="564" height="4" rx="2" fill="url(#greenGrad)" />
+  <text x="636" y="568" font-size="11" font-weight="800" fill="#00C853" letter-spacing="1.5">NEXT STEPS</text>
+  <text x="636" y="590" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">次の一手</text>
+  <text x="1152" y="590" text-anchor="end" font-size="12" font-weight="600" fill="#00C853">x3</text>
+  <g transform="translate(636, 608)">
+    <g>
+      <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFEBEE" />
+      <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF1744" />
+      <text x="26" y="22" font-size="11" font-weight="800" fill="#FF1744">P1</text>
+      <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">若いうちに体力で全力疾走する</text>
+    </g>
+    <g transform="translate(0, 44)">
+      <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFF3E0" />
+      <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF6D00" />
+      <text x="26" y="22" font-size="11" font-weight="800" fill="#FF6D00">P2</text>
+      <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">GitHub 等 権威パターンを深掘り</text>
+    </g>
+    <g transform="translate(0, 88)">
+      <rect x="0" y="0" width="516" height="36" rx="8" fill="#E8F5E9" />
+      <rect x="8" y="8" width="10" height="20" rx="5" fill="#00C853" />
+      <text x="26" y="22" font-size="11" font-weight="800" fill="#00C853">P3</text>
+      <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">側面別ベンチマーク対象を整理</text>
+    </g>
+  </g>
+
+  <!-- Key Theme Banner -->
+  <rect x="24" y="804" width="1152" height="120" rx="20" fill="url(#peakGrad)" filter="url(#elevation2)" />
+  <circle cx="1100" cy="840" r="60" fill="#7C4DFF" opacity="0.12" />
+  <circle cx="1060" cy="880" r="40" fill="#536DFE" opacity="0.08" />
+  <text x="56" y="838" font-size="11" font-weight="800" fill="rgba(255,255,255,0.55)" letter-spacing="2.5">TODAY'S KEY THEME</text>
+  <text x="56" y="868" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">縦×横で視点を広げ、最善案の精度を上げる</text>
+  <text x="56" y="896" font-size="13" font-weight="400" fill="rgba(255,255,255,0.7)">why への抽象化 × 他事例マッピングで how を磨き、権威あるパターンで判断軸を強化する</text>
+
+  <!-- Growth Path -->
+  <rect x="24" y="948" width="1152" height="192" rx="20" fill="#FFFFFF" filter="url(#elevation2)" />
+  <text x="56" y="984" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">GROWTH PATH</text>
+  <text x="56" y="1006" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">思考の解像度：縦の往復 → 横の比較へ</text>
+  <g transform="translate(56, 1024)">
+    <rect x="0" y="16" width="1100" height="10" rx="5" fill="#E8EAF6" />
+    <rect x="0" y="16" width="770" height="10" rx="5" fill="url(#progressGrad)" />
+    <circle cx="220" cy="21" r="16" fill="url(#accentGrad)" />
+    <text x="220" y="25" text-anchor="middle" font-size="10" font-weight="800" fill="#FFFFFF">4/13</text>
+    <circle cx="495" cy="21" r="16" fill="url(#accentGrad)" />
+    <text x="495" y="25" text-anchor="middle" font-size="10" font-weight="800" fill="#FFFFFF">4/14</text>
+    <circle cx="770" cy="21" r="16" fill="url(#warmGrad)" />
+    <text x="770" y="25" text-anchor="middle" font-size="10" font-weight="800" fill="#FFFFFF">4/15</text>
+    <circle cx="1045" cy="21" r="16" fill="#FFFFFF" stroke="url(#greenGrad)" stroke-width="3" stroke-dasharray="5,3" />
+    <text x="1045" y="25" text-anchor="middle" font-size="10" font-weight="800" fill="#00C853">NEXT</text>
+  </g>
+  <g transform="translate(56, 1116)">
+    <text x="0" y="14" font-size="12" font-weight="600" fill="#78909C">Levers</text>
+    <rect x="60" y="0" width="150" height="22" rx="11" fill="url(#accentGrad)" />
+    <text x="135" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">why-what-how 往復</text>
+    <rect x="222" y="0" width="150" height="22" rx="11" fill="url(#sunGrad)" />
+    <text x="297" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">他事例マッピング</text>
+    <rect x="384" y="0" width="150" height="22" rx="11" fill="url(#tealGrad)" />
+    <text x="459" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">権威パターン蓄積</text>
+    <rect x="546" y="0" width="150" height="22" rx="11" fill="url(#greenGrad)" />
+    <text x="621" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">心身コントロール</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="600" y="1180" text-anchor="middle" font-size="11" font-weight="400" fill="#B0BEC5" letter-spacing="0.5">LifeAI Daily Insights — 2026-04-15</text>
+</svg>
