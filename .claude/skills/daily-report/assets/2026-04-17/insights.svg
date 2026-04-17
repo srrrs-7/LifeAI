@@ -1,0 +1,268 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1304" viewBox="0 0 1200 1304" font-family="'SF Pro Display', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="100%" stop-color="#1a237e"/>
+    </linearGradient>
+    <linearGradient id="peakGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a237e"/>
+      <stop offset="100%" stop-color="#4A148C"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#536DFE"/>
+      <stop offset="100%" stop-color="#7C4DFF"/>
+    </linearGradient>
+    <linearGradient id="warmGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF6D00"/>
+      <stop offset="100%" stop-color="#FF1744"/>
+    </linearGradient>
+    <linearGradient id="sunGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF6D00"/>
+      <stop offset="100%" stop-color="#FFAB00"/>
+    </linearGradient>
+    <linearGradient id="tealGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00B0FF"/>
+      <stop offset="100%" stop-color="#00E5FF"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00C853"/>
+      <stop offset="100%" stop-color="#69F0AE"/>
+    </linearGradient>
+    <linearGradient id="dangerGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF1744"/>
+      <stop offset="100%" stop-color="#FF5252"/>
+    </linearGradient>
+    <linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#536DFE"/>
+      <stop offset="50%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#69F0AE"/>
+    </linearGradient>
+    <linearGradient id="keyInsightBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF3E0"/>
+      <stop offset="100%" stop-color="#FFE0B2"/>
+    </linearGradient>
+    <filter id="elevation1" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="rgba(0,0,0,0.07)"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.05)"/>
+    </filter>
+    <filter id="elevation2" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="rgba(0,0,0,0.10)"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="rgba(0,0,0,0.08)"/>
+    </filter>
+    <clipPath id="heroClip">
+      <rect width="1200" height="100"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1304" fill="#f5f5f7"/>
+
+  <!-- HERO HEADER -->
+  <g clip-path="url(#heroClip)">
+    <rect width="1200" height="100" fill="url(#heroGrad)"/>
+    <circle cx="1100" cy="20" r="120" fill="#536DFE" opacity="0.07"/>
+    <circle cx="1140" cy="80" r="70" fill="#7C4DFF" opacity="0.05"/>
+    <circle cx="50" cy="80" r="40" fill="#00E5FF" opacity="0.04"/>
+  </g>
+  <rect x="40" y="12" width="220" height="24" rx="12" fill="rgba(255,255,255,0.1)"/>
+  <text x="56" y="29" font-size="12" font-weight="500" fill="rgba(255,255,255,0.85)">2026.04.17 FRIDAY</text>
+  <text x="40" y="58" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">仮説思考と課題ベース議論の日</text>
+  <text x="40" y="80" font-size="13" font-weight="400" fill="rgba(255,255,255,0.7)">Entra MFA と mail 基盤のスプリントレビュー、そして思考様式の進化</text>
+  <g transform="translate(860, 68)">
+    <rect width="84" height="22" rx="11" fill="url(#accentGrad)" opacity="0.9"/>
+    <text x="12" y="16" font-size="13" font-weight="800" fill="#FFFFFF">5</text>
+    <text x="28" y="15" font-size="10" font-weight="500" fill="rgba(255,255,255,0.9)">TASKS</text>
+    <rect x="92" width="108" height="22" rx="11" fill="url(#sunGrad)" opacity="0.9"/>
+    <text x="104" y="16" font-size="13" font-weight="800" fill="#FFFFFF">4</text>
+    <text x="120" y="15" font-size="10" font-weight="500" fill="rgba(255,255,255,0.9)">INSIGHTS</text>
+  </g>
+
+  <!-- ROW 1: ACTIVITIES (left) + INSIGHTS (right) — height 484 -->
+  <!-- ACTIVITIES -->
+  <rect x="24" y="124" width="564" height="484" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+  <rect x="24" y="124" width="564" height="4" rx="2" fill="url(#accentGrad)"/>
+  <text x="48" y="160" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">ACTIVITIES</text>
+  <text x="48" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">実施事項</text>
+  <text x="564" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#536DFE">x5</text>
+  <g transform="translate(48, 200)">
+    <rect x="0" y="0" width="520" height="40" rx="10" fill="#EDE7F6"/>
+    <rect x="12" y="12" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+    <text x="38" y="26" font-size="14" font-weight="600" fill="#0a0a1a">スプリントレビューで MFA と mail 基盤を発表</text>
+
+    <rect x="0" y="48" width="520" height="40" rx="10" fill="#EDE7F6"/>
+    <rect x="12" y="60" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+    <text x="38" y="74" font-size="14" font-weight="600" fill="#0a0a1a">Entra MFA 設定とアプリ統合で奮闘中</text>
+
+    <rect x="0" y="96" width="520" height="40" rx="10" fill="#EDE7F6"/>
+    <rect x="12" y="108" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+    <text x="38" y="122" font-size="14" font-weight="600" fill="#0a0a1a">Federated Credential を基本方針として確立</text>
+
+    <rect x="0" y="144" width="520" height="40" rx="10" fill="#EDE7F6"/>
+    <rect x="12" y="156" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+    <text x="38" y="170" font-size="14" font-weight="600" fill="#0a0a1a">mail 基盤で SPF/DKIM/DMARC を実務構築</text>
+
+    <rect x="0" y="192" width="520" height="40" rx="10" fill="#EDE7F6"/>
+    <rect x="12" y="204" width="16" height="16" rx="4" fill="url(#accentGrad)"/>
+    <text x="38" y="218" font-size="14" font-weight="600" fill="#0a0a1a">リファインメント運営で議論スタイル切替</text>
+  </g>
+
+  <!-- INSIGHTS -->
+  <rect x="612" y="124" width="564" height="484" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+  <rect x="612" y="124" width="564" height="4" rx="2" fill="url(#sunGrad)"/>
+  <text x="636" y="160" font-size="11" font-weight="800" fill="#FF6D00" letter-spacing="1.5">INSIGHTS</text>
+  <text x="636" y="182" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">気づき・学び</text>
+  <text x="1152" y="182" text-anchor="end" font-size="12" font-weight="600" fill="#FF6D00">x4</text>
+  <g transform="translate(636, 200)">
+    <!-- KEY INSIGHT -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="516" height="88" rx="12" fill="url(#keyInsightBg)" filter="url(#elevation1)"/>
+      <rect x="0" y="0" width="6" height="88" rx="3" fill="url(#warmGrad)"/>
+      <text x="16" y="24" font-size="14" font-weight="800" fill="#BF360C">アジェンダ vs 課題ベースの議論</text>
+      <text x="16" y="44" font-size="12" font-weight="500" fill="#4E342E">進行役は全体像を揃えてから話し始める</text>
+      <text x="16" y="62" font-size="12" font-weight="500" fill="#4E342E">現在地を共有できるかで成果が大きく変わる</text>
+      <rect x="16" y="72" width="88" height="12" rx="6" fill="url(#warmGrad)"/>
+      <text x="60" y="82" text-anchor="middle" font-size="8" font-weight="800" fill="#FFFFFF">KEY INSIGHT</text>
+    </g>
+
+    <g transform="translate(0, 100)">
+      <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0"/>
+      <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)"/>
+      <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">抽象はルーティン化、具体で差がつく</text>
+      <text x="16" y="44" font-size="12" fill="#5D4037">抽象化の動きは定着してきた段階</text>
+      <text x="16" y="62" font-size="12" fill="#5D4037">次は顧客を超える解像度の具体化が課題</text>
+      <rect x="16" y="72" width="68" height="12" rx="6" fill="#FF6D00"/>
+      <text x="50" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">LEARNING</text>
+    </g>
+
+    <g transform="translate(0, 200)">
+      <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0"/>
+      <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)"/>
+      <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">仮説思考の回数と幅を増やす</text>
+      <text x="16" y="44" font-size="12" fill="#5D4037">単線仮説ではなく多様な推測を並べる</text>
+      <text x="16" y="62" font-size="12" fill="#5D4037">意思決定の質は仮説の量と幅が決める</text>
+      <rect x="16" y="72" width="68" height="12" rx="6" fill="#FF6D00"/>
+      <text x="50" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">MINDSET</text>
+    </g>
+
+    <g transform="translate(0, 300)">
+      <rect x="0" y="0" width="516" height="88" rx="12" fill="#FFF3E0"/>
+      <rect x="0" y="0" width="4" height="88" rx="2" fill="url(#sunGrad)"/>
+      <text x="16" y="24" font-size="14" font-weight="700" fill="#E65100">Federated Credential を基本線に</text>
+      <text x="16" y="44" font-size="12" fill="#5D4037">Entra MFA の試行錯誤で確立した方針</text>
+      <text x="16" y="62" font-size="12" fill="#5D4037">運用破綻する複雑構成は採用しない</text>
+      <rect x="16" y="72" width="68" height="12" rx="6" fill="#FF6D00"/>
+      <text x="50" y="82" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF">POLICY</text>
+    </g>
+  </g>
+
+  <!-- ROW 2: CHALLENGES (left) + NEXT STEPS (right) — height 248 -->
+  <!-- CHALLENGES -->
+  <rect x="24" y="632" width="564" height="248" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+  <rect x="24" y="632" width="564" height="4" rx="2" fill="url(#dangerGrad)"/>
+  <text x="48" y="668" font-size="11" font-weight="800" fill="#FF1744" letter-spacing="1.5">CHALLENGES</text>
+  <text x="48" y="690" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">課題・ブロッカー</text>
+  <text x="564" y="690" text-anchor="end" font-size="12" font-weight="600" fill="#FF1744">x3</text>
+  <g transform="translate(48, 708)">
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE"/>
+      <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744"/>
+      <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">Entra MFA 実装の複雑化</text>
+      <rect x="420" y="12" width="80" height="22" rx="11" fill="#536DFE"/>
+      <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">対応中</text>
+    </g>
+    <g transform="translate(0, 54)">
+      <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE"/>
+      <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744"/>
+      <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">顧客理解の具体化が不足</text>
+      <rect x="420" y="12" width="80" height="22" rx="11" fill="#FF6D00"/>
+      <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">調査中</text>
+    </g>
+    <g transform="translate(0, 108)">
+      <rect x="0" y="0" width="520" height="44" rx="10" fill="#FFEBEE"/>
+      <rect x="0" y="0" width="4" height="44" rx="2" fill="#FF1744"/>
+      <text x="16" y="27" font-size="14" font-weight="600" fill="#B71C1C">仮説が単線化しがち</text>
+      <rect x="420" y="12" width="80" height="22" rx="11" fill="#536DFE"/>
+      <text x="460" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">対応中</text>
+    </g>
+  </g>
+
+  <!-- NEXT STEPS -->
+  <rect x="612" y="632" width="564" height="248" rx="16" fill="#FFFFFF" filter="url(#elevation1)"/>
+  <rect x="612" y="632" width="564" height="4" rx="2" fill="url(#greenGrad)"/>
+  <text x="636" y="668" font-size="11" font-weight="800" fill="#00C853" letter-spacing="1.5">NEXT STEPS</text>
+  <text x="636" y="690" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">次の一手</text>
+  <text x="1152" y="690" text-anchor="end" font-size="12" font-weight="600" fill="#00C853">x3</text>
+  <g transform="translate(636, 708)">
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFEBEE"/>
+      <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF1744"/>
+      <text x="26" y="14" font-size="11" font-weight="800" fill="#FF1744">P1</text>
+      <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">仮説思考の回数を増やす・複数案並行</text>
+    </g>
+    <g transform="translate(0, 44)">
+      <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFEBEE"/>
+      <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF1744"/>
+      <text x="26" y="14" font-size="11" font-weight="800" fill="#FF1744">P1</text>
+      <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">縦×横の思考に妥協がないか常に点検</text>
+    </g>
+    <g transform="translate(0, 88)">
+      <rect x="0" y="0" width="516" height="36" rx="8" fill="#FFF3E0"/>
+      <rect x="8" y="8" width="10" height="20" rx="5" fill="#FF6D00"/>
+      <text x="26" y="14" font-size="11" font-weight="800" fill="#FF6D00">P2</text>
+      <text x="52" y="24" font-size="14" font-weight="600" fill="#0a0a1a">Entra MFA の落とし所と代替案の整理</text>
+    </g>
+  </g>
+
+  <!-- KEY THEME BANNER — y=904, h=120 -->
+  <rect x="24" y="904" width="1152" height="120" rx="20" fill="url(#peakGrad)" filter="url(#elevation2)"/>
+  <circle cx="1100" cy="940" r="60" fill="#7C4DFF" opacity="0.12"/>
+  <circle cx="1060" cy="980" r="40" fill="#536DFE" opacity="0.08"/>
+  <text x="56" y="938" font-size="11" font-weight="800" fill="rgba(255,255,255,0.5)" letter-spacing="2.5">TODAY'S KEY THEME</text>
+  <text x="56" y="968" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">思考を止めない — 仮説は複数、議論は課題から</text>
+  <text x="56" y="996" font-size="13" font-weight="400" fill="rgba(255,255,255,0.7)">抽象化の先にある具体化で差をつけ、縦と横どちらにも妥協を残さない</text>
+
+  <!-- GROWTH PATH — y=1048, h=192 -->
+  <rect x="24" y="1048" width="1152" height="192" rx="20" fill="#FFFFFF" filter="url(#elevation2)"/>
+  <text x="56" y="1084" font-size="11" font-weight="800" fill="#536DFE" letter-spacing="1.5">GROWTH PATH</text>
+  <text x="56" y="1106" font-size="18" font-weight="800" fill="#0a0a1a" letter-spacing="-0.3">思考の進化ライン（4/13 → 4/17）</text>
+
+  <g transform="translate(56, 1124)">
+    <rect x="0" y="16" width="1100" height="10" rx="5" fill="#E8EAF6"/>
+    <rect x="0" y="16" width="880" height="10" rx="5" fill="url(#progressGrad)"/>
+    <!-- 4 milestones: 4/13, 4/14, 4/15, 4/17 achieved; next target dashed -->
+    <circle cx="0" cy="21" r="14" fill="url(#accentGrad)"/>
+    <text x="0" y="-4" text-anchor="middle" font-size="10" font-weight="700" fill="#536DFE">4/13</text>
+    <text x="0" y="48" text-anchor="middle" font-size="10" font-weight="600" fill="#5D4037">ロックイン設計</text>
+
+    <circle cx="293" cy="21" r="14" fill="url(#accentGrad)"/>
+    <text x="293" y="-4" text-anchor="middle" font-size="10" font-weight="700" fill="#536DFE">4/14</text>
+    <text x="293" y="48" text-anchor="middle" font-size="10" font-weight="600" fill="#5D4037">why-what-how 往復</text>
+
+    <circle cx="586" cy="21" r="14" fill="url(#accentGrad)"/>
+    <text x="586" y="-4" text-anchor="middle" font-size="10" font-weight="700" fill="#536DFE">4/15</text>
+    <text x="586" y="48" text-anchor="middle" font-size="10" font-weight="600" fill="#5D4037">縦×横視点・ベンチマーク</text>
+
+    <circle cx="880" cy="21" r="16" fill="url(#warmGrad)"/>
+    <text x="880" y="-4" text-anchor="middle" font-size="10" font-weight="800" fill="#FF1744">4/17 TODAY</text>
+    <text x="880" y="48" text-anchor="middle" font-size="10" font-weight="700" fill="#BF360C">仮説思考・課題ベース議論</text>
+
+    <circle cx="1100" cy="21" r="16" fill="#FFFFFF" stroke="url(#greenGrad)" stroke-width="3" stroke-dasharray="5,3"/>
+    <text x="1100" y="-4" text-anchor="middle" font-size="10" font-weight="700" fill="#00C853">NEXT</text>
+    <text x="1100" y="48" text-anchor="middle" font-size="10" font-weight="600" fill="#5D4037">顧客理解の具体化</text>
+  </g>
+
+  <g transform="translate(56, 1216)">
+    <text x="0" y="14" font-size="12" font-weight="600" fill="#78909C">LEVERS</text>
+    <rect x="60" y="0" width="120" height="22" rx="11" fill="url(#accentGrad)"/>
+    <text x="120" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">複数仮説の並列化</text>
+    <rect x="188" y="0" width="108" height="22" rx="11" fill="url(#sunGrad)"/>
+    <text x="242" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">課題ベース進行</text>
+    <rect x="304" y="0" width="124" height="22" rx="11" fill="url(#warmGrad)"/>
+    <text x="366" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">Federated 基本方針</text>
+    <rect x="436" y="0" width="108" height="22" rx="11" fill="url(#greenGrad)"/>
+    <text x="490" y="15" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">縦×横の点検</text>
+  </g>
+
+  <!-- FOOTER -->
+  <text x="600" y="1280" text-anchor="middle" font-size="11" font-weight="400" fill="#B0BEC5" letter-spacing="0.5">LifeAI Daily Insights — 2026.04.17</text>
+</svg>
